@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="00b86e303699216f3fdd92e55459aa35af5bcc5f">
+<index version="1" name="dragonetti-reascripts" commit="04012cdb1db1c8afe9a0465617ccb78dda78660b">
   <category name="Items Editing">
-    <reapack name="dragonetti_input 2 length.lua" type="script" desc="User input changes the lengths of the items">
+    <reapack name="dragonetti_user input 2 length.lua" type="script" desc="User input changes the lengths of the items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -11,8 +11,8 @@
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="dragonetti" time="2022-10-10T11:57:24Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/eddc85211ef60100ae8d3bb01ccf3a05b80beff1/Items%20Editing/dragonetti_input%202%20length.lua</source>
+      <version name="1.0" author="dragonetti" time="2022-10-10T12:02:02Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/04012cdb1db1c8afe9a0465617ccb78dda78660b/Items%20Editing/dragonetti_user%20input%202%20length.lua</source>
       </version>
     </reapack>
   </category>
