@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="7469b453c978cf75b72abe41c232cad9bfeaffcb">
+<index version="1" name="dragonetti-reascripts" commit="b5c300c086d7d839b2f8b5814bb6132f05a21c72">
   <category name="Items Editing">
     <reapack name="dragonetti_user input 2 length.lua" type="script" desc="User input changes the lengths of the items">
       <metadata>
@@ -18,7 +18,7 @@
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/7469b453c978cf75b72abe41c232cad9bfeaffcb/Items%20Editing/dragonetti_user%20input%202%20length.lua</source>
       </version>
     </reapack>
-    <reapack name="ReaComposer.lua" type="script">
+    <reapack name="ReaComposer.lua" type="script" desc="ReaComposer - chordtrack for Reaper">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
