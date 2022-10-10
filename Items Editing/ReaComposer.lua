@@ -1,5 +1,5 @@
 -- @ReaComposer - chordtrack for Reaper
--- @version 1.4.9
+-- @version 1.5.0
 -- @author Dragonetti
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
 -- @about
@@ -12384,7 +12384,9 @@ local btn_length_double    = e.Button:new({1},b-36,a+44,32,32, e.col_grey4, "►
 local btn_length_triplet   = e.Button:new({1},b-104,a+44,32,32, e.col_grey4, "tripl",e.Arial,15, e.col_grey8); btn_length_triplet.help = "triple length"
 local btn_split_at_grid   = e.Button:new({1},b-104,a+78,66,32, e.col_grey4, "split at grid",e.Arial,15, e.col_grey8); btn_split_at_grid.help = "split at grid"
 local btn_length_rand     = e.Button:new({1},b-104,a+112,32,32, e.col_grey4, "rand",e.Arial,15, e.col_grey8); btn_length_rand.help = "random length depending on grid \ndelete items outside the time selection"
-local btn_length_input     = e.Button:new({1},b-70,a+112,66,32, e.col_grey4, "SEQ_IN",e.Arial,15, e.col_grey8); btn_length_input.help = ""
+local btn_length_input     = e.Button:new({1},b-70,a+112,66,32, e.col_grey4, "SEQ_IN",e.Arial,15, e.col_grey8); btn_length_input.help = "The lengths of the selected items are changed sequentially by digits. \nfactor divides the values by the input"
+
+
 
 
 ----------------------------RATE--------------------------------------------------------------------------------
