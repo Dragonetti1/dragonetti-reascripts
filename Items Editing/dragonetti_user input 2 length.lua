@@ -1,6 +1,6 @@
 -- @description User input changes the lengths of the items
 -- @author Dragonetti
--- @version 1.0
+-- @version 1.0.1
 -- @about
 --   Input numbers change length of selected items  -- Input "factor" divided length
 
