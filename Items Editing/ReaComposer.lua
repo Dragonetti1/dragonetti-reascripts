@@ -1,4 +1,4 @@
--- @ReaComposer - chordtrack for Reaper
+-- @description ReaComposer - chordtrack for Reaper
 -- @version 1.5.0
 -- @author Dragonetti
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
