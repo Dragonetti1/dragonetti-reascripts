@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="04012cdb1db1c8afe9a0465617ccb78dda78660b">
+<index version="1" name="dragonetti-reascripts" commit="dcede4d5198ce14e29739325809e1854986d1b31">
   <category name="Items Editing">
     <reapack name="dragonetti_user input 2 length.lua" type="script" desc="User input changes the lengths of the items">
       <metadata>
@@ -13,6 +13,21 @@
       </metadata>
       <version name="1.0" author="dragonetti" time="2022-10-10T12:02:02Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/04012cdb1db1c8afe9a0465617ccb78dda78660b/Items%20Editing/dragonetti_user%20input%202%20length.lua</source>
+      </version>
+    </reapack>
+    <reapack name="ReaComposer.lua" type="script">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 CHORDTRACK for REAPER\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=267849">forum</link>
+      </metadata>
+      <version name="1.4.9" author="Dragonetti" time="2022-10-10T12:11:55Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/dcede4d5198ce14e29739325809e1854986d1b31/Items%20Editing/ReaComposer.lua</source>
       </version>
     </reapack>
   </category>
