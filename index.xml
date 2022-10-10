@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="5e75ff2947067b8b1410eebec511b26cab1c19a7">
+<index version="1" name="dragonetti-reascripts" commit="00b86e303699216f3fdd92e55459aa35af5bcc5f">
+  <category name="Items Editing">
+    <reapack name="dragonetti_input 2 length.lua" type="script" desc="User input changes the lengths of the items">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Input numbers change length of selected items -- Input "factor" divided length\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="dragonetti" time="2022-10-10T11:57:24Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/eddc85211ef60100ae8d3bb01ccf3a05b80beff1/Items%20Editing/dragonetti_input%202%20length.lua</source>
+      </version>
+    </reapack>
+  </category>
   <metadata>
     <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
