@@ -2,7 +2,7 @@
 -- @author dragonetti
 -- @version 1.0
 -- @about
--- Input numbers change length of selected items  -- Input "factor" divided length
+--   Input numbers change length of selected items  -- Input "factor" divided length
 
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
