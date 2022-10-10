@@ -1,4 +1,4 @@
--- @description Input2Length
+-- @description User input changes the lengths of the items
 -- @author dragonetti
 -- @version 1.0
 -- @about
