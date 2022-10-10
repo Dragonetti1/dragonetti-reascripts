@@ -1,7 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="b5c300c086d7d839b2f8b5814bb6132f05a21c72">
+<index version="1" name="dragonetti-reascripts" commit="a95ccdbf6db110c12d360544f1b646409484116d">
   <category name="Items Editing">
-    <reapack name="dragonetti_user input 2 length.lua" type="script" desc="User input changes the lengths of the items">
+    <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 if you set up the script for a mouse modifier, you can send the item "notes" as a midi event to a vsti. Thanks MusoBob and mpl\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=269816">forum</link>
+      </metadata>
+      <version name="1.0.0" author="Dragonetti" time="2022-10-10T20:34:46Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/796ec32b7fcc79e2f88c0c0cb95751735709bd1c/Items%20Editing/dragonetti_chordsymbol%20to%20midi.lua</source>
+      </version>
+    </reapack>
+    <reapack name="dragonetti_user input to length.lua" type="script" desc="User input changes the lengths of the items">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -11,11 +26,8 @@
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="dragonetti" time="2022-10-10T12:02:02Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/04012cdb1db1c8afe9a0465617ccb78dda78660b/Items%20Editing/dragonetti_user%20input%202%20length.lua</source>
-      </version>
-      <version name="1.0.1" author="Dragonetti" time="2022-10-10T13:05:15Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/7469b453c978cf75b72abe41c232cad9bfeaffcb/Items%20Editing/dragonetti_user%20input%202%20length.lua</source>
+      <version name="1.0.1" author="Dragonetti" time="2022-10-10T20:35:18Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/a95ccdbf6db110c12d360544f1b646409484116d/Items%20Editing/dragonetti_user%20input%20to%20length.lua</source>
       </version>
     </reapack>
     <reapack name="ReaComposer.lua" type="script" desc="ReaComposer - chordtrack for Reaper">
