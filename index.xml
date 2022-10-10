@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="776be964b242172457ff3bdf85942efa32edee39">
+<index version="1" name="dragonetti-reascripts" commit="7469b453c978cf75b72abe41c232cad9bfeaffcb">
   <category name="Items Editing">
     <reapack name="dragonetti_user input 2 length.lua" type="script" desc="User input changes the lengths of the items">
       <metadata>
@@ -13,6 +13,9 @@
       </metadata>
       <version name="1.0" author="dragonetti" time="2022-10-10T12:02:02Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/04012cdb1db1c8afe9a0465617ccb78dda78660b/Items%20Editing/dragonetti_user%20input%202%20length.lua</source>
+      </version>
+      <version name="1.0.1" author="Dragonetti" time="2022-10-10T13:05:15Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/7469b453c978cf75b72abe41c232cad9bfeaffcb/Items%20Editing/dragonetti_user%20input%202%20length.lua</source>
       </version>
     </reapack>
     <reapack name="ReaComposer.lua" type="script">
@@ -28,6 +31,9 @@
       </metadata>
       <version name="1.4.9" author="Dragonetti" time="2022-10-10T12:11:55Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/dcede4d5198ce14e29739325809e1854986d1b31/Items%20Editing/ReaComposer.lua</source>
+      </version>
+      <version name="1.5.0" author="Dragonetti" time="2022-10-10T13:03:56Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/b063fe866af9f355cb4fd6059507c6198579faf4/Items%20Editing/ReaComposer.lua</source>
       </version>
     </reapack>
   </category>
