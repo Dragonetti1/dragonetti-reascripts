@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="a95ccdbf6db110c12d360544f1b646409484116d">
+<index version="1" name="dragonetti-reascripts" commit="19f5206b4cd49bd84e64fde3163c175bda401218">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -46,6 +46,22 @@
       </version>
       <version name="1.5.0" author="Dragonetti" time="2022-10-10T13:03:56Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/b063fe866af9f355cb4fd6059507c6198579faf4/Items%20Editing/ReaComposer.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Various">
+    <reapack name="dragonetti_song with random predefinitions.lua" type="script" desc="song with random predefinitions">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 try to compose a song with these random preconditions Thanks to nofish,mpl,Lokasenna,X-Raym and lb0.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="dragonetti" time="2022-10-15T14:17:10Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/19f5206b4cd49bd84e64fde3163c175bda401218/Various/dragonetti_song%20with%20random%20predefinitions.lua</source>
       </version>
     </reapack>
   </category>
