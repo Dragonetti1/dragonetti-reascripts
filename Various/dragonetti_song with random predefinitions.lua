@@ -2,8 +2,8 @@
 -- @author dragonetti
 -- @version 1.0
 -- @about
--- try to compose a song with these random preconditions
--- Thanks to nofish,mpl,Lokasenna,X-Raym and lb0.
+--   try to compose a song with these random preconditions
+--   Thanks to nofish,mpl,Lokasenna,X-Raym and lb0.
 
   local
   
