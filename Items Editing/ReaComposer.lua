@@ -1,5 +1,5 @@
 -- @ReaComposer - chordtrack for Reaper
--- @version 1.5.2
+-- @version 1.5.3
 -- @author Dragonetti
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
 -- @about
@@ -12920,6 +12920,7 @@ function SetDefaultWindowOpts()
 -- Get the retina scale
 local OS = reaper.GetOS()
 scale, gfx.ext_retina = 1, 1 -- init with 1
+font_size = 18
 
 function InitGFX()
 -----------------------------------------------------------------------------
