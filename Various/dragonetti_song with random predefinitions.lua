@@ -1,5 +1,5 @@
 -- @description song with random predefinitions
--- @author dragonetti
+-- @author Dragonetti
 -- @version 1.0
 -- @about
 --   try to compose a song with these random preconditions
