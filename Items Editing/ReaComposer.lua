@@ -1,5 +1,5 @@
 -- @ReaComposer - chordtrack for Reaper
--- @version 1.5.1
+-- @version 1.5.2
 -- @author Dragonetti
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
 -- @about
@@ -12382,7 +12382,7 @@ local btn_length_grid     = e.Button:new({1},b-36,a+78,32,32, e.col_grey4, "grid
 local btn_length_half      = e.Button:new({1},b-70,a+44,32,32, e.col_grey4, "◄",e.Arial,24, e.col_grey8); btn_length_half.help = "length half"
 local btn_length_double    = e.Button:new({1},b-36,a+44,32,32, e.col_grey4, "►",e.Arial,24, e.col_grey8); btn_length_half.help = "length double"
 local btn_length_triplet   = e.Button:new({1},b-104,a+44,32,32, e.col_grey4, "tripl",e.Arial,15, e.col_grey8); btn_length_triplet.help = "triple length"
-local btn_split_at_grid   = e.Button:new({1},b-104,a+78,66,32, e.col_grey4, "split at grid",e.Arial,15, e.col_grey8); btn_split_at_grid.help = "split at grid"
+local btn_split_at_grid   = e.Button:new({1},b-104,a+78,66,32, e.col_grey4, "split at grid",e.Arial,14, e.col_grey8); btn_split_at_grid.help = "split at grid"
 local btn_length_rand     = e.Button:new({1},b-104,a+112,32,32, e.col_grey4, "rand",e.Arial,15, e.col_grey8); btn_length_rand.help = "random length depending on grid \ndelete items outside the time selection"
 local btn_length_input     = e.Button:new({1},b-70,a+112,66,32, e.col_grey4, "SEQ_IN",e.Arial,15, e.col_grey8); btn_length_input.help = "The lengths of the selected items are changed sequentially by digits. \nfactor divides the values by the input"
 
@@ -12398,14 +12398,14 @@ local btn_rate_random     = e.Button:new({1},b+10,a+112,66,32, e.col_grey4, "ran
 
 
 -------------------------------- SOURCE --------------------------------------------------------
-local btn_source =       e.Button:new({1},b+90,a+10,66,32, e.col_grey4, "SOURCE",e.Arial,15, e.col_grey8); btn_source.help = ""
+local btn_source =       e.Button:new({1},b+90,a+10,66,32, e.col_grey4, "SOURCE",e.Arial,14, e.col_grey8); btn_source.help = ""
 local btn_source_left =  e.Button:new({1},b+90,a+44,32,32, e.col_grey4, "◄",e.Arial,24, e.col_grey8); btn_source_left.help = "Switch item source file to previous in folder "
 local btn_source_right = e.Button:new({1},b+124,a+44,32,32, e.col_grey4, "►",e.Arial,24, e.col_grey8); btn_source_right.help = "Switch item source file to next in folder "
 local btn_source_rand =  e.Button:new({1},b+90,a+78,66,32, e.col_grey4, "rand src",e.Arial,15,e.col_grey8); btn_source_rand.help = "switch item source file to random in folder\nold source length "
 local btn_source_rand2 = e.Button:new({1},b+90,a+112,66,32, e.col_grey4, "rand src.",e.Arial,15,e.col_grey8); btn_source_rand2.help = "switch item source file to random in folder\nnew source length "
 
 -------------------------------- CONTENT --------------------------------------------------------
-local btn_startoffs =       e.Button:new({1},b+166,a+10,66,32, e.col_grey4, "CONTENT",e.Arial,15, e.col_grey8); btn_startoffs.help = "reset content to start 0"
+local btn_startoffs =       e.Button:new({1},b+166,a+10,66,32, e.col_grey4, "CONTENT",e.Arial,14, e.col_grey8); btn_startoffs.help = "reset content to start 0"
 local btn_start_left =  e.Button:new({1},b+166,a+44,32,32, e.col_grey4, "◄",e.Arial,24, e.col_grey8); btn_start_left.help = "content one grid left"
 local btn_start_right = e.Button:new({1},b+200,a+44,32,32, e.col_grey4, "►",e.Arial,24, e.col_grey8); btn_start_right.help = "content one grid right"
 local btn_start_rand =  e.Button:new({1},b+166,a+78,66,32, e.col_grey4, "rand",e.Arial,15,e.col_grey8); btn_start_rand.help = "content start random depending on grid"
@@ -12446,7 +12446,7 @@ local btn_pitch_rand    = e.Button:new({1},b+c+330,a+112,32,32, e.col_grey4, "ra
 
 -------------------------------- SELECT --------------------------------------------------------
 local btn_select_all_items  = e.Button:new({1},b+c+440,a+10,100,32, e.col_grey4, "SELECT",e.Arial,15, e.col_grey8); btn_select_all_items.help = "select all items from selected items tracks"
-local btn_select_chord       = e.Button:new({1},b+c+508,a+44,32,32,  e.col_grey4, "chord",e.Arial,15,   e.col_grey8); btn_select_chord.help = "Select only the selected items that are in the chord range \nunder which the cursor is positioned."
+local btn_select_chord       = e.Button:new({1},b+c+508,a+44,32,32,  e.col_grey4, "chord",e.Arial,14,   e.col_grey8); btn_select_chord.help = "Select only the selected items that are in the chord range \nunder which the cursor is positioned."
 local btn_select_next_item  = e.Button:new({1},b+c+508,a+78,32,32,  e.col_grey4, "►",e.Arial,24,    e.col_grey8); btn_select_next_item.help = "select next item"
 local btn_select_prev_item  = e.Button:new({1},b+c+440,a+78,32,32,  e.col_grey4, "◄",e.Arial,24,    e.col_grey8); btn_select_prev_item.help = "select previous item"
 local btn_select_011        = e.Button:new({1},b+c+508,a+78,32,32,  e.col_grey4, "011",e.Arial,15,    e.col_grey8); btn_select_011.help = "select"
@@ -12470,7 +12470,7 @@ local btn_order_rand    = e.Button:new({1},b+c+624,a+112,66,32, e.col_grey4, "ra
 ---------------------------------- MIDI ---------------------------------------------------------
 local btn_midi          = e.Button:new({1},b+c+696,a+10,66,32,  e.col_green1, "MIDI",e.Arial,15, e.col_grey8)  ; btn_midi.help = "generate midi items with note(C)  on selected tracks \nin time selection "
 local btn_midi_single          = e.Button:new({1},b+c+696,a+44,66,32,  e.col_grey4, "SEQ",e.Arial,15, e.col_grey8)  ; btn_midi_single.help = 
-"the length of the note is determined by digits\n1=1grid 2=2grid etc. 0=mute1grid\ndepending on grid setting on selected tracks at cursor "
+"the length of the note is determined by digits\n1=1grid 2=2grid etc. 0=mute1grid\ndepending on grid setting on selected tracks at time selection"
 local btn_midi_pattern          = e.Button:new({1},b+c+696,a+78,66,32,  e.col_grey4, "patt.2",e.Arial,15, e.col_grey8)  ; btn_midi_pattern.help = "create random one bar pattern from cursor on selected tracks"
 local btn_midi_rand          = e.Button:new({1},b+c+696,a+112,66,32,  e.col_grey4, "patt.1",e.Arial,15, e.col_grey8)  ; btn_midi_rand.help = "create random one bar pattern from cursor on selected tracks"
 
@@ -12481,9 +12481,9 @@ local btn_detect_chord           = e.Button:new({1},b+c+71+696,a+44,32,32,  e.co
 local btn_chordsymbol_trans_down = e.Button:new({1},b+c+71+730,a+78,32,32,  e.col_grey4, "▼",e.Arial,15, e.col_grey8)        ; btn_chordsymbol_trans_down.help = "transposes all regions within the time selection down by 1 semitone"
 local btn_chordsymbol_right      = e.Button:new({1},b+c+71+696,a+78,32,32,  e.col_grey4, "►",e.Arial,15, e.col_grey8)        ; btn_chordsymbol_right.help = ""
 --local btn_chord_prog_rand        = e.Button:new({1},b+c+71+764,a+78,32,32,  e.col_grey4, "rand",e.Arial,15, e.col_grey8)   ; btn_chord_prog_rand.help = "insert random chord progression from cursor position"
-local ModulaDrop             = e.Droplist1:new( {1},b+c+71+696,a+112,66,32, e.col_grey4, "modulation", e.Arial, 14, e.col_grey8,1, 
+local ModulaDrop             = e.Droplist1:new( {1},b+c+71+696,a+112,66,32, e.col_grey4, "modulation", e.Arial, 13, e.col_grey8,1, 
 {"","sudden dominant (2items)","minor subdominant (2items)", "subdominant (1items)","parallel key (1item)"}) ; ModulaDrop.help = "the chordtrack can be manipulated here"
-local ChordDrop = e.Droplist1:new( {1},b+c+71+764,a+44,66,32, e.col_grey4, "chord prog.", e.Arial, 14, e.col_grey8, 1, 
+local ChordDrop = e.Droplist1:new( {1},b+c+71+764,a+44,66,32, e.col_grey4, "chord prog.", e.Arial, 13, e.col_grey8, 1, 
                   {"","Pachelbel`s Canon  -  C G Am Em F C F G ",
 "50s progression  -  C Am F G",
 "Cadence progression  -  Dm G C",
