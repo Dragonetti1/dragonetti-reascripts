@@ -1,5 +1,5 @@
 -- @ReaComposer - chordtrack for Reaper
--- @version 1.5.0
+-- @version 1.5.1
 -- @author Dragonetti
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
 -- @about
