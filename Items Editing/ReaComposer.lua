@@ -1,4 +1,4 @@
--- @description ReaComposer - chordtrack for Reaper
+-- @ReaComposer - chordtrack for Reaper
 -- @version 1.5.0
 -- @author Dragonetti
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
@@ -12914,12 +12914,26 @@ function SetDefaultWindowOpts()
  
   --  rad_but_16.val1 = 1
  --   rad_but_16.onLClick()
-    
-  
      end
 
 
+-- Get the retina scale
+local OS = reaper.GetOS()
+scale, gfx.ext_retina = 1, 1 -- init with 1
+
 function InitGFX()
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+if scale ~= gfx.ext_retina then -- dpi changed (either initially or from the user moving the window or the OS changing
+    scale = gfx.ext_retina
+    gfx.setfont(1, "Arial", font_size * (1+scale)*0.5)
+    -- Resize manually gfx window, if not MacOS
+    if OS ~= "OSX64" and OS ~= "OSX32" and OS ~= "macOS-arm64" then
+      gfx.init("", desired_width*scale, desired_height*scale)
+    end
+  end
+------------------------------------------------------------------
+------------------------------------------------------------
   ----Load extstate:
   __, pExtStateStr = reaper.GetProjExtState(0, script.name, "pExtState")
   if pExtStateStr ~= "" then
