@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="c8f40585cf935aa7594feda153f9c9d5a16b6bd8">
+<index version="1" name="dragonetti-reascripts" commit="0709c470cfa24c1f7f3d8a1b491bc4406c4d50bb">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -52,6 +52,9 @@
       </version>
       <version name="1.5.2" author="Dragonetti" time="2022-10-15T21:31:01Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/c8f40585cf935aa7594feda153f9c9d5a16b6bd8/Items%20Editing/ReaComposer.lua</source>
+      </version>
+      <version name="1.5.3" author="Dragonetti" time="2022-10-15T21:34:35Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0709c470cfa24c1f7f3d8a1b491bc4406c4d50bb/Items%20Editing/ReaComposer.lua</source>
       </version>
     </reapack>
   </category>
