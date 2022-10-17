@@ -1,6 +1,7 @@
 -- @ReaComposer - chordtrack for Reaper
 -- @version 1.5.4
 -- @author Dragonetti
+-- @changelog Fix retina issue
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
 -- @about
 --   CHORDTRACK for REAPER
