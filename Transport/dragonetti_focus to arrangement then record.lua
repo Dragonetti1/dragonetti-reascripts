@@ -1,4 +1,4 @@
--- @description set focus to Arrangement an then record
+-- @description set focus to arrangement and then record
 -- @author Dragonetti
 -- @version 1.0.0
 -- @about
