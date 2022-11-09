@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="b3af34bde305c555e4bd73108a0e3ee0c0e93138">
+<index version="1" name="dragonetti-reascripts" commit="dc8add22651a80f79183a3ddfffea6ce9310d703">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -36,7 +36,7 @@
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 CHORDTRACK for REAPER [nomain] Functions/*.lua\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 CHORDTRACK for REAPER [main=chordtrack] . [nomain] Functions/*.lua\par}
 }
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=267849">forum</link>
