@@ -5,6 +5,7 @@
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
 -- @about
 --   CHORDTRACK for REAPER
+--    [main=chordtrack] .
 --    [nomain] Functions/*.lua
 --local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
 local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
