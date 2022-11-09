@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="6ec4642a36e5db62a72a0657ddaa71682928931a">
+<index version="1" name="dragonetti-reascripts" commit="0f834f793977d3b35dba762ee6c65818d6b5f0fa">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -30,7 +30,7 @@
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/a95ccdbf6db110c12d360544f1b646409484116d/Items%20Editing/dragonetti_user%20input%20to%20length.lua</source>
       </version>
     </reapack>
-    <reapack name="ReaComposer.lua" type="script">
+    <reapack name="ReaComposer_old.lua" type="script">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -41,27 +41,9 @@
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=267849">forum</link>
       </metadata>
-      <version name="1.4.9" author="Dragonetti" time="2022-10-10T12:11:55Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/dcede4d5198ce14e29739325809e1854986d1b31/Items%20Editing/ReaComposer.lua</source>
-      </version>
-      <version name="1.5.0" author="Dragonetti" time="2022-10-10T13:03:56Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/b063fe866af9f355cb4fd6059507c6198579faf4/Items%20Editing/ReaComposer.lua</source>
-      </version>
-      <version name="1.5.1" author="Dragonetti" time="2022-10-15T21:04:00Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/358ebc619422ca911f74255b910216ec85f8a738/Items%20Editing/ReaComposer.lua</source>
-      </version>
-      <version name="1.5.2" author="Dragonetti" time="2022-10-15T21:31:01Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/c8f40585cf935aa7594feda153f9c9d5a16b6bd8/Items%20Editing/ReaComposer.lua</source>
-      </version>
-      <version name="1.5.3" author="Dragonetti" time="2022-10-15T21:34:35Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0709c470cfa24c1f7f3d8a1b491bc4406c4d50bb/Items%20Editing/ReaComposer.lua</source>
-      </version>
-      <version name="1.5.4" author="Dragonetti" time="2022-10-17T17:53:05Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/04f7c8751aa82693d43e0634c9847e3efbc9c15f/Items%20Editing/ReaComposer.lua</source>
-      </version>
-      <version name="1.5.5" author="Dragonetti" time="2022-10-17T18:09:46Z">
+      <version name="1.5.5" author="Dragonetti" time="2022-11-09T21:03:55Z">
         <changelog><![CDATA[Fix retina issue]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/280702c3553f831843948fbabc1b3eae36b2451e/Items%20Editing/ReaComposer.lua</source>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0f834f793977d3b35dba762ee6c65818d6b5f0fa/Items%20Editing/ReaComposer_old.lua</source>
       </version>
     </reapack>
   </category>
