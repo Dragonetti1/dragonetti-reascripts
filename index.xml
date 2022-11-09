@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="0f834f793977d3b35dba762ee6c65818d6b5f0fa">
+<index version="1" name="dragonetti-reascripts" commit="6e0e079a3fb3cc17f0a6b657a0aafaa140ad7ba7">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -30,7 +30,7 @@
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/a95ccdbf6db110c12d360544f1b646409484116d/Items%20Editing/dragonetti_user%20input%20to%20length.lua</source>
       </version>
     </reapack>
-    <reapack name="ReaComposer_old.lua" type="script">
+    <reapack name="ReaComposer.lua" type="script">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -41,9 +41,9 @@
 ]]></description>
         <link rel="website" href="https://forum.cockos.com/showthread.php?t=267849">forum</link>
       </metadata>
-      <version name="1.5.5" author="Dragonetti" time="2022-11-09T21:03:55Z">
-        <changelog><![CDATA[Fix retina issue]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0f834f793977d3b35dba762ee6c65818d6b5f0fa/Items%20Editing/ReaComposer_old.lua</source>
+      <version name="1.6.0" author="Dragonetti" time="2022-11-09T21:09:00Z">
+        <changelog><![CDATA[now based on ReaImGui]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/d415acebaf81080033ecb8e0f6625887acae7bb1/Items%20Editing/ReaComposer.lua</source>
       </version>
     </reapack>
   </category>
