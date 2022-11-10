@@ -1,4 +1,4 @@
--- @version 1.6
+-- @version 1.6.2
 -- @author Dragonetti
 -- @provides functions.lua
 -- @changelog
