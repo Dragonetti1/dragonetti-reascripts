@@ -1,4 +1,4 @@
--- @version 1.6.2
+-- @version 1.6.3
 -- @author Dragonetti
 -- @provides functions.lua
 -- @changelog
@@ -25,8 +25,10 @@ teiler = 1
 sub = 1
 x=1
 s1=s1
+tt=true
+
 function GuiInit()
-    ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable()) -- Add VERSION TODO
+    ctx = reaper.ImGui_CreateContext('ReaComposer', reaper.ImGui_ConfigFlags_DockingEnable()) -- Add VERSION TODO
     draw_list = r.ImGui_GetWindowDrawList(ctx)
     FONT = reaper.ImGui_CreateFont('Arial', 14) -- Create the fonts you need
     reaper.ImGui_AttachFont(ctx, FONT)-- Attach the fonts you need
@@ -39,14 +41,16 @@ end
 
 
 
-function ToolTip(text)
-    if reaper.ImGui_IsItemHovered(ctx) then
+function ToolTip(is_tooltip, text)
+    if is_tooltip and reaper.ImGui_IsItemHovered(ctx) then
+        reaper.ImGui_PushFont(ctx, FONT)
         reaper.ImGui_BeginTooltip(ctx)
-        reaper.ImGui_PushTextWrapPos(ctx, reaper.ImGui_GetFontSize(ctx) * 35.0)
+       -- reaper.ImGui_PushTextWrapPos(ctx, reaper.ImGui_GetFontSize(ctx) * 40)
         reaper.ImGui_PushTextWrapPos(ctx, 200)
         reaper.ImGui_Text(ctx, text)
         reaper.ImGui_PopTextWrapPos(ctx)
         reaper.ImGui_EndTooltip(ctx)
+        reaper.ImGui_PopFont(ctx)
     end
 end
 
@@ -88,11 +92,13 @@ reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),   8, 2)
   
 reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameBorderSize(), 1)
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x444141F0)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), 0x556A678A)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), 0x797979AB)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xD2D2D203)
-
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), 0x312F2FF0)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), 0x444141F0)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), 0x0797979AB)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), 0x797979AB)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), 0x797979AB)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0x797979AB)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), 0x6A6A6AFF)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), 0x444141c6)
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0x5D5D5D74)
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), 0xC8C8C8FF)
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)
@@ -133,15 +139,18 @@ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)
                reaper.ImGui_Button(ctx, 'SOURCE', 66,y)
                reaper.ImGui_SameLine( ctx ,a+354,0)
                reaper.ImGui_Button(ctx, 'CONTENT', 66,y)
+               ToolTip(tt, 'reset content to start 0')
                reaper.ImGui_SameLine( ctx ,a+432,0)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xF5FB2780)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0xC5C93366)
             if reaper.ImGui_Button(ctx, 'SCALE', 144,y) then scale_builder() end
+               ToolTip(tt, "q,w,e,r... = scale tones      \n1,2,3,4... =scale tones +1 \na,s,d...     =scale tones -12 \n1,0 accent")
                reaper.ImGui_PopStyleColor(ctx, 2)
                reaper.ImGui_SameLine( ctx ,a+588,0)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xFF000080)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x971616AA)
             if reaper.ImGui_Button(ctx, 'PHRASE', 66,y) then phrase_builder() end
+               ToolTip(tt, 'A phrase in "C" major scale (white keys) is required.The transposition depends on the chord.\nExample: \n"Cmaj7" transpose 0\n"Dmaj7" transpose +2\n"Cm"      transpose +3\n"Dm7"(dorian) transpose 0 ')
                reaper.ImGui_PopStyleColor(ctx, 2)              
                reaper.ImGui_SameLine( ctx ,a+588+b,0)
             if reaper.ImGui_Button(ctx, 'PITCH', 100,y)then reaper.Main_OnCommand(40653,0) end
@@ -160,6 +169,7 @@ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0x20CFFFAA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x167B97AA)
             if reaper.ImGui_Button(ctx, 'CHORDTRACK', 134,y) then create_chordtrack() end
+               ToolTip(tt, "Creates a chordtrack at the top if already available - move above selected track")
                reaper.ImGui_PopStyleColor(ctx, 2)              
                reaper.ImGui_SameLine( ctx ,a+1192+34+b,0)
                reaper.ImGui_Button(ctx, 'OTHER', 68,y)
@@ -185,12 +195,16 @@ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)
             if reaper.ImGui_Button(ctx, 'triplet',66,y) then rate_triplet() end
                reaper.ImGui_SameLine( ctx,a+276,0)
             if reaper.ImGui_Button(ctx, 'left',32,y) then startoffs_left() end
+               ToolTip(tt, "Switch item source file to previous in folder")
                reaper.ImGui_SameLine( ctx,a+310,0)
             if reaper.ImGui_Button(ctx, 'right',32,y) then startoffs_right() end
+               ToolTip(tt, "Switch item source file to next in folder")
                reaper.ImGui_SameLine( ctx,a+354,0)
             if reaper.ImGui_Button(ctx, 'prev',32,y) then startoffs_left() end
+               ToolTip(tt, "content one grid left")
                reaper.ImGui_SameLine( ctx,a+388,0)
             if reaper.ImGui_Button(ctx, 'next',32,y) then startoffs_right() end 
+               ToolTip(tt, "content one grid right")
             
                reaper.ImGui_SameLine( ctx,a+432,0)
             if reaper.ImGui_Button(ctx, '1##a',22,y) then scale_step(1) end                
@@ -211,9 +225,10 @@ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)
                reaper.ImGui_SameLine( ctx,a+588,0)
                reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
             if reaper.ImGui_ArrowButton( ctx, 1, 0 ) then phrase_1_left() end
+               ToolTip(tt, "transpose phrase one fifth to left")
                reaper.ImGui_SameLine( ctx,a+622,0)
             if reaper.ImGui_ArrowButton( ctx, 2, 1 )then phrase_1_right() end               
-                                                                        
+               ToolTip(tt, "transpose phrase one fifth to right")                                                         
                                                                                    
                reaper.ImGui_SameLine( ctx,a+588+b,0)
             if reaper.ImGui_Button(ctx, '+1',32,y) then reaper.Main_OnCommand(40204,0) end
@@ -235,6 +250,7 @@ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)
                retval, dinger = reaper.ImGui_DragInt( ctx, "##d", dinger, 0.1, 0,128)
                if retval then
                mute_exact(dinger,teiler) end
+               ToolTip(tt, "Unmuted group consists of x items")
                reaper.ImGui_SameLine( ctx ,a+890+34+b,0)
             if reaper.ImGui_Button(ctx, 'rate', 32,y) then order_rate() end
                reaper.ImGui_SameLine( ctx ,a+924+34+b,0)
@@ -305,6 +321,7 @@ end
            --    reaper.ImGui_PopStyleVar(ctx,2)
                reaper.ImGui_SameLine( ctx ,a+1192+34+b,0)
             if reaper.ImGui_Button(ctx, 'XML', 68,y) then import_xml() end
+            ToolTip(tt, "loads the appropriate xml file for the audio file.(if available)\nselect track and don't allow import midi tempo..")
          
       
 --==========================================================================================================            
@@ -331,8 +348,10 @@ end
             if reaper.ImGui_ArrowButton( ctx, 8, 1 ) then rate_double() end
                reaper.ImGui_SameLine( ctx,a+276,0)
             if reaper.ImGui_Button(ctx, 'rand src', 66,y) then random_startoffs() end
+               ToolTip(tt, "switch item source file to random in folder \n- old source length")
                reaper.ImGui_SameLine( ctx,a+354,0)
-            if reaper.ImGui_Button(ctx, 'rand', 66,y) then shuffle_startoffs() end             
+            if reaper.ImGui_Button(ctx, 'rand', 66,y) then shuffle_startoffs() end
+               ToolTip(tt, "content start random depending on grid")
                reaper.ImGui_SameLine( ctx,a+432,0)
             if reaper.ImGui_Button(ctx, '-1##a',22,y) then scale_step(-1) end                
                reaper.ImGui_SameLine( ctx,a+454,0)
@@ -353,6 +372,7 @@ end
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x894A02B9)
                reaper.ImGui_SameLine( ctx,a+588,0)
             if reaper.ImGui_Button(ctx, 'CHORD', 66,y) then chord_builder() end
+               ToolTip(tt, "Transposes items(midi:note c, audio:metadata key) that lie on top of each other.\nExample : 3 items - triad root position")
                reaper.ImGui_PopStyleColor(ctx, 2)
                reaper.ImGui_SameLine( ctx,a+588+b,0)
             if reaper.ImGui_Button(ctx, '-1',32,y) then reaper.Main_OnCommand(40205,0) end
@@ -361,23 +381,28 @@ end
                reaper.ImGui_SameLine( ctx,a+656+b,0)
             if reaper.ImGui_Button(ctx, '-12',32,y) then reaper.Main_OnCommand(40516,0) end
                reaper.ImGui_SameLine( ctx,a+700+b,0)
-            if reaper.ImGui_Button(ctx, 'chord',32,y) then select_chord() end 
+            if reaper.ImGui_Button(ctx, 'chord',32,y) then select_chord() end
+               ToolTip(tt, "Select only the selected items that are in the chord range \nunder which the cursor is positioned.")
                reaper.ImGui_SameLine( ctx,a+734+b,0)
             if reaper.ImGui_Button(ctx, 'root',32,y) then select_root_note() end
+               ToolTip(tt, "select root note")
                reaper.ImGui_SameLine( ctx,a+768+b,0)
             if reaper.ImGui_Button(ctx, 'grid##1',32,y) then select_only_on_grid() end
+               ToolTip(tt, "only selects items that start on the grid")
                reaper.ImGui_SameLine( ctx ,a+812+b,0)
                reaper.ImGui_PushItemWidth( ctx, 49 )
                ret, teiler = reaper.ImGui_DragInt( ctx, "##1", teiler, 0.1, 1,24)
                 if ret then 
                mute_exact(teiler,dinger) end
+               ToolTip(tt, "how many unmuted groups")
                                    
                reaper.ImGui_SameLine( ctx ,a+863+b,0)
                reaper.ImGui_PushItemWidth( ctx, 49 )
                                                                  
                ret, sub = reaper.ImGui_DragInt( ctx, "##2", sub, 0.1, 1,16)
                 if ret then 
-               mute_exact(sub) end               
+               mute_exact(sub) end 
+               ToolTip(tt, "push unmuted groups")
                reaper.ImGui_SameLine( ctx ,a+890+34+b,0)
             if reaper.ImGui_Button(ctx, 'reverse', 66,y) then reverse = reaper.NamedCommandLookup("_XENAKIOS_REVORDSELITEMS")
                        reaper.Main_OnCommand(reverse,0) end
@@ -385,27 +410,34 @@ end
             if reaper.ImGui_Button(ctx, 'pattern', 66,y) then midi_rand() end
                reaper.ImGui_SameLine( ctx ,a+1046+34+b,0)
             if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end
+               ToolTip(tt, "Transposes the selected chord symbols")
             reaper.ImGui_PopStyleVar(ctx)
                reaper.ImGui_SameLine( ctx ,a+1080+34+b,0)
-            if reaper.ImGui_Button(ctx, 'x',32,y) then chordsymbol_right() end
+            if reaper.ImGui_Button(ctx, 'x##2',32,y) then chordsymbol_right() end
             mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdominant (1items)", "  parallel key (1item)"}
                reaper.ImGui_SameLine( ctx ,a+1114+34+b,0)
                reaper.ImGui_PushItemWidth( ctx, 66 )
+               ToolTip(tt, "quick change of the chord symbols")
                if reaper.ImGui_BeginCombo(ctx, '##modulationen', " modulation",reaper.ImGui_ComboFlags_NoArrowButton()) then
                  for m, mods in ipairs(mods) do
+             
                    m = m - 1
                    if reaper.ImGui_Selectable(ctx, mods, ma == i) then
                    if m==0 then sudden_dominant()end
                    if m==1 then minor_subdominant()end
                    if m==2 then create_subdominant()end
-                   if m==3 then create_parallel()end   
+                   if m==3 then create_parallel()end 
+                
                  
                end
+            
                end
+             
               reaper.ImGui_EndCombo(ctx)
+             
               
               end
-              
+              ToolTip(tt, "With this you can extend or change existing chords.")
                              
                reaper.ImGui_SameLine( ctx ,a+1192+34+b,0)
             if reaper.ImGui_Button(ctx, 'Color', 68,y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end
@@ -452,7 +484,7 @@ end
             if reaper.ImGui_Button(ctx, 'random', 66,y) then rate_random() end
                reaper.ImGui_SameLine( ctx,a+276,0)
                reaper.ImGui_Button(ctx, 'rand src', 66,y)
-               
+               ToolTip(tt, "switch item source file to random in folder\nnew source length")
                reaper.ImGui_SameLine( ctx,a+588,0)
                
             if reaper.ImGui_ArrowButton( ctx, 11, 3 ) then chord_inversion_down() end
@@ -462,11 +494,14 @@ end
                reaper.ImGui_SameLine( ctx,a+276,0)
                reaper.ImGui_PopStyleColor(ctx,1)
                reaper.ImGui_SameLine( ctx,a+588+b,0)
-            if reaper.ImGui_Button(ctx, 'ran',32,y) then pitch_rand() end 
+            if reaper.ImGui_Button(ctx, 'com.',32,y) then  pitch_comp() end
+               ToolTip(tt, "compress pitch \npitch above +12 is octaved down \npitch below -12 is octaved up")
                reaper.ImGui_SameLine( ctx,a+622+b,0)
             if reaper.ImGui_Button(ctx, 'inv.',32,y) then pitch_invers_x() end
+               ToolTip(tt, "the scale tones are inverted \nexample(Cmaj7): \nc e g becomes c a f")
                reaper.ImGui_SameLine( ctx,a+656+b,0)
-            if reaper.ImGui_Button(ctx, 'com.',32,y) then pitch_comp() end
+            if reaper.ImGui_Button(ctx, 'rand',32,y) then pitch_rand() end
+               ToolTip(tt, "the transposition is random but fitting to the chord")
            --    reaper.ImGui_SameLine( ctx,a+700+b,0)
             --   reaper.ImGui_PushItemWidth( ctx, 34 )
             --     local old_val1 = val1
@@ -492,12 +527,14 @@ end
                reaper.ImGui_SameLine( ctx ,a+1046+34+b,0)
                
             if reaper.ImGui_ArrowButton( ctx, 14, 3 ) then chordsymbol_trans_down() end
+            ToolTip(tt, "Transposes the selected chord symbols")
             reaper.ImGui_PopStyleVar(ctx)
                reaper.ImGui_SameLine( ctx ,a+1114+34+b,0)
             if reaper.ImGui_Button(ctx, 'detection',66,y) then detect_midi_chords() end
+            ToolTip(tt, "Writes the recognised chords into the chordtrack")
           
         reaper.ImGui_PopStyleVar(ctx,2)
-        reaper.ImGui_PopStyleColor(ctx, 7)
+        reaper.ImGui_PopStyleColor(ctx, 10)
         reaper.ImGui_End(ctx)
     end 
 
