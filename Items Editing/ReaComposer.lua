@@ -4,12 +4,14 @@
 -- @changelog now based on ReaImGui 
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
 -- @provides 
---    functions/functions.lua 
+--    Functions/functions.lua 
 -- @about  chordtrack for reaper   
 --local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
-local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
+--local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
+local info = debug.getinfo(1,'S');
+local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
 -- dofile all files inside functions folder
-dofile(script_path .. 'functions/functions.lua') -- Functions reaper
+dofile(script_path .. 'Functions/functions.lua') -- Functions reaper
 
 r=reaper
 function Msg(variable)
