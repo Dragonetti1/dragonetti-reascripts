@@ -34,19 +34,10 @@
   <category name="Items Editing/ReaComposer">
     <reapack name="ReaComposer.lua" type="script">
       <metadata/>
-      <version name="1.6.0" author="Dragonetti" time="2022-11-10T11:16:31Z">
-        <changelog><![CDATA[now based on ReaImGui]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/2296b0311b6852287d37291903e9a7f914fecdaa/Items%20Editing/ReaComposer/ReaComposer.lua</source>
-      </version>
       <version name="1.6" author="Dragonetti" time="2022-11-10T16:29:18Z">
         <changelog><![CDATA[+ now based on ReaImGui]]></changelog>
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/e8d59017e53da7d34b87d475c2254dfc1d5e5833/Items%20Editing/ReaComposer/ReaComposer.lua</source>
         <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/e8d59017e53da7d34b87d475c2254dfc1d5e5833/Items%20Editing/ReaComposer/functions.lua</source>
-      </version>
-      <version name="1.6.1" author="Dragonetti" time="2022-11-10T16:45:35Z">
-        <changelog><![CDATA[+ now based on ReaImGui]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/a98c72aba80d1511a4e678450250ce7f0b4be41d/Items%20Editing/ReaComposer/ReaComposer.lua</source>
-        <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/a98c72aba80d1511a4e678450250ce7f0b4be41d/Items%20Editing/ReaComposer/functions.lua</source>
       </version>
     </reapack>
   </category>
