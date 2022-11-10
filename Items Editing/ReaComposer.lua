@@ -12,7 +12,11 @@ local info = debug.getinfo(1,'S');
 local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
 -- dofile all files inside functions folder
 dofile(script_path .. 'Functions/functions.lua') -- Functions reaper
-
+function RefreshExternalLibs()
+    -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
+    dofile(script_path .. "Functions/functions.lua")    
+  end
+  RefreshExternalLibs()
 r=reaper
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
