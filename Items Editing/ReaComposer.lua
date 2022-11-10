@@ -9,7 +9,6 @@
 
 
 
-
 local info = debug.getinfo(1,'S');
 local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
 
