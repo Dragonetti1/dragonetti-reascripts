@@ -5,8 +5,6 @@
 -- @changelog
 --    + now based on ReaImGui
 
-
-script_version = "1.6.1"
 ------------------------------
 info = debug.getinfo(1,'S')
 script_path = info.source:match[[^@?(.*[\/])[^\/]-$]] -- this script folder
