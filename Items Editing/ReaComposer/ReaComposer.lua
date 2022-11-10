@@ -6,7 +6,7 @@
 -- @provides 
 --    [nomain] functions.lua
 -- @about
---   CHORDTRACK for REAPER
+--    CHORDTRACK for REAPER
 --local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
 local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
 -- dofile all files inside functions folder
