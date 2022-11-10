@@ -3,9 +3,9 @@
 -- @author Dragonetti
 -- @changelog now based on ReaImGui 
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
+-- @provides Functions/functions.lua
 -- @about
 --   CHORDTRACK for REAPER
--- @provides Functions/functions.lua
 --local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
 local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
 -- dofile all files inside functions folder
