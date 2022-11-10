@@ -3,7 +3,7 @@
 -- @author Dragonetti
 -- @changelog now based on ReaImGui 
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
--- @provides functions.lua 
+-- @provides Functions/functions.lua  
 
 -- @about
 --    CHORDTRACK for REAPER
