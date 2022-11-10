@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="59ba0d94ed3e2ef5549e57c5c3650042ff42d954">
+<index version="1" name="dragonetti-reascripts" commit="f930e30612687645281f7b2afecbd8d8077a0e1e">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -30,7 +30,7 @@
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/a95ccdbf6db110c12d360544f1b646409484116d/Items%20Editing/dragonetti_user%20input%20to%20length.lua</source>
       </version>
     </reapack>
-    <reapack name="ReaComposer.lua" type="script">
+    <reapack name="ReaComposer.lua" type="script" desc="ReaComposer - chordtrack for Reaper">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -39,7 +39,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 chordtrack for reaper\par}
 }
 ]]></description>
-        <link rel="website" href="https://forum.cockos.com/showthread.php?t=267849">forum</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=267849</link>
       </metadata>
       <version name="1.6.0" author="Dragonetti" time="2022-11-09T21:09:00Z">
         <changelog><![CDATA[now based on ReaImGui]]></changelog>
