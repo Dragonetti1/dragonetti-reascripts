@@ -1,12 +1,20 @@
--- @ReaComposer - chordtrack for Reaper
--- @version 1.6.0
+-- @version 1.6
 -- @author Dragonetti
--- @changelog now based on ReaImGui 
--- @link forum https://forum.cockos.com/showthread.php?t=267849
--- @provides Functions/functions.lua  
+-- @provides
+--    [nomain] functions.lua
+-- @changelog
+--    + now based on ReaImGui
 
--- @about
---    CHORDTRACK for REAPER
+
+script_version = "1.6"
+------------------------------
+info = debug.getinfo(1,'S')
+script_path = info.source:match[[^@?(.*[\/])[^\/]-$]] -- this script folder
+------------------------------
+
+dofile(script_path .. 'functions.lua') -- functions needed
+
+
 --local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
 local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
 -- dofile all files inside functions folder
