@@ -1,11 +1,13 @@
--- @ReaComposer - chordtrack for Reaper
+-- @description ReaComposer - chordtrack for Reaper
 -- @version 1.6.0
 -- @author Dragonetti
 -- @changelog now based on ReaImGui 
--- @link forum https://forum.cockos.com/showthread.php?t=267849
+-- @website https://forum.cockos.com/showthread.php?t=267849
+-- @about  chordtrack for reaper  
 -- @provides 
 --    Functions/functions.lua 
--- @about  chordtrack for reaper   
+
+
 --local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
 --local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
 local info = debug.getinfo(1,'S');
