@@ -4,6 +4,7 @@
 -- @changelog now based on ReaImGui 
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
 -- @about
+-- @provides Functions/functions.lua
 --   CHORDTRACK for REAPER
 --    [main=chordtrack] .
 --    [nomain] Functions/functions.lua
