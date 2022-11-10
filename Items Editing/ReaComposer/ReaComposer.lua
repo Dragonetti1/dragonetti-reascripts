@@ -1,7 +1,6 @@
 -- @version 1.6.1
 -- @author Dragonetti
--- @provides
---    [nomain] functions.lua
+-- @provides functions.lua
 -- @changelog
 --    + now based on ReaImGui
 
