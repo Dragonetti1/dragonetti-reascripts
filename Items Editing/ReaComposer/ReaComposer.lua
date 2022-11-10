@@ -3,8 +3,8 @@
 -- @author Dragonetti
 -- @changelog now based on ReaImGui 
 -- @link forum https://forum.cockos.com/showthread.php?t=267849
--- @provides 
---    [nomain] functions.lua
+-- @provides functions.lua 
+
 -- @about
 --    CHORDTRACK for REAPER
 --local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
