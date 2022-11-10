@@ -16,9 +16,7 @@ dofile(script_path .. 'functions.lua') -- functions needed
 
 
 --local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
-local script_path = debug.getinfo(1,'S').source:match[[^@?(.*[\/])[^\/]-$]]
--- dofile all files inside functions folder
-dofile(script_path .. 'functions.lua') -- Functions for using the markov in reaper
+
 
 r=reaper
 function Msg(variable)
