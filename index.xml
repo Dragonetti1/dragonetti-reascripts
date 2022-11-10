@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="4449f6cb016b9c1064c180e59e54efca098f6105">
+<index version="1" name="dragonetti-reascripts" commit="e8d59017e53da7d34b87d475c2254dfc1d5e5833">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -33,12 +33,15 @@
   </category>
   <category name="Items Editing/ReaComposer">
     <reapack name="ReaComposer.lua" type="script">
-      <metadata>
-        <link rel="website" href="https://forum.cockos.com/showthread.php?t=267849">forum</link>
-      </metadata>
+      <metadata/>
       <version name="1.6.0" author="Dragonetti" time="2022-11-10T11:16:31Z">
         <changelog><![CDATA[now based on ReaImGui]]></changelog>
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/2296b0311b6852287d37291903e9a7f914fecdaa/Items%20Editing/ReaComposer/ReaComposer.lua</source>
+      </version>
+      <version name="1.6" author="Dragonetti" time="2022-11-10T16:29:18Z">
+        <changelog><![CDATA[+ now based on ReaImGui]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/e8d59017e53da7d34b87d475c2254dfc1d5e5833/Items%20Editing/ReaComposer/ReaComposer.lua</source>
+        <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/e8d59017e53da7d34b87d475c2254dfc1d5e5833/Items%20Editing/ReaComposer/functions.lua</source>
       </version>
     </reapack>
   </category>
