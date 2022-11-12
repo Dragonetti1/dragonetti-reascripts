@@ -1,4 +1,4 @@
--- @version 1.6.3
+-- @version 1.6.4
 -- @author Dragonetti
 -- @provides functions.lua
 -- @changelog
@@ -13,9 +13,6 @@ script_path = info.source:match[[^@?(.*[\/])[^\/]-$]] -- this script folder
 dofile(script_path .. 'functions.lua') -- functions needed
 
 
---local ctx = reaper.ImGui_CreateContext('Anfang', reaper.ImGui_ConfigFlags_DockingEnable())
-
-
 r=reaper
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
@@ -28,6 +25,7 @@ s1=s1
 tt=true
 
 function GuiInit()
+  
     ctx = reaper.ImGui_CreateContext('ReaComposer', reaper.ImGui_ConfigFlags_DockingEnable()) -- Add VERSION TODO
     draw_list = r.ImGui_GetWindowDrawList(ctx)
     FONT = reaper.ImGui_CreateFont('Arial', 14) -- Create the fonts you need
@@ -81,16 +79,16 @@ if set_dock_id then
     set_dock_id = nil
   end
 
---  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0, 0)
+--reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0, 0)
 --reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowPadding(), 8, 6)
 
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),   8, 2)
+--reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),8,2)
 --reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_CellPadding(),   10, 5)
 
 
 
   
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameBorderSize(), 1)
+--reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameBorderSize(), 1)
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x444141F0)
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), 0x444141F0)
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), 0x0797979AB)
@@ -106,11 +104,11 @@ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)
 
 
     local window_flags = reaper.ImGui_WindowFlags_MenuBar() 
-    reaper.ImGui_SetNextWindowSize(ctx, 1280, 120, reaper.ImGui_Cond_Once())-- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
+    reaper.ImGui_SetNextWindowSize(ctx, 1440, 180, reaper.ImGui_Cond_Once())-- Set the size of the windows.  Use in the 4th argument reaper.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
     
     reaper.ImGui_PushFont(ctx, FONT) -- Says you want to start using a specific font
    
-    local visible, open  = reaper.ImGui_Begin(ctx, 'Anfang', true)
+    local visible, open  = reaper.ImGui_Begin(ctx, 'ReaComposer', true)
 
     if visible then
     
@@ -187,8 +185,14 @@ reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)
                reaper.ImGui_SameLine( ctx,110,0)
                reaper.ImGui_SameLine( ctx,a+86,0 )
             if reaper.ImGui_Button(ctx, 'tripl',32,y)then length_triplet()end
-               reaper.ImGui_SameLine( ctx,a+120,0)
-            if reaper.ImGui_Button(ctx, 'x0.5', 32,y) then length_half() end
+             reaper.ImGui_SameLine( ctx,a+120,0)
+           if reaper.ImGui_Button(ctx, 'x0.5', 32,y) then length_half() end
+         --   reaper.ImGui_SameLine( ctx ,a+120,0)
+                         --  reaper.ImGui_PushItemWidth( ctx, 32 )
+                         
+                          -- retval, number = reaper.ImGui_DragInt( ctx, "##dre", number, 0.1,0,1)
+                          -- if retval then
+                          -- length_half(number) end
                reaper.ImGui_SameLine( ctx,a+154,0)
             if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() end
                reaper.ImGui_SameLine( ctx,a+198,0)
@@ -492,7 +496,7 @@ end
             if reaper.ImGui_ArrowButton( ctx, 12, 2 )   then chord_inversion_up() end
                
                reaper.ImGui_SameLine( ctx,a+276,0)
-               reaper.ImGui_PopStyleColor(ctx,1)
+             --  reaper.ImGui_PopStyleColor(ctx,1)
                reaper.ImGui_SameLine( ctx,a+588+b,0)
             if reaper.ImGui_Button(ctx, 'com.',32,y) then  pitch_comp() end
                ToolTip(tt, "compress pitch \npitch above +12 is octaved down \npitch below -12 is octaved up")
@@ -533,8 +537,8 @@ end
             if reaper.ImGui_Button(ctx, 'detection',66,y) then detect_midi_chords() end
             ToolTip(tt, "Writes the recognised chords into the chordtrack")
           
-        reaper.ImGui_PopStyleVar(ctx,2)
-        reaper.ImGui_PopStyleColor(ctx, 10)
+     --   reaper.ImGui_PopStyleVar(ctx)
+       reaper.ImGui_PopStyleColor(ctx, 11)
         reaper.ImGui_End(ctx)
     end 
 
