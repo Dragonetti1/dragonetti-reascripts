@@ -1,8 +1,8 @@
--- @version 1.6.4
+-- @version 1.6.5
 -- @author Dragonetti
 -- @provides functions.lua
 -- @changelog
---    + now based on ReaImGui
+--    + now based on ReaImGui problem with colors
 
 
 ------------------------------
