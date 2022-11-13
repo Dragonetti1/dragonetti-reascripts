@@ -2,7 +2,7 @@
 -- @author Dragonetti
 -- @provides functions.lua
 -- @changelog
---    + now based on ReaImGui problem with colors
+--    + now based on ReaImGui I have to reset color styles 
 
 
 ------------------------------
