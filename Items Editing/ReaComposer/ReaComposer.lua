@@ -74,7 +74,23 @@ end
 
 function loop()
 
+reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0, 0)
+reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowPadding(), 8, 6)
+reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),8,2)
+reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_CellPadding(),   10, 5)
+reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameBorderSize(), 1)
 
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x444141F0)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), 0x444141F0)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), 0x0797979AB)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), 0x797979AB)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), 0x797979AB)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0x797979AB)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), 0x6A6A6AFF)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), 0x444141c6)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0x5D5D5D74)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), 0xC8C8C8FF)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)  
 
 
 if set_dock_id then
@@ -100,23 +116,7 @@ if set_dock_id then
                 reaper.ImGui_EndPopup(ctx)
               end  
               
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0, 0)
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowPadding(), 8, 6)
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),8,2)
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_CellPadding(),   10, 5)
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameBorderSize(), 1)
-
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x444141F0)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), 0x444141F0)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(), 0x0797979AB)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), 0x797979AB)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_HeaderHovered(), 0x797979AB)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0x797979AB)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), 0x6A6A6AFF)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), 0x444141c6)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0x5D5D5D74)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(), 0xC8C8C8FF)
-reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TextSelectedBg(), 0x646464FF)              
+           
    
 --==========================================================================================================            
 --==================================== LINE 1 ==============================================================
@@ -535,11 +535,12 @@ end
             if reaper.ImGui_Button(ctx, 'detection',66,y) then detect_midi_chords() end
             ToolTip(tt, "Writes the recognised chords into the chordtrack")
           
-       reaper.ImGui_PopStyleVar(ctx,5)
-    reaper.ImGui_PopStyleColor(ctx, 11)
+    
         reaper.ImGui_End(ctx)
     end 
-
+    
+    reaper.ImGui_PopStyleVar(ctx,5)
+    reaper.ImGui_PopStyleColor(ctx, 11)
     
     reaper.ImGui_PopFont(ctx) -- Pop Font
 
