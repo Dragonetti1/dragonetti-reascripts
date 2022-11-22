@@ -1,8 +1,9 @@
--- @version 1.6.7
+-- @version 1.6.8
 -- @author Dragonetti
 -- @provides functions.lua
 -- @changelog
 --    + now based on ReaImGui new groups
+--    + new length manipulation
 
 
 ------------------------------
@@ -25,7 +26,7 @@ s1=s1
 tt=true
 
 function GuiInit()
-  
+    
     ctx = reaper.ImGui_CreateContext('ReaComposer', reaper.ImGui_ConfigFlags_DockingEnable()) -- Add VERSION TODO
     draw_list = r.ImGui_GetWindowDrawList(ctx)
     FONT = reaper.ImGui_CreateFont('Arial', 14) -- Create the fonts you need
@@ -71,6 +72,11 @@ if grid == 4166   then grid_setting = "1/16T" end
 if grid == 2083   then grid_setting = "1/32T" end
 
 end
+
+
+b=2
+ICount=2
+am=0
 
 function loop()
 
@@ -167,35 +173,46 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'x0.5', 32,y) then length_half() end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() end
+               
+            if reaper.ImGui_Button(ctx, 'a##b1', 15,y) then  b = math.floor(ICount/2) crazy_length(b,am) end
+               reaper.ImGui_SameLine( ctx)
+            if reaper.ImGui_Button(ctx, 'b##b2', 15,y) then  b = math.floor(ICount/4) crazy_length(b,am) end
+               reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'split at grid', 32,32)then reaper.Main_OnCommand(40932,0)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'SEQ##2', 32,32)then length_input() end
-               reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'grid', 32,y) then  length_to_grid() end
-            if reaper.ImGui_Button(ctx, '-##1', 32,y) then x=1 s1=s2 length_sinus(x,s1)end
-         --   reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
-               reaper.ImGui_SameLine( ctx)   
+              
+       
+          if xpi == nil then xpi = 2 end
+          if ICount== nil then ICount = 2 end
+                     
+               reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
+               reaper.ImGui_NewLine(ctx)
+               reaper.ImGui_SameLine( ctx ,0,0)
                reaper.ImGui_PushItemWidth( ctx, 32 )
-                sinus={"  f(x)=0.01x  ","  sinus1  ","  sinus2  ","  sinus3  ","  sinus4  ","  sinus5  "}
-             --  reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
-            if reaper.ImGui_BeginCombo(ctx, '##modulatio', "  f (x)",reaper.ImGui_ComboFlags_NoArrowButton()) then
-            reaper.ImGui_PopStyleVar(ctx,1)
-                       for s1, sinus in ipairs(sinus) do
-                                  s1 = s1 - 1
-            if reaper.ImGui_Selectable(ctx, sinus, sa == s1) then
-                            length_sinus(x,s1) 
-                                      end
-                                       end
-                                
-                        reaper.ImGui_EndCombo(ctx)
-                    
-               end
-          --   reaper.ImGui_PopStyleVar(ctx,1)
-              reaper.ImGui_SameLine( ctx)
-           --   reaper.ImGui_PopStyleVar(ctx,1)
-              if  reaper.ImGui_Button(ctx, '+##2', 32,y) then x=-1 s1=s2 length_sinus(x,s1)end            
+                         local   old_b = b
+                        ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 1,(ICount))
+                          if ret then
+                          
+                            crazy_length(b,am)
+                         end
+                       
+               reaper.ImGui_SameLine( ctx ,0,2)
+                                           
+                         ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,9)
+                           if ret then
+                                             
+                        --      crazy_length(_,_,xpi)
+                                     end 
+                              reaper.ImGui_SameLine( ctx ,0,2)
+                              local   old_am = am
+                  ret, am = reaper.ImGui_DragInt( ctx, "##am",0, 1, -4,4)
+                      if ret then
+                     am = am - old_am
+                        crazy_length(b,am)
+                                                                                        end 
                reaper.ImGui_EndGroup(ctx)
-            --  reaper.ImGui_PopStyleVar(ctx,1) 
+            --  reaper.ImGui_PopStyleVar(ctx)
 --========================= RATE ============================================================================    
 
                reaper.ImGui_SameLine(ctx, nil, 10)
@@ -210,7 +227,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_EndGroup(ctx)
                
                
-               
+            
 --========================= SOURCE ============================================================================  
 
                reaper.ImGui_SameLine(ctx, nil, 10)
@@ -525,17 +542,19 @@ if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end
            
              if reaper.ImGui_Button(ctx, 'XML', (btn_w*2)+(spacing_x*1),y) then import_xml() end
                         ToolTip(tt, "loads the appropriate xml file for the audio file.(if available)\nselect track and don't allow import midi tempo..")
-           if reaper.ImGui_Button(ctx, 'Color', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end   
+           if reaper.ImGui_Button(ctx, 'Color', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end 
+           
            reaper.ImGui_EndGroup(ctx)     
 --=============================================================================================================================
-    
+    reaper.ImGui_PopStyleVar(ctx)   
         reaper.ImGui_End(ctx)
+        
     end 
   
     reaper.ImGui_PopStyleVar(ctx,6)
     reaper.ImGui_PopStyleColor(ctx, 11)
     reaper.ImGui_PopFont(ctx) -- Pop Font
-
+   
     if open then
         reaper.defer(loop)
     else

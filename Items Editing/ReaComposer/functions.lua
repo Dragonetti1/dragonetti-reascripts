@@ -2,6 +2,133 @@
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------FUNCTIONS---------------------------------------------------------------------------------------------------------------------------------
+--===========================================================================================================================================================================
+function crazy_length(b,am)
+
+
+
+ local function Msg(str)
+  reaper.ShowConsoleMsg(tostring(str) .. "\n")
+end
+
+
+loop_start, loop_end = reaper.GetSet_LoopTimeRange(false,true,0,0,false  ) -- time selection
+_,grid = reaper.GetSetProjectGrid( 0, false ) -- get grid  
+bpm = reaper.TimeMap2_GetDividedBpmAtTime( 0, loop_start ) -- bpm at loop_start
+
+
+--Length of an item at a 1/64 grid.
+--No item should be smaller than this (particle).
+
+grid_mod = math.floor(grid*10000)
+--grid straight
+if grid_mod==10000 or grid_mod==5000 or grid_mod==2500 or grid_mod==1250 or grid_mod==625 or grid_mod==312 then particle = 0.015625 end -- for straight grid (1/64)
+if grid_mod==6666 or grid_mod==3333 or grid_mod==1666 or grid_mod==833 or grid_mod==416 or grid_mod==208 then particle = 0.0208333333 end -- for 1/32 triplet
+
+ICount = reaper.CountSelectedMediaItems(0)
+
+if ICount ==0 then return
+end 
+
+
+reaper.Undo_BeginBlock()
+reaper.PreventUIRefresh(1)
+
+ItemsSel = {}
+Idx = 1
+
+otherItems = {} 
+counter = 1
+for i = 1, ICount  do
+  item = reaper.GetSelectedMediaItem(0, i-1)
+    min_length =  reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
+   
+   if min_length <= particle*240/bpm/10 then return   end 
+end  
+
+--counts selected items
+for i = 0, ICount-1 ,1 do
+
+  item = reaper.GetSelectedMediaItem(0, i)
+  take = reaper.GetActiveTake(item) 
+
+
+    ItemsSel[Idx] = {} 
+    ItemsSel[Idx].thisItem = item
+    ItemsSel[Idx].oldPosition =  reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
+    if take ~=  nil then
+       
+        ItemsSel[Idx].oldPlayrate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+       end
+    ItemsSel[Idx].oldLength = reaper.GetMediaItemInfo_Value( item, "D_LENGTH")
+
+old_length = ItemsSel[Idx].oldLength
+
+
+-- x is 1 or -1 comes from buttons from the GUI
+--change the length with the help of a function   
+--==============================================================================================
+if b==nil then b=0 end
+if am==nil then am=0 end
+
+
+if i==0 then aos = 0 end
+
+  aos = am*0.1*math.cos((2*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi/xpi)   -- aos is an add or subtract factor of 1/64
+--  aos = 1/b*am*1/ICount*(i-(ICount/2-0.5))
+--  aos = math.sin(i-(ICount/2-0.5))+1/64*(i-(ICount/2-0.5))
+--    aos = (4*(i-(ICount/2-0.5))/8)^3
+    
+  add_length = aos*particle*480/bpm -- add_length in seconds depends on bpm is added to or subtracted from the old length.    
+    playrate = ItemsSel[Idx].oldPlayrate
+    if playrate ~= nil then
+        new_rate = ItemsSel[Idx].oldPlayrate
+       
+        end 
+     
+    new_length = old_length + add_length -- add_length in seconds depends on bpm is added to or subtracted from the old length.
+    new_rate = old_length/new_length*playrate
+    
+    
+ 
+    ItemsSel[Idx].newLength = new_lengthS
+    ItemsSel[Idx].newRate = new_rate
+  
+    reaper.SetMediaItemInfo_Value(item, "D_LENGTH",new_length)
+    reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", new_rate)
+        
+
+    Idx = Idx + 1 -- 1-based table in Lua 
+end
+
+
+for i = 2, Idx - 1 do
+
+  --grabs items
+  local prevItem = ItemsSel[i-1].thisItem
+  local thisItem = ItemsSel[i].thisItem
+  
+
+  --grabs previous item's info
+  local prevStart = reaper.GetMediaItemInfo_Value(prevItem, "D_POSITION")
+  local prevLen   = reaper.GetMediaItemInfo_Value(prevItem, "D_LENGTH")
+  local prevEnd   = prevStart + prevLen
+
+  ItemsSel[i].newStart = prevEnd
+
+  reaper.SetMediaItemInfo_Value(thisItem, "D_POSITION", prevEnd) --sets item to be at the end of the previous item
+
+end
+
+
+reaper.PreventUIRefresh(-1)
+reaper.UpdateArrange()
+reaper.Undo_EndBlock("Item Random Position", -1)
+
+end
+--===========================================================================================================
+--==========================================================================================================
+
 function length_sinus(x,s1)
 
  local function Msg(str)
