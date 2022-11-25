@@ -174,9 +174,9 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() end
                
-            if reaper.ImGui_Button(ctx, 'a##b1', 15,y) then  b = math.floor(ICount/2) crazy_length(b,am) end
+            if reaper.ImGui_Button(ctx, 'a##b1', 15,y) then  b = math.floor(ICount) crazy_length(b,am) end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'b##b2', 15,y) then  b = math.floor(ICount/4) crazy_length(b,am) end
+            if reaper.ImGui_Button(ctx, 'b##b2', 15,y) then  b = math.floor(ICount/2) crazy_length(b,am) end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'split at grid', 32,32)then reaper.Main_OnCommand(40932,0)end
                reaper.ImGui_SameLine( ctx)

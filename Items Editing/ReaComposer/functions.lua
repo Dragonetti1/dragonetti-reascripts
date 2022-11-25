@@ -77,7 +77,7 @@ if i==0 then aos = 0 end
 if b == 1 then
    aos = 1/(ICount/2)*(i-(ICount/2-0.5))*0.1 *am   -- eine Gerade 
  else
-  aos = am*0.1*math.cos((1*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi)   -- aos is an add or subtract factor of 1/64
+  aos = am*0.1*math.cos((1*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi/xpi)   -- aos is an add or subtract factor of 1/64
 end
 --    aos = 1/(ICount/2)*(i-(ICount/2-0.5))*0.1 *am   -- eine Gerade 
   add_length = aos*particle*480/bpm -- add_length in seconds depends on bpm is added to or subtracted from the old length.    
