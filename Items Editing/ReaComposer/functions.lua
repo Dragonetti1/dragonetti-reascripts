@@ -68,17 +68,18 @@ old_length = ItemsSel[Idx].oldLength
 -- x is 1 or -1 comes from buttons from the GUI
 --change the length with the help of a function   
 --==============================================================================================
-if b==nil then b=0 end
+if b==nil then b=2 end
 if am==nil then am=0 end
 
 
 if i==0 then aos = 0 end
 
-  aos = am*0.1*math.cos((2*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi/xpi)   -- aos is an add or subtract factor of 1/64
---  aos = 1/b*am*1/ICount*(i-(ICount/2-0.5))
---  aos = math.sin(i-(ICount/2-0.5))+1/64*(i-(ICount/2-0.5))
---    aos = (4*(i-(ICount/2-0.5))/8)^3
-    
+if b == 1 then
+   aos = 1/(ICount/2)*(i-(ICount/2-0.5))*0.1 *am   -- eine Gerade 
+ else
+  aos = am*0.1*math.cos((1*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi)   -- aos is an add or subtract factor of 1/64
+end
+--    aos = 1/(ICount/2)*(i-(ICount/2-0.5))*0.1 *am   -- eine Gerade 
   add_length = aos*particle*480/bpm -- add_length in seconds depends on bpm is added to or subtracted from the old length.    
     playrate = ItemsSel[Idx].oldPlayrate
     if playrate ~= nil then
