@@ -314,10 +314,10 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'PHRASE', (btn_w*2)+(spacing_x*1),y) then phrase_builder() end
                ToolTip(tt, 'A phrase in "C" major scale (white keys) is required.The transposition depends on the chord.\nExample: \n"Cmaj7" transpose 0\n"Dmaj7" transpose +2\n"Cm"      transpose +3\n"Dm7"(dorian) transpose 0 ')
                reaper.ImGui_PopStyleColor(ctx, 3) 
-               if reaper.ImGui_Button( ctx,"2", 32, y ) then phrase_1_left() end
+               if reaper.ImGui_Button( ctx,"-##1", 32, y ) then phrase_1_left() end
                ToolTip(tt, "transpose phrase one fifth to left")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button( ctx,"3", 32, y )then phrase_1_right() end               
+            if reaper.ImGui_Button( ctx,"+##1", 32, y )then phrase_1_right() end               
                ToolTip(tt, "transpose phrase one fifth to right")
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xE67A00B9)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x894A02B9)
@@ -325,11 +325,11 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'CHORD', (btn_w*2)+(spacing_x*1),y) then chord_builder() end
                ToolTip(tt, "Transposes items(midi:note c, audio:metadata key) that lie on top of each other.\nExample : 3 items - triad root position")
                reaper.ImGui_PopStyleColor(ctx, 3)
-            if reaper.ImGui_Button( ctx,"we", 32, y ) then chord_inversion_down() end
+            if reaper.ImGui_Button( ctx,"-##2", 32, y ) then chord_inversion_down() end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button( ctx,"wr", 32, y)   then chord_inversion_up() end               
+            if reaper.ImGui_Button( ctx,"+##2", 32, y)   then chord_inversion_up() end               
                reaper.ImGui_EndGroup(ctx)
-               
+                
                
 --========================= PITCH  ============================================================================    
 
