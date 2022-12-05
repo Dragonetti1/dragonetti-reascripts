@@ -1,6 +1,8 @@
 -- @version 1.7.0
 -- @author Dragonetti
--- @provides functions.lua
+-- @provides 
+--    functions.lua
+--    Fonts/*.ttf
 -- @changelog
 --    + now based on ReaImGui new groups
 --    + new length manipulation
