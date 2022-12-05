@@ -1,12 +1,12 @@
--- @version 1.7.1
+-- @version 1.7.2
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + now based on ReaImGui new groups
---    + new length manipulation
---    + GUI fixes
+--    + more tooltips
+--    + bug fixes
+
 
 
 ------------------------------
@@ -174,6 +174,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx)
             if reaper.ImGui_Button(ctx, 'LENGTH', (btn_w*3)+(spacing_x*2),y) then reset_rate_length() end
+               ToolTip(tt, "reset item length")
             if reaper.ImGui_Button(ctx, 'tripl',32,y)then length_triplet()end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'x0.5', 32,y) then length_half() end
@@ -187,6 +188,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'split at grid', 32,32)then reaper.Main_OnCommand(40932,0)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'SEQ##2', 32,32)then length_input() end
+            ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
               
        
           if xpi == nil then xpi = 2 end
@@ -225,6 +227,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_BeginGroup(ctx)
               
             if reaper.ImGui_Button(ctx, 'RATE', (btn_w*2)+(spacing_x*1),y) then rate_reset() end
+               ToolTip(tt, "reset item rate")
             if reaper.ImGui_Button(ctx, 'triplet',(btn_w*2)+(spacing_x*1),y) then rate_triplet() end
             if reaper.ImGui_Button( ctx, "0.5x##5", 32,y ) then rate_half() end
                reaper.ImGui_SameLine( ctx)
@@ -240,17 +243,17 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_BeginGroup(ctx)
                reaper.ImGui_Button(ctx, 'SOURCE', (btn_w*2)+(spacing_x*1),y)
                reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button(ctx, 'A##1',32,y) then startoffs_left() end
-               ToolTip(tt, "Switch item source file to previous in folder")
+            if reaper.ImGui_Button(ctx, 'A##1',32,y) then prev_source = reaper.NamedCommandLookup("_XENAKIOS_SISFTPREVIF") reaper.Main_OnCommand(prev_source,0) end
+               ToolTip(tt, "only audio!! \nSwitch item source file to previous in folder")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'B##2',32,y) then startoffs_right() end
+            if reaper.ImGui_Button(ctx, 'B##1',32,y) then next_source = reaper.NamedCommandLookup("_XENAKIOS_SISFTNEXTIF") reaper.Main_OnCommand(next_source,0) end
               reaper.ImGui_PopFont(ctx)
-               ToolTip(tt, "Switch item source file to next in folder")
+               ToolTip(tt, "only audio!! \nSwitch item source file to next in folder")
             
             if reaper.ImGui_Button(ctx, 'rand src', (btn_w*2)+(spacing_x*1),y) then random_source_x() end
-               ToolTip(tt, "switch item source file to random in folder \nlength remain")  
-               if reaper.ImGui_Button(ctx, 'rand src', (btn_w*2)+(spacing_x*1),y) then random_source_length_x() end
-                              ToolTip(tt, "switch item source file to random in folder \nold source length")  
+               ToolTip(tt, "only audio!! \nswitch item source file to random in folder \nlength remain")  
+            if reaper.ImGui_Button(ctx, 'rand src', (btn_w*2)+(spacing_x*1),y) then random_source_length_x() end
+               ToolTip(tt, "only audio!! \nswitch item source file to random in folder \nold source length")  
                reaper.ImGui_EndGroup(ctx)
                
 --========================= CONTENT ============================================================================                 
@@ -262,13 +265,13 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                ToolTip(tt, 'reset content to start 0')
                reaper.ImGui_PushFont(ctx, SymbolFont)
             if reaper.ImGui_Button(ctx, 'A##2',32,y) then startoffs_left() end
-               ToolTip(tt, "content one grid left")
+               ToolTip(tt, "useful for longer midi or audio phrases \ncontent one grid left")
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'B##2',32,y) then startoffs_right() end 
-            reaper.ImGui_PopFont(ctx)
-               ToolTip(tt, "content one grid right")
+               reaper.ImGui_PopFont(ctx)
+               ToolTip(tt, "useful for longer midi or audio phrases \ncontent one grid right")
             if reaper.ImGui_Button(ctx, 'rand', (btn_w*2)+(spacing_x*1),y) then shuffle_startoffs() end
-               ToolTip(tt, "content start random depending on grid")               
+               ToolTip(tt, "useful for longer midi or audio phrases \ncontent start random depending on grid")               
                reaper.ImGui_EndGroup(ctx)
                
 --========================= SCALE ============================================================================                           
@@ -280,14 +283,17 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0xC5C93366)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xF5FB2780)
             if reaper.ImGui_Button(ctx, 'SCALE', (btn_w*3.5)+(spacing_x*6),y) then scale_builder() end
-               ToolTip(tt, "q,w,e,r... = scale tones      \n1,2,3,4... =scale tones +1 \na,s,d...     =scale tones -12 \n1,0 accent")
+               ToolTip(tt, "ARPEGGIATOR \nq,w,e,r... = scale tones      \n1,2,3,4... =scale tones +1 \na,s,d...     =scale tones -12 \n1,0 accent")
                reaper.ImGui_PopStyleColor(ctx, 3)
                
-               if reaper.ImGui_Button(ctx, '1##a',btn_w*0.5,y) then scale_step(1) end                
+               if reaper.ImGui_Button(ctx, '1##a',btn_w*0.5,y) then scale_step(1) end
+                  ToolTip(tt, "also works with chords \nfor example:\nCmaj7 becomes Dm7")
                   reaper.ImGui_SameLine( ctx)
                if reaper.ImGui_Button(ctx, '2##a',btn_w*0.5,y) then scale_step(2) end
+                  ToolTip(tt, "also works with chords \nfor example:\nCmaj7 becomes Em7")
                reaper.ImGui_SameLine( ctx)
                if reaper.ImGui_Button(ctx, '3##a',btn_w*0.5,y) then scale_step(3) end
+               ToolTip(tt, "also works with chords \nfor example:\nCmaj7 becomes Fmaj7")
                 reaper.ImGui_SameLine( ctx)
                if reaper.ImGui_Button(ctx, '4##a',btn_w*0.5,y) then scale_step(4) end
                  reaper.ImGui_SameLine( ctx)
@@ -339,9 +345,11 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                ToolTip(tt, "Transposes items(midi:note c, audio:metadata key) that lie on top of each other.\nExample : 3 items - triad root position")
                reaper.ImGui_PopStyleColor(ctx, 3)
                reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button( ctx,"C##1", 32, y ) then chord_inversion_down() end
+            if reaper.ImGui_Button( ctx,"D##1", 32, y ) then chord_inversion_down() end
+               ToolTip(tt, "chord_inversion_down")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button( ctx,"D##1", 32, y)   then chord_inversion_up() end 
+            if reaper.ImGui_Button( ctx,"C##1", 32, y)   then chord_inversion_up() end
+               ToolTip(tt, "chord_inversion_up")
                reaper.ImGui_PopFont( ctx )
                reaper.ImGui_EndGroup(ctx)
                 
@@ -353,6 +361,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                
       
             if reaper.ImGui_Button(ctx, 'PITCH',(btn_w*3)+(spacing_x*2),y)then reaper.Main_OnCommand(40653,0) end
+               ToolTip(tt, "reset pitch")
             if reaper.ImGui_Button(ctx, '+1',32,y) then reaper.Main_OnCommand(40204,0) end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, '+7',32,y) then pitch_plus_7() end
@@ -379,6 +388,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_BeginGroup(ctx) 
                
             if reaper.ImGui_Button(ctx, 'SELECT',(btn_w*3)+(spacing_x*2),y) then pattern_select() end
+               ToolTip(tt, "Creates a select pattern \n0 = unselected \n1 = selected")
                reaper.ImGui_PushFont(ctx, SymbolFont)
             if reaper.ImGui_Button(ctx, 'A##4',32,y) then select_prev_item() end
                reaper.ImGui_PopFont(ctx)
@@ -458,10 +468,12 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x34D632AA)
             if reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y) then midi_creator() end
                reaper.ImGui_PopStyleColor(ctx, 3) 
-            if reaper.ImGui_Button(ctx, 'SEQ', (btn_w*2)+(spacing_x*1),y) then midi_creator() end  
+            if reaper.ImGui_Button(ctx, 'SEQ', (btn_w*2)+(spacing_x*1),y) then midi_creator() end 
+               ToolTip(tt, "Generates midi notes in time selection\n1 for one grid\n2 for two grids\netc. \nfor selected tracks")
             if reaper.ImGui_Button(ctx, 'pattern', (btn_w*2)+(spacing_x*1),y) then midi_rand() end
+               ToolTip(tt, "Creates a random midi pattern depending on grid for selected tracks")
                reaper.ImGui_EndGroup(ctx) 
-               
+                
                
 --========================= CHORDTRACK ============================================================================                
                
@@ -524,7 +536,8 @@ if reaper.ImGui_BeginCombo(ctx, '##chord progression', "       chord progression
  
   reaper.ImGui_EndCombo(ctx)
 end             
-if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end               
+if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end 
+               ToolTip(tt, "Transposes the selected chord symbols up")
                reaper.ImGui_SameLine( ctx )
             if reaper.ImGui_Button(ctx, 'x##2',32,y) then chordsymbol_right() end  
                 mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdominant (1items)", "  parallel key (1item)"}
@@ -545,11 +558,11 @@ if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end
            end  
            
          if reaper.ImGui_ArrowButton( ctx, 14, 3 ) then chordsymbol_trans_down() end
-            ToolTip(tt, "Transposes the selected chord symbols")              
+            ToolTip(tt, "Transposes the selected chord symbols down")              
             reaper.ImGui_PopStyleVar(ctx)
                reaper.ImGui_SameLine( ctx )
             if reaper.ImGui_Button(ctx, 'detection',(btn_w*2)+(spacing_x*1),y) then detect_midi_chords() end
-            ToolTip(tt, "Writes the recognised chords into the chordtrack") 
+            ToolTip(tt, "only midi!! \nWrites the recognised chords into the chordtrack") 
          
              reaper.ImGui_EndGroup(ctx) 
              

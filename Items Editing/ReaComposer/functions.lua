@@ -1785,7 +1785,7 @@ if items == 0 then bla() return end
 
 r.Undo_BeginBlock()
 r.ApplyNudge(0, 0, 4, 2, 1, 0, 0)
-r.Undo_EndBlock('move item content right one grid unit', -1)
+r.Undo_EndBlock('move item content left one grid unit', -1)
 end
 
 
