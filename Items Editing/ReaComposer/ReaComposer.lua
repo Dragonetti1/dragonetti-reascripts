@@ -1,9 +1,10 @@
--- @version 1.6.8
+-- @version 1.6.9
 -- @author Dragonetti
 -- @provides functions.lua
 -- @changelog
 --    + now based on ReaImGui new groups
 --    + new length manipulation
+--    + bug fixes
 
 
 ------------------------------
@@ -30,7 +31,7 @@ function GuiInit()
     ctx = reaper.ImGui_CreateContext('ReaComposer', reaper.ImGui_ConfigFlags_DockingEnable()) -- Add VERSION TODO
     draw_list = r.ImGui_GetWindowDrawList(ctx)
     FONT = reaper.ImGui_CreateFont('Arial', 14) -- Create the fonts you need
-    reaper.ImGui_AttachFont(ctx, FONT)-- Attach the fonts you need
+    reaper.ImGui_Attach(ctx, FONT)-- Attach the fonts you need
 end    
 
 function HSV(h, s, v, a)
@@ -174,9 +175,9 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() end
                
-            if reaper.ImGui_Button(ctx, 'a##b1', 15,y) then  b = math.floor(ICount) crazy_length(b,am) end
+            if reaper.ImGui_Button(ctx, 'a##b1', 15,y) then  b = math.floor(ICount/2) crazy_length(b,am) end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'b##b2', 15,y) then  b = math.floor(ICount/2) crazy_length(b,am) end
+            if reaper.ImGui_Button(ctx, 'b##b2', 15,y) then  b = math.floor(ICount/4) crazy_length(b,am) end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'split at grid', 32,32)then reaper.Main_OnCommand(40932,0)end
                reaper.ImGui_SameLine( ctx)
@@ -191,7 +192,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine( ctx ,0,0)
                reaper.ImGui_PushItemWidth( ctx, 32 )
                          local   old_b = b
-                        ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 1,(ICount*2))
+                        ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 1,(ICount))
                           if ret then
                           
                             crazy_length(b,am)
@@ -199,7 +200,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                        
                reaper.ImGui_SameLine( ctx ,0,2)
                                            
-                         ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,12)
+                         ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,9)
                            if ret then
                                              
                         --      crazy_length(_,_,xpi)
