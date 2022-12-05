@@ -4,7 +4,7 @@
 -- @changelog
 --    + now based on ReaImGui new groups
 --    + new length manipulation
---    + bug fixes
+--    + GUI fixes
 
 
 ------------------------------
