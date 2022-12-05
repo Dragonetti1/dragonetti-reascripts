@@ -9,7 +9,8 @@
 
 ------------------------------
 info = debug.getinfo(1,'S')
-script_path = info.source:match[[^@?(.*[\/])[^\/]-$]] -- this script folder
+local script_path = info.source:match[[^@?(.*[\/])[^\/]-$]] -- this script folder
+
 ------------------------------
 
 dofile(script_path .. 'functions.lua') -- functions needed
@@ -32,6 +33,8 @@ function GuiInit()
     draw_list = r.ImGui_GetWindowDrawList(ctx)
     FONT = reaper.ImGui_CreateFont('Arial', 14) -- Create the fonts you need
     reaper.ImGui_Attach(ctx, FONT)-- Attach the fonts you need
+    SymbolFont = reaper.ImGui_CreateFont(script_path..'Fonts/Symbols.ttf', 14)
+        reaper.ImGui_Attach(ctx, SymbolFont)
 end    
 
 function HSV(h, s, v, a)
@@ -234,10 +237,12 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx)
                reaper.ImGui_Button(ctx, 'SOURCE', (btn_w*2)+(spacing_x*1),y)
-            if reaper.ImGui_Button(ctx, 'left',32,y) then startoffs_left() end
+               reaper.ImGui_PushFont(ctx, SymbolFont)
+            if reaper.ImGui_Button(ctx, 'A##1',32,y) then startoffs_left() end
                ToolTip(tt, "Switch item source file to previous in folder")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'right',32,y) then startoffs_right() end
+            if reaper.ImGui_Button(ctx, 'B##2',32,y) then startoffs_right() end
+              reaper.ImGui_PopFont(ctx)
                ToolTip(tt, "Switch item source file to next in folder")
             
             if reaper.ImGui_Button(ctx, 'rand src', (btn_w*2)+(spacing_x*1),y) then random_source_x() end
@@ -253,10 +258,12 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_BeginGroup(ctx)
                reaper.ImGui_Button(ctx, 'CONTENT', (btn_w*2)+(spacing_x*1),y)
                ToolTip(tt, 'reset content to start 0')
-            if reaper.ImGui_Button(ctx, 'prev',32,y) then startoffs_left() end
+               reaper.ImGui_PushFont(ctx, SymbolFont)
+            if reaper.ImGui_Button(ctx, 'A##2',32,y) then startoffs_left() end
                ToolTip(tt, "content one grid left")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'next',32,y) then startoffs_right() end 
+            if reaper.ImGui_Button(ctx, 'B##2',32,y) then startoffs_right() end 
+            reaper.ImGui_PopFont(ctx)
                ToolTip(tt, "content one grid right")
             if reaper.ImGui_Button(ctx, 'rand', (btn_w*2)+(spacing_x*1),y) then shuffle_startoffs() end
                ToolTip(tt, "content start random depending on grid")               
@@ -313,11 +320,15 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xFF000080)
             if reaper.ImGui_Button(ctx, 'PHRASE', (btn_w*2)+(spacing_x*1),y) then phrase_builder() end
                ToolTip(tt, 'A phrase in "C" major scale (white keys) is required.The transposition depends on the chord.\nExample: \n"Cmaj7" transpose 0\n"Dmaj7" transpose +2\n"Cm"      transpose +3\n"Dm7"(dorian) transpose 0 ')
-               reaper.ImGui_PopStyleColor(ctx, 3) 
-               if reaper.ImGui_Button( ctx,"-##1", 32, y ) then phrase_1_left() end
+               reaper.ImGui_PopStyleColor(ctx, 3)
+               reaper.ImGui_PushFont(ctx, SymbolFont)
+               if reaper.ImGui_Button( ctx,"A##3", 32, y ) then phrase_1_left() end
+               reaper.ImGui_PopFont( ctx )
                ToolTip(tt, "transpose phrase one fifth to left")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button( ctx,"+##1", 32, y )then phrase_1_right() end               
+               reaper.ImGui_PushFont(ctx, SymbolFont)
+            if reaper.ImGui_Button( ctx,"B##3", 32, y )then phrase_1_right() end 
+               reaper.ImGui_PopFont( ctx )
                ToolTip(tt, "transpose phrase one fifth to right")
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xE67A00B9)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x894A02B9)
@@ -325,9 +336,11 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'CHORD', (btn_w*2)+(spacing_x*1),y) then chord_builder() end
                ToolTip(tt, "Transposes items(midi:note c, audio:metadata key) that lie on top of each other.\nExample : 3 items - triad root position")
                reaper.ImGui_PopStyleColor(ctx, 3)
-            if reaper.ImGui_Button( ctx,"-##2", 32, y ) then chord_inversion_down() end
+               reaper.ImGui_PushFont(ctx, SymbolFont)
+            if reaper.ImGui_Button( ctx,"C##1", 32, y ) then chord_inversion_down() end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button( ctx,"+##2", 32, y)   then chord_inversion_up() end               
+            if reaper.ImGui_Button( ctx,"D##1", 32, y)   then chord_inversion_up() end 
+               reaper.ImGui_PopFont( ctx )
                reaper.ImGui_EndGroup(ctx)
                 
                
@@ -364,11 +377,15 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_BeginGroup(ctx) 
                
             if reaper.ImGui_Button(ctx, 'SELECT',(btn_w*3)+(spacing_x*2),y) then pattern_select() end
-            if reaper.ImGui_Button(ctx, 'left##1',32,y) then select_prev_item() end
+               reaper.ImGui_PushFont(ctx, SymbolFont)
+            if reaper.ImGui_Button(ctx, 'A##4',32,y) then select_prev_item() end
+               reaper.ImGui_PopFont(ctx)
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'inv.',32,y) then invert_item_selection() end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'right##1',32,y ) then select_next_item() end
+               reaper.ImGui_PushFont(ctx, SymbolFont)
+            if reaper.ImGui_Button(ctx, 'B##4',32,y ) then select_next_item() end
+               reaper.ImGui_PopFont(ctx)
             if reaper.ImGui_Button(ctx, 'chord',32,y) then select_chord() end
                ToolTip(tt, "Select only the selected items that are in the chord range \nunder which the cursor is positioned.")
                reaper.ImGui_SameLine( ctx)
