@@ -287,13 +287,13 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PopStyleColor(ctx, 3)
                
                if reaper.ImGui_Button(ctx, '1##a',btn_w*0.5,y) then scale_step(1) end
-                  ToolTip(tt, "also works with chords \nfor example:\nCmaj7 becomes Dm7")
+                  ToolTip(tt, "Transposed within the scale depending on the chord symbol of the chord track.\nalso works with chords \nfor example:\nCmaj7 becomes Dm7")
                   reaper.ImGui_SameLine( ctx)
                if reaper.ImGui_Button(ctx, '2##a',btn_w*0.5,y) then scale_step(2) end
-                  ToolTip(tt, "also works with chords \nfor example:\nCmaj7 becomes Em7")
+                  ToolTip(tt, "Transposed within the scale depending on the chord symbol of the chord track.\nalso works with chords \nfor example:\nCmaj7 becomes Em7")
                reaper.ImGui_SameLine( ctx)
                if reaper.ImGui_Button(ctx, '3##a',btn_w*0.5,y) then scale_step(3) end
-               ToolTip(tt, "also works with chords \nfor example:\nCmaj7 becomes Fmaj7")
+               ToolTip(tt, "Transposed within the scale depending on the chord symbol of the chord track\nalso works with chords \nfor example:\nCmaj7 becomes Fmaj7")
                 reaper.ImGui_SameLine( ctx)
                if reaper.ImGui_Button(ctx, '4##a',btn_w*0.5,y) then scale_step(4) end
                  reaper.ImGui_SameLine( ctx)
