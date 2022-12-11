@@ -191,7 +191,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
               
        
-          if xpi == nil then xpi = 2 end
+         -- if xpi == nil then xpi = 2 end
           if ICount== nil then ICount = 2 end
                      
                reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
@@ -207,7 +207,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                        
                reaper.ImGui_SameLine( ctx ,0,2)
                                            
-                         ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,9)
+                         ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,32)
                            if ret then
                                              
                         --      crazy_length(_,_,xpi)

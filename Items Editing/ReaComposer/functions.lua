@@ -74,7 +74,7 @@ if am==nil then am=0 end
 
 if i==0 then aos = 0 end
 
-  aos = am*0.1*math.cos((2*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi/xpi)   -- aos is an add or subtract factor of 1/64
+  aos = am*0.1*math.cos((2*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi/xpi*2)   -- aos is an add or subtract factor of 1/64
 --  aos = 1/b*am*1/ICount*(i-(ICount/2-0.5))
 --  aos = math.sin(i-(ICount/2-0.5))+1/64*(i-(ICount/2-0.5))
 --    aos = (4*(i-(ICount/2-0.5))/8)^3
