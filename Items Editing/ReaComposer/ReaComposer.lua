@@ -1,11 +1,11 @@
--- @version 1.7.3
+-- @version 1.7.4
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
 --    + more tooltips
---    + bug fixes
+--    + fix length function
 
 
 
