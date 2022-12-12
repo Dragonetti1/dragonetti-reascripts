@@ -1,12 +1,10 @@
--- @version 1.7.4
+-- @version 1.7.5
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + more tooltips
---    + fix length function
-
+--    + bug fixes regarding ReaImGui for some user? 
 
 
 ------------------------------
@@ -85,8 +83,7 @@ ICount=2
 am=0
 
 function loop()
-
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0, 0)
+reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),0,9)
 reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowPadding(), 8, 6)
 reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),8,2)
 reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_CellPadding(),   10, 5)
@@ -117,8 +114,6 @@ if set_dock_id then
 reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(), 2, 1)
 
 
-
-
     
     reaper.ImGui_PushFont(ctx, FONT) -- Says you want to start using a specific font
    
@@ -135,7 +130,6 @@ reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(), 2, 1)
               end  
               
            
-   
    
 local y=32
    
@@ -188,39 +182,32 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'split at grid', 32,32)then reaper.Main_OnCommand(40932,0)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'SEQ##2', 32,32)then length_input() end
-            ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
+               ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
               
        
-         -- if xpi == nil then xpi = 2 end
-          if ICount== nil then ICount = 2 end
+            if xpi == nil then xpi = 1 end
+            if ICount== nil then ICount = 2 end
                      
-               reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
+         
                reaper.ImGui_NewLine(ctx)
                reaper.ImGui_SameLine( ctx ,0,0)
                reaper.ImGui_PushItemWidth( ctx, 32 )
-                         local   old_b = b
-                        ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 1,(ICount))
-                          if ret then
-                          
-                            crazy_length(b,am)
-                         end
-                       
+               local   old_b = b
+               ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 1,(ICount))
+               if ret then
+                 crazy_length(b,am)
+               end
                reaper.ImGui_SameLine( ctx ,0,2)
-                                           
-                         ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,32)
-                           if ret then
-                                             
-                        --      crazy_length(_,_,xpi)
-                                     end 
-                              reaper.ImGui_SameLine( ctx ,0,2)
-                              local   old_am = am
+               ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,32)
+               reaper.ImGui_SameLine( ctx ,0,2)
+               local   old_am = am
                   ret, am = reaper.ImGui_DragInt( ctx, "##am",0, 1, -4,4)
                       if ret then
                      am = am - old_am
                         crazy_length(b,am)
-                                                                                        end 
+                                                                                 end 
                reaper.ImGui_EndGroup(ctx)
-            --  reaper.ImGui_PopStyleVar(ctx)
+           
 --========================= RATE ============================================================================    
 
                reaper.ImGui_SameLine(ctx, nil, 10)
@@ -283,9 +270,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0xC5C93366)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xF5FB2780)
             if reaper.ImGui_Button(ctx, 'SCALE', (btn_w*3.5)+(spacing_x*6),y) then scale_builder() end
-               ToolTip(tt, "ARPEGGIATOR \nq,w,e,r... = scale tones      \n1,2,3,4... =scale tones +1 \na,s,d...     =scale tones -12 \n1,0 accent")
                reaper.ImGui_PopStyleColor(ctx, 3)
-               
+               ToolTip(tt, "ARPEGGIATOR \nq,w,e,r... = scale tones      \n1,2,3,4... =scale tones +1 \na,s,d...     =scale tones -12 \n1,0 accent")
                if reaper.ImGui_Button(ctx, '1##a',btn_w*0.5,y) then scale_step(1) end
                   ToolTip(tt, "Transposed within the scale depending on the chord symbol of the chord track.\nalso works with chords \nfor example:\nCmaj7 becomes Dm7")
                   reaper.ImGui_SameLine( ctx)
@@ -315,7 +301,6 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                if reaper.ImGui_Button(ctx, '-6##a',btn_w*0.5,y) then scale_step(-6) end
                  reaper.ImGui_SameLine( ctx)
                if reaper.ImGui_Button(ctx, '-7##a',btn_w*0.5,y) then scale_step(-7) end               
-               
                
                reaper.ImGui_EndGroup(ctx)
                
@@ -358,7 +343,6 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
 
               reaper.ImGui_SameLine(ctx, nil, 10)
               reaper.ImGui_BeginGroup(ctx) 
-               
       
             if reaper.ImGui_Button(ctx, 'PITCH',(btn_w*3)+(spacing_x*2),y)then reaper.Main_OnCommand(40653,0) end
                ToolTip(tt, "reset pitch")
@@ -413,17 +397,17 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx) 
             if reaper.ImGui_Button(ctx, 'MUTE', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40175,0) end
-               reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
+         
               reaper.ImGui_PushItemWidth( ctx, (btn_w*2)+(spacing_x*1))
                retval, dinger = reaper.ImGui_DragInt( ctx, "##d", dinger, 0.1, 0,128)
                if retval then
                mute_exact(dinger,teiler) end
               
                ToolTip(tt, "Unmuted group consists of x items")
-               reaper.ImGui_PopStyleVar(ctx,1)
+         
              
                reaper.ImGui_PushItemWidth( ctx, (btn_w*1) )
-               reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
+         
                ret, teiler = reaper.ImGui_DragInt( ctx, "##1", teiler, 0.1, 1,24)
                 if ret then 
                mute_exact(teiler,dinger) end
@@ -433,7 +417,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                 if ret then 
                mute_exact(sub) end 
                ToolTip(tt, "push unmuted groups")
-               reaper.ImGui_PopStyleVar(ctx,1)
+           
             if reaper.ImGui_Button(ctx, 'rand##1', (btn_w), y) then
                        ran = false
                mute_exact(teiler,dinger,ran) end
@@ -441,7 +425,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'nor##1',(btn_w), y) then
                        ran = true
                      mute_exact(teiler,dinger,ran) end
-             --  reaper.ImGui_PopStyleVar(ctx,1)
+           
                reaper.ImGui_EndGroup(ctx)  
           
 --========================= ORDER  ============================================================================  
@@ -483,8 +467,9 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x167B97AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x20CFFFAA)
             if reaper.ImGui_Button(ctx, 'CHORDTRACK', (btn_w*4)+(spacing_x*3),y) then create_chordtrack() end
-               ToolTip(tt, "Creates a chordtrack at the top if already available - move above selected track")
                reaper.ImGui_PopStyleColor(ctx, 3)
+               ToolTip(tt, "Creates a chordtrack at the top if already available - move above selected track")
+               
 local chords = {
 '  Pachelbel"s Canon  -  C G Am Em F C F G',
 '  50s progression  -  C Am F G',
@@ -524,7 +509,7 @@ local chords = {
 '  Jazz 9  -  ii Tri Sub of V I',
 '  Trap progression  -  Cm Ab Cm Gm',
 '  Würm progression  -  G Eb C C'}
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),   0,9)
+
 reaper.ImGui_PushItemWidth( ctx, (btn_w*4)+(spacing_x*3) )
 if reaper.ImGui_BeginCombo(ctx, '##chord progression', "       chord progression",  reaper.ImGui_ComboFlags_NoArrowButton()) then
   for i, chord in ipairs(chords) do
@@ -559,7 +544,7 @@ if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end
            
          if reaper.ImGui_ArrowButton( ctx, 14, 3 ) then chordsymbol_trans_down() end
             ToolTip(tt, "Transposes the selected chord symbols down")              
-            reaper.ImGui_PopStyleVar(ctx)
+      
                reaper.ImGui_SameLine( ctx )
             if reaper.ImGui_Button(ctx, 'detection',(btn_w*2)+(spacing_x*1),y) then detect_midi_chords() end
             ToolTip(tt, "only midi!! \nWrites the recognised chords into the chordtrack") 
@@ -579,7 +564,7 @@ if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end
            
            reaper.ImGui_EndGroup(ctx)     
 --=============================================================================================================================
-    reaper.ImGui_PopStyleVar(ctx)   
+      
         reaper.ImGui_End(ctx)
         
     end 
