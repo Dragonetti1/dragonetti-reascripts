@@ -1,11 +1,11 @@
--- @version 1.7.5
+-- @version 1.7.6
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + bug fixes regarding ReaImGui for some user? 
-
+--    + grid setting 
+--    + bug fixes
 
 ------------------------------
 info = debug.getinfo(1,'S')
@@ -61,13 +61,24 @@ function read_grid()
 _,grid_raw, save_swing, save_swing_amt = reaper.GetSetProjectGrid(0, false)  --- grid setting to 16tel
              
                grid = math.floor(grid_raw*100000)
-             
-if grid == 100000 then grid_setting = "1" end               
+               
+               
+if grid == 400000 then grid_setting = "4" end
+if grid == 300000 then grid_setting = "3" end      
+if grid == 200000 then grid_setting = "2" end               
+if grid == 100000 then grid_setting = "1" end 
 if grid == 50000  then grid_setting = "1/2" end               
 if grid == 25000  then grid_setting = "1/4" end
+if grid == 20000  then grid_setting = "1/5" end 
+if grid == 14285  then grid_setting = "1/7" end      
 if grid == 12500  then grid_setting = "1/8" end
+if grid == 11111  then grid_setting = "1/9" end 
+if grid == 10000  then grid_setting = "1/10" end      
 if grid == 6250   then grid_setting = "1/16" end
+if grid == 5555   then grid_setting = "1/18" end      
 if grid == 3125   then grid_setting = "1/32" end
+if grid == 1562 then grid_setting = "1/64" end      
+if grid == 781 then grid_setting = "1/128" end      
 if grid == 66666  then grid_setting = "1T" end
 if grid == 33333  then grid_setting = "1/2T" end
 if grid == 16666  then grid_setting = "1/4T" end
@@ -158,8 +169,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0x00D8C6B9)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x006159B9)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x00D8C6B9)
-               read_grid() 
-               reaper.ImGui_Button(ctx, grid_setting,(btn_w*2)+(spacing_x*1),y) 
+               read_grid()
+               reaper.ImGui_Button(ctx,grid_setting,(btn_w*2)+(spacing_x*1),y) 
                reaper.ImGui_PopStyleColor(ctx,3)               
                reaper.ImGui_EndGroup(ctx)
                

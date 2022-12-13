@@ -2027,7 +2027,7 @@ function main()
         else -- track == nil/no track with that name was
      
     num_chords = reaper.CountTrackMediaItems(ctrack)
-
+    if num_chords==0 then Msg("no chordtrack ") return end
     for r = 0, num_chords -1 do -- regions loop start    
     
            chord_item = reaper.GetTrackMediaItem(ctrack, r )
@@ -2573,7 +2573,7 @@ function main()
         else -- track == nil/no track with that name was
      
     num_chords = reaper.CountTrackMediaItems(ctrack)
-
+    if num_chords==0 then Msg("no chordtrack ") return end
     for r = 0, num_chords -1 do -- regions loop start    
     
            chord_item = reaper.GetTrackMediaItem(ctrack, r )
@@ -2755,7 +2755,7 @@ function main()
         else -- track == nil/no track with that name was
      
     num_chords = reaper.CountTrackMediaItems(ctrack)
-
+    if num_chords==0 then Msg("no chordtrack ") return end
     for r = 0, num_chords -1 do -- regions loop start    
     
            chord_item = reaper.GetTrackMediaItem(ctrack, r )
@@ -4248,16 +4248,17 @@ velo6s ="vel"..tostring(Table_Vel[6])
 velo7s ="vel"..tostring(Table_Vel[7])
 velo8s ="vel"..tostring(Table_Vel[8])
  
-function get_chord_notes(chord_region)  
-
-          item0 =  reaper.GetTrackMediaItem(ctrack,chord_region )
+function get_chord_notes(r)  
+      
+          item0 =  reaper.GetTrackMediaItem(ctrack,r )
+         
  _, region_name = reaper.GetSetMediaItemInfo_String(item0, "P_NOTES", "", false) 
             pos = reaper.GetMediaItemInfo_Value( item0, "D_POSITION" )-0.05
          length = reaper.GetMediaItemInfo_Value( item0, "D_LENGTH" )
      region_end = pos+length      
     
 
- --   retval, isrgn, region_pos, region_end, region_name, region_index, region_color = reaper.EnumProjectMarkers3( 0, chord_region)
+ 
      
   if string.match( region_name, "@.*") then next_region() end -- skip region marked @ ignore     
    if string.find(region_name, "/") then
@@ -4351,7 +4352,7 @@ function main()
      ctrack = getTrackByName("chordtrack")
    
     num_regions = reaper.CountTrackMediaItems(ctrack)
-   
+     if num_regions==0 then Msg("no chords") return end
    for r = 0, num_regions -1 do -- regions loop start 
                    chord_item = reaper.GetTrackMediaItem(ctrack, r )
                           pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
@@ -5175,11 +5176,11 @@ function main()
     ctrack = getTrackByName("chordtrack")
     
     if ctrack==nil then -- if a track named "chordtrack" was found/that track doesn't equal nil
-    reaper.ShowMessageBox("There is no track with name: chordtrack" ,"Error: Name Not Found", 0) do return end
+    Msg("There is no track with name: chordtrack" ,"Error: Name Not Found", 0) do return end
      
     else -- track == nil/no track with that name was
       num_chords = reaper.CountTrackMediaItems(ctrack)
-      
+     if num_chords==0 then Msg("no chords") return end 
     end
     for r = 0, num_chords -1 do -- regions loop start 
                
@@ -5290,14 +5291,13 @@ end
  
 
  
-function get_chord_notes(ir)  
-            item0 =  reaper.GetTrackMediaItem( ctrack,ir )
+function get_chord_notes(ir)
+             
+            item0 = reaper.GetTrackMediaItem(ctrack,ir)
    _, region_name = reaper.GetSetMediaItemInfo_String(item0, "P_NOTES", "", false)
    
-  
-    
-  if string.match( region_name, "@.*") then next_region() end -- skip region marked @ ignore     
-   if string.find(region_name, "/") then
+   if string.match(region_name, "@.*") then next_region() end -- skip region marked @ ignore     
+   if string.find (region_name, "/") then
       root, chord, slash = string.match(region_name, "(%w[#b]?)(.*)(/%a[#b]?)$")
    else
       root, chord = string.match(region_name, "(%w[#b]?)(.*)$") slashnote = 0 slash = ""
@@ -5358,6 +5358,7 @@ function main()
           items = reaper.CountSelectedMediaItems(0)
          ctrack = getTrackByName("chordtrack")
     num_regions = reaper.CountTrackMediaItems( ctrack)
+   if num_regions==0 then Msg("no chords") return end
    
     if items == 0 then goto finish end
    
@@ -5384,20 +5385,20 @@ function main()
       _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
       
           if key == "C" or key == "Am" or key == "" then transpo = 0
-         elseif key == "C#" or key == "A#m"then transpo = -1
-         elseif key == "Db" or key == "Bbm"then transpo = -1
-         elseif key == "D"  or key == "Bm"then transpo = -2
-         elseif key == "Eb" or key == "Cm"then transpo = -3
-          elseif key == "E" or key == "C#m"then transpo = -4
-          elseif key == "F" or key == "Dm"then transpo = -5
-         elseif key == "F#" or key == "D#m"then transpo = -6
-         elseif key == "Gb" or key == "Ebm"then transpo = -6
-          elseif key == "G" or key == "Em"then transpo = -7 
-         elseif key == "G#" or key == "E#m"then transpo = -8
-         elseif key == "Ab" or key == "Fm"then transpo = -8 
-          elseif key == "A" or key == "F#m"then transpo = -9
-          elseif key == "Bb" or key == "Gm"then transpo = -10
-          elseif key == "B" or key == "G#m"then transpo = -11
+         elseif key == "C#" or key == "A#m" then transpo = -1
+         elseif key == "Db" or key == "Bbm" then transpo = -1
+         elseif key == "D"  or key == "Bm"  then transpo = -2
+         elseif key == "Eb" or key == "Cm"  then transpo = -3
+          elseif key == "E" or key == "C#m" then transpo = -4
+          elseif key == "F" or key == "Dm"  then transpo = -5
+         elseif key == "F#" or key == "D#m" then transpo = -6
+         elseif key == "Gb" or key == "Ebm" then transpo = -6
+          elseif key == "G" or key == "Em"  then transpo = -7 
+         elseif key == "G#" or key == "E#m" then transpo = -8
+         elseif key == "Ab" or key == "Fm"  then transpo = -8 
+          elseif key == "A" or key == "F#m" then transpo = -9
+          elseif key == "Bb" or key == "Gm" then transpo = -10
+          elseif key == "B" or key == "G#m" then transpo = -11
           elseif key == "Cb" or key == "Abm"then transpo = -11
          if not key then end
          end
