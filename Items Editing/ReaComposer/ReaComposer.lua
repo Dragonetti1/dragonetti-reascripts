@@ -1,11 +1,10 @@
--- @version 1.7.6
+-- @version 1.7.7
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + grid setting 
---    + bug fixes
+--    + less styleVar
 
 ------------------------------
 info = debug.getinfo(1,'S')
@@ -94,10 +93,10 @@ ICount=2
 am=0
 
 function loop()
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),0,9)
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowPadding(), 8, 6)
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),8,2)
-reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_CellPadding(),   10, 5)
+--reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FramePadding(),0,9)
+--reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_WindowPadding(), 8, 6)
+--reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(),8,2)
+--reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_CellPadding(),   10, 5)
 reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameBorderSize(), 1)
 
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x444141F0)
@@ -521,46 +520,47 @@ local chords = {
 '  Trap progression  -  Cm Ab Cm Gm',
 '  Würm progression  -  G Eb C C'}
 
-reaper.ImGui_PushItemWidth( ctx, (btn_w*4)+(spacing_x*3) )
-if reaper.ImGui_BeginCombo(ctx, '##chord progression', "       chord progression",  reaper.ImGui_ComboFlags_NoArrowButton()) then
-  for i, chord in ipairs(chords) do
-    i = i
-    if reaper.ImGui_Selectable(ctx, chord, ca == i) then
-      chord_progression(i)
-    end
-  end
- 
-  reaper.ImGui_EndCombo(ctx)
-end             
-if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end 
-               ToolTip(tt, "Transposes the selected chord symbols up")
-               reaper.ImGui_SameLine( ctx )
-            if reaper.ImGui_Button(ctx, 'x##2',32,y) then chordsymbol_right() end  
-                mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdominant (1items)", "  parallel key (1item)"}
-               reaper.ImGui_SameLine( ctx)
-               reaper.ImGui_PushItemWidth( ctx, (btn_w*2)+(spacing_x*1) )
-               ToolTip(tt, "quick change of the chord symbols")
-               if reaper.ImGui_BeginCombo(ctx, '##modulationen', " modulation",reaper.ImGui_ComboFlags_NoArrowButton()) then
-                 for m, mods in ipairs(mods) do
+                  reaper.ImGui_PushItemWidth( ctx, (btn_w*4)+(spacing_x*3) )
+                  if reaper.ImGui_BeginCombo(ctx, '##chord progression', "       chord progression",  reaper.ImGui_ComboFlags_NoArrowButton()) then
+                  for i, chord in ipairs(chords) do
+                     i = i
+                  if reaper.ImGui_Selectable(ctx, chord, ca == i) then
+                  chord_progression(i)
+                   end
+                  end
+                  reaper.ImGui_EndCombo(ctx)
+                  end 
+
+mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdominant (1items)", "  parallel key (1item)"}
+             
+                  reaper.ImGui_PushItemWidth( ctx, (btn_w*4)+(spacing_x*3) )
+                  ToolTip(tt, "quick change of the chord symbols")
+                  if reaper.ImGui_BeginCombo(ctx, '##modulationen', "            modulation",reaper.ImGui_ComboFlags_NoArrowButton()) then
+                  for m, mods in ipairs(mods) do
                    m = m - 1
                    if reaper.ImGui_Selectable(ctx, mods, ma == i) then
                    if m==0 then sudden_dominant()end
                    if m==1 then minor_subdominant()end
                    if m==2 then create_subdominant()end
                    if m==3 then create_parallel()end 
-               end
-               end
-              reaper.ImGui_EndCombo(ctx)  
-           end  
-           
-         if reaper.ImGui_ArrowButton( ctx, 14, 3 ) then chordsymbol_trans_down() end
-            ToolTip(tt, "Transposes the selected chord symbols down")              
-      
-               reaper.ImGui_SameLine( ctx )
-            if reaper.ImGui_Button(ctx, 'detection',(btn_w*2)+(spacing_x*1),y) then detect_midi_chords() end
-            ToolTip(tt, "only midi!! \nWrites the recognised chords into the chordtrack") 
-         
-             reaper.ImGui_EndGroup(ctx) 
+                  end
+                  end
+                  reaper.ImGui_EndCombo(ctx)  
+                  end  
+
+                  reaper.ImGui_PushFont(ctx, SymbolFont)
+                  if reaper.ImGui_Button(ctx, "D##2", 32,y ) then chordsymbol_trans_down() end
+                                  ToolTip(tt, "Transposes the selected chord symbols down")
+                  reaper.ImGui_SameLine(ctx)
+                  if reaper.ImGui_Button( ctx, "C##2", 32,y ) then chordsymbol_trans_up() end 
+                  ToolTip(tt, "Transposes the selected chord symbols up")
+                  reaper.ImGui_PopFont(ctx)
+                  reaper.ImGui_SameLine( ctx )
+                  if reaper.ImGui_Button(ctx, 'detection',(btn_w*2)+(spacing_x*1),y) then detect_midi_chords() end
+                  ToolTip(tt, "only midi!! \nWrites the recognised chords into the chordtrack") 
+                  if reaper.ImGui_Button(ctx, 'x##2',32,24) then chordsymbol_right() end  
+               
+                  reaper.ImGui_EndGroup(ctx) 
              
 --========================= OTHER ============================================================================   
 
@@ -571,16 +571,17 @@ if reaper.ImGui_ArrowButton( ctx, 13, 2 ) then chordsymbol_trans_up() end
            
              if reaper.ImGui_Button(ctx, 'XML', (btn_w*2)+(spacing_x*1),y) then import_xml() end
                         ToolTip(tt, "loads the appropriate xml file for the audio file.(if available)\nselect track and don't allow import midi tempo..")
-           if reaper.ImGui_Button(ctx, 'Color', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end 
+             if reaper.ImGui_Button(ctx, 'Color', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end 
            
-           reaper.ImGui_EndGroup(ctx)     
+             reaper.ImGui_EndGroup(ctx)    
+             
 --=============================================================================================================================
       
         reaper.ImGui_End(ctx)
         
     end 
   
-    reaper.ImGui_PopStyleVar(ctx,6)
+    reaper.ImGui_PopStyleVar(ctx,2)
     reaper.ImGui_PopStyleColor(ctx, 11)
     reaper.ImGui_PopFont(ctx) -- Pop Font
    
