@@ -9532,6 +9532,115 @@ function chordsymbol_trans_up()
                                                                                     
 end
 -- =======================================================================================
+--================== CHORD_LEFT =========================================================
+--=========================================================================================
+function chordsymbol_left()
+    function Msg(m)                         --  function: console output alias for debugging
+  reaper.ShowConsoleMsg(tostring(m) .. '\n')
+    end
+ 
+
+function getTrackByName(name)
+  for trackIndex = 0, reaper.CountTracks(0) - 1 do
+     tracko = reaper.GetTrack(0, trackIndex)
+    local ok, trackName = reaper.GetSetMediaTrackInfo_String(tracko, 'P_NAME', '', false)
+
+    if ok and trackName == name then
+      return tracko -- found it! stopping the search here
+    end 
+  end
+end  
+
+
+function chord_up(item_notes)
+  chord, p = nil, 0
+  root, chord = string.match(item_notes, "(%w[#b]?)(.*)$")
+  switches = string.match( item_notes, "-%a.*")
+  
+  if string.match( item_notes, "@.*") then root = "" chord = "" i=i +1 end -- skip region marked @ ignore
+  if item_notes == "" then root = "" chord = "" i=i +1 end
+  if string.find(item_notes, "-%a.*")  == 1 then root = "" chord = "" end  
+ 
+ var = chord
+ 
+                if chord == "maj7"     then chord_left =  ""
+          elseif chord == "maj9" then chord_left ="maj7"
+           elseif chord == "maj13"then chord_left ="maj9"
+           elseif chord == "maj+4"then chord_left ="maj13"
+            elseif chord == "7"then chord_left ="maj+4"
+             elseif chord == "9"then chord_left ="7"
+              elseif chord == "11"then chord_left ="9"
+              elseif chord == "13"then chord_left ="11"
+              elseif chord == "7aug"then chord_left ="13"
+            elseif chord == "7b9"then chord_left ="7aug"
+             elseif chord == "7alt"then chord_left ="7b9"
+            elseif chord == "7b5"then chord_left ="7alt"
+              elseif chord == "dim"then chord_left ="7b5" 
+             elseif chord == "m"then chord_left ="dim"
+               elseif chord == "m7"then chord_left ="m"
+               elseif chord == "m9"then chord_left ="m7"
+              elseif chord == "m11"then chord_left ="m9"
+             elseif chord == "m13"then chord_left ="m11" 
+              elseif chord == "m(maj7)"then chord_left ="m13"
+          elseif chord == ""then chord_left ="m(maj7)"
+         
+         
+         elseif chord == nil then return end 
+         
+         if not root then end
+         end
+
+
+                ctrack = getTrackByName("chordtrack")
+          count_chords = reaper.CountTrackMediaItems(ctrack)
+  start_time, end_time = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
+           count_items = reaper.CountSelectedMediaItems(0)
+        for  y = 0, count_chords-1 do
+            chord_item =  reaper.GetTrackMediaItem(ctrack, y )  
+           is_selected = reaper.IsMediaItemSelected(chord_item)
+       end
+       
+ 
+  if count_items - count_chords >= 0 or count_items == 0 then
+
+  for i=0, count_chords -1 do
+
+        chord_item = reaper.GetTrackMediaItem(ctrack,i )
+       is_selected = reaper.IsMediaItemSelected(chord_item)
+     _, item_notes = reaper.GetSetMediaItemInfo_String(chord_item, "P_NOTES", "", false) 
+               pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
+            length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
+            rgnend = pos+length  
+            
+          
+    if  pos >= start_time and pos < end_time then   
+    chord_up(item_notes)
+    reaper.GetSetMediaItemInfo_String(chord_item, "P_NOTES", root..chord_left, true)
+    end
+    end
+   
+    else
+   
+       for  x = 0, count_chords-1 do
+       chord_item = reaper.GetMediaItem(0,x)    
+       is_selected = reaper.IsMediaItemSelected(chord_item )
+           if is_selected == true then
+        
+         _, item_notes = reaper.GetSetMediaItemInfo_String(chord_item, "P_NOTES", "", false) 
+    
+          chord_up(item_notes)
+          if chord_right == nil then return end 
+          reaper.GetSetMediaItemInfo_String(chord_item, "P_NOTES", root..chord_left, true)
+end
+ end 
+end
+ 
+
+  reaper.UpdateArrange()
+  
+end
+
+-- =======================================================================================
 --================== CHORD_RIGHT =========================================================
 --=========================================================================================
 function chordsymbol_right()
@@ -9564,16 +9673,27 @@ function chord_up(item_notes)
   var = chord
 
         if     chord == ""        then chord_right = "maj7"
-        elseif chord == "maj7"    then chord_right = "maj7#11"
-        elseif chord == "maj7#11" then chord_right = "m"
-        elseif chord == "m"       then chord_right = "m7"
-        elseif chord == "m7"      then chord_right = "m7b9"
-        elseif chord == "m7b9"    then chord_right = "m7b5b9"
-        elseif chord == "m7b5b9"  then chord_right = "7"
+        elseif chord == "maj7"    then chord_right = "maj9"
+        elseif chord == "maj9"    then chord_right = "maj13"
+        elseif chord == "maj13"   then chord_right = "maj+4"
+        elseif chord == "maj+4"   then chord_right = "7"
         elseif chord == "7"       then chord_right = "9"
-        elseif chord == "9"       then chord_right = "7b9"
-        elseif chord == "7b9"     then chord_right = "7#9"
-        elseif chord == "7#9"     then chord_right = ""
+        elseif chord == "9"       then chord_right = "11"
+        elseif chord == "11"      then chord_right = "13"
+        elseif chord == "13"      then chord_right = "7aug"
+        elseif chord == "7aug"    then chord_right = "7b9"
+        elseif chord == "7b9"     then chord_right = "7alt"
+        elseif chord == "7alt"    then chord_right = "7b5"
+        elseif chord == "7b5"     then chord_right = "dim"
+        elseif chord == "dim"     then chord_right = "m"
+        elseif chord == "m"       then chord_right = "m7"
+        elseif chord == "m7"      then chord_right = "m9"
+        elseif chord == "m9"      then chord_right = "m11"
+        elseif chord == "m11"     then chord_right = "m13"
+        elseif chord == "m13"     then chord_right = "m(maj7)"
+        elseif chord == "m(maj7)" then chord_right = ""
+        
+        
         elseif chord == nil then return end 
         
         if not root then end
@@ -9628,8 +9748,6 @@ end
   reaper.UpdateArrange()
   
 end
-
-
 --========================================================================================
 --====================== create_chordtrack ===============================================
 --========================================================================================

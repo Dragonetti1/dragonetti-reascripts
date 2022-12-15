@@ -1,10 +1,10 @@
--- @version 1.7.7
+-- @version 1.7.8
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + less styleVar
+--    + extensions
 
 ------------------------------
 info = debug.getinfo(1,'S')
@@ -557,9 +557,11 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
                   reaper.ImGui_PopFont(ctx)
                   reaper.ImGui_SameLine( ctx )
                   if reaper.ImGui_Button(ctx, 'detection',(btn_w*2)+(spacing_x*1),y) then detect_midi_chords() end
-                  ToolTip(tt, "only midi!! \nWrites the recognised chords into the chordtrack") 
-                  if reaper.ImGui_Button(ctx, 'x##2',32,24) then chordsymbol_right() end  
-               
+                  ToolTip(tt, "only midi!! \nWrites the recognised chords into the chordtrack")
+             
+                  if reaper.ImGui_Button(ctx, '- extension##5',66,22) then chordsymbol_left() end
+                  reaper.ImGui_SameLine(ctx)
+                  if reaper.ImGui_Button(ctx, '+ extension##5',66,22) then chordsymbol_right() end
                   reaper.ImGui_EndGroup(ctx) 
              
 --========================= OTHER ============================================================================   
