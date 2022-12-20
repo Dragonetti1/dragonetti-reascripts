@@ -203,7 +203,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine( ctx ,0,0)
                reaper.ImGui_PushItemWidth( ctx, 32 )
                local   old_b = b
-               ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 1,(ICount))
+               ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 0,(ICount))
                if ret then
                  crazy_length(b,am)
                end

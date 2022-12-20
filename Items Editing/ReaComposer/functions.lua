@@ -68,17 +68,22 @@ old_length = ItemsSel[Idx].oldLength
 -- x is 1 or -1 comes from buttons from the GUI
 --change the length with the help of a function   
 --==============================================================================================
-if b==nil then b=0 end
-if am==nil then am=0 end
+if b==nil then b=1 end
+if am==nil then am=1 end
 
 
 if i==0 then aos = 0 end
+
+if b==0 then
+
+  aos = (am*-0.1*xpi*(i-(ICount/2-0.5))/ICount)
+  else
 
   aos = am*0.1*math.cos((2*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi/xpi*2)   -- aos is an add or subtract factor of 1/64
 --  aos = 1/b*am*1/ICount*(i-(ICount/2-0.5))
 --  aos = math.sin(i-(ICount/2-0.5))+1/64*(i-(ICount/2-0.5))
 --    aos = (4*(i-(ICount/2-0.5))/8)^3
-    
+end    
   add_length = aos*particle*480/bpm -- add_length in seconds depends on bpm is added to or subtracted from the old length.    
     playrate = ItemsSel[Idx].oldPlayrate
     if playrate ~= nil then
@@ -4300,15 +4305,16 @@ function get_chord_notes(r)
 
 
   
-    if string.find(",Maj7,maj7,Maj7,Maj,M,M7,", ","..chord..",", 1, true) then notew=2  notee=4  noter=5  notet=7  notez=9  noteu=11  end -- Ionian 
-    if string.find(",m7,min7,-7,", ","..chord..",", 1, true)              then notew=2  notee=3  noter=5  notet=7  notez=9  noteu=10  end -- Dorian
+    if string.find(",Maj7,maj7,Maj7,Maj,M,M7,maj9,maj13,", ","..chord..",", 1, true) then notew=2  notee=4  noter=5  notet=7  notez=9  noteu=11  end -- Ionian 
+    if string.find(",m7,min7,-7,m9,m11,m13,", ","..chord..",", 1, true)              then notew=2  notee=3  noter=5  notet=7  notez=9  noteu=10  end -- Dorian
     if string.find(",m7b9,m7b9b13", ","..chord..",", 1, true)             then notew=1  notee=3  noter=5  notet=7  notez=8  noteu=10  end -- Phrygian
-    if string.find(",maj7#11,maj#11,", ","..chord..",", 1, true)          then notew=2  notee=4  noter=6  notet=7  notez=9  noteu=11  end -- Lydian
-    if string.find(",7,dom,9,13,", ","..chord..",", 1, true)              then notew=2  notee=4  noter=5  notet=7  notez=9  noteu=10  end -- Mixolydian
+    if string.find(",maj7#11,maj#11,maj+4,", ","..chord..",", 1, true)          then notew=2  notee=4  noter=6  notet=7  notez=9  noteu=11  end -- Lydian
+    if string.find(",7,dom,9,11,13,", ","..chord..",", 1, true)              then notew=2  notee=4  noter=5  notet=7  notez=9  noteu=10  end -- Mixolydian
     if string.find(",m,min,", ","..chord..",", 1, true)                   then notew=2  notee=3  noter=5  notet=7  notez=8  noteu=10  end -- Aeolian
     if string.find(",m7b5b9,m7-5-9,", ","..chord..",", 1, true)           then notew=1  notee=3  noter=5  notet=6  notez=8  noteu=10  end -- Locrian
-  
-  
+    if string.find(",7aug,7+,", ","..chord..",", 1, true)           then notew=2  notee=4  noter=6  notet=8  notez=10  noteu=12  end -- whole tone scale
+    if string.find(",7b9,7b5,", ","..chord..",", 1, true)           then notew=1  notee=3  noter=4  notet=6  notez=7  noteu=9  end -- diminish scale
+    if string.find(",7alt,", ","..chord..",", 1, true)           then notew=1  notee=3  noter=4  notet=6  notez=8  noteu=10  end -- altered Scale
 
         
 end
