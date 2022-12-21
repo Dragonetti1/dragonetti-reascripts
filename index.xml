@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="85c0cbad51e9fa5d9a54ba51457a5477db3864c1">
+<index version="1" name="dragonetti-reascripts" commit="6f563b7fa92a22c7b24db71a2ac12ac982e637b5">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -14,6 +14,21 @@
       </metadata>
       <version name="1.0.0" author="Dragonetti" time="2022-10-10T20:34:46Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/796ec32b7fcc79e2f88c0c0cb95751735709bd1c/Items%20Editing/dragonetti_chordsymbol%20to%20midi.lua</source>
+      </version>
+    </reapack>
+    <reapack name="dragonetti_midi chord detection to empty item notes.lua" type="script" desc="midi chord detection">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 creates a chordtrack detect midi chords and creates chordsymbols as notes in empty items\par}
+}
+]]></description>
+        <link rel="website" href="https://forum.cockos.com/showthread.php?t=269816">forum</link>
+      </metadata>
+      <version name="1.0.0" author="juliansader,dragonetti" time="2022-12-21T18:31:53Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/6f563b7fa92a22c7b24db71a2ac12ac982e637b5/Items%20Editing/dragonetti_midi%20chord%20detection%20to%20empty%20item%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="dragonetti_user input to length.lua" type="script" desc="User input changes the lengths of the items">
