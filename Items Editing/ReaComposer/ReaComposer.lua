@@ -1,10 +1,10 @@
--- @version 1.7.8
+-- @version 1.7.9
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + extensions
+--    + extensions 1
 
 ------------------------------
 info = debug.getinfo(1,'S')
