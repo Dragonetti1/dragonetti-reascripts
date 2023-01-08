@@ -3,6 +3,37 @@
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------FUNCTIONS---------------------------------------------------------------------------------------------------------------------------------
 --===========================================================================================================================================================================
+
+--===========================================================================================================================
+--=============================== renderregion ===============================================================================
+--======================================================================================================================
+
+function create_render_region()
+
+a_start,b_end = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false) -- start and end from time selection
+
+reaper.Main_OnCommand(40182,0) -- select all itemns
+reaper.Main_OnCommand(40290,0) -- create time selection
+reaper.Main_OnCommand(40323,0) -- nudge right edge right 
+reaper.Main_OnCommand(40323,0) -- nudge right edge right
+reaper.Main_OnCommand(40323,0) -- nudge right edge right
+reaper.Main_OnCommand(40320,0) -- nudge left edge left
+reaper.Main_OnCommand(40320,0) -- nudge left edge left 
+
+time_sel_start, time_sel_end = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false)
+
+reaper.AddProjectMarker2( 0, true, time_sel_start, time_sel_end, "render region",0, reaper.ColorToNative( 150,150,150 )|0x1000000  )
+
+reaper.GetSet_LoopTimeRange(true, true, a_start, b_end, false) -- reset time selection
+
+reaper.Main_OnCommand(40289,0) -- deselect all items
+
+end
+
+
+--===========================================================================================================================
+--===============================crazylength===============================================================================
+--======================================================================================================================
 function crazy_length(b,am)
 
 
