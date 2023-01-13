@@ -1,11 +1,11 @@
--- @version 1.8.0
+-- @version 1.8.1
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
 --    + render region
---    + improve crazy length
+--    + additional metadata to render region
 
 ------------------------------
 info = debug.getinfo(1,'S')
@@ -173,6 +173,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_Button(ctx,grid_setting,(btn_w*2)+(spacing_x*1),y) 
                reaper.ImGui_PopStyleColor(ctx,3)               
                reaper.ImGui_EndGroup(ctx)
+
+              
                
 --========================= LENGTH ============================================================================
 
@@ -351,7 +353,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                 
                
 --========================= PITCH  ============================================================================    
-
+             
               reaper.ImGui_SameLine(ctx, nil, 10)
               reaper.ImGui_BeginGroup(ctx) 
       
@@ -376,7 +378,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'rand',32,y) then pitch_rand() end
                ToolTip(tt, "the transposition is random but fitting to the chord")            
                reaper.ImGui_EndGroup(ctx)   
-               
+              
 --========================= SELECT ============================================================================   
 
                reaper.ImGui_SameLine(ctx, nil, 10)
@@ -451,7 +453,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
               reaper.Main_OnCommand(reverse,0) end 
            if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then shuffle_order() end
               reaper.ImGui_EndGroup(ctx) 
-         
+        
 --========================= MIDI  ============================================================================  
 
               reaper.ImGui_SameLine(ctx, nil, 10)
@@ -575,8 +577,11 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
              if reaper.ImGui_Button(ctx, 'XML', (btn_w*2)+(spacing_x*1),y) then import_xml() end
                         ToolTip(tt, "loads the appropriate xml file for the audio file.(if available)\nselect track and don't allow import midi tempo..")
              if reaper.ImGui_Button(ctx, 'Color', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end 
-             if reaper.ImGui_Button(ctx, 'Render', (btn_w*2)+(spacing_x*1),y) then create_render_region() end 
-           
+             if reaper.ImGui_Button(ctx, 'Ren.', (btn_w),y) then create_render_region() end 
+             ToolTip(tt, "create a render region")
+             reaper.ImGui_SameLine(ctx)
+             if reaper.ImGui_Button(ctx, 'Rig.', (btn_w),y) then metadata_entries_2_region() end 
+             ToolTip(tt, "additional metadata \nfor the rendered song(mp3,wav..) \nyou need a render region")
              reaper.ImGui_EndGroup(ctx)    
              
 --=============================================================================================================================

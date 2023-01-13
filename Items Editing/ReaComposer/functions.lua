@@ -11818,8 +11818,132 @@ reaper.Undo_EndBlock2(0, "Chords from midi item", -1)
 reaper.MIDIEditor_OnCommand( hwnd, 2 ) --File: Close window
 
 end
+--==============================================================================================
+--================================== metadata entries in render region =========================
+--==============================================================================================
+-- @description Rename region at edit cursor 
+--with "Timer","Date created","rating","finished","genre", "deadline" 
+--for deadline you need "archie counter timer(auto)" script from reapack
+-- https://forum.cockos.com/showthread.php?t=259165
+
+function metadata_entries_2_region()
+local _, rg_idx = reaper.GetLastMarkerAndCurRegion( 0,  reaper.GetCursorPositionEx( 0 ) )
+if rg_idx == -1 then
+  reaper.ShowConsoleMsg( "Edit cursor not inside a region!" )
+  return
+end
+
+local _, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, rg_idx )
+
+-----Project started------------
+
+function restore_proj_started() 
+  local ret, proj_started = reaper.GetProjExtState(0, "ARC_COUNTER_TIMER_IN_PROJ_WIN", "PROJECT_STARTED")
+  return proj_started
+end
+
+proj_started = restore_proj_started()
+if proj_started ~= "" then -- if not empty string
+  -- only store date, discard the rest
+  day = string.sub(proj_started, 1,2) 
+  month = string.sub(proj_started, 4,5) 
+  year = string.sub(proj_started, 7,10) 
+  
+end
+
+local start =  year .. "-" .. month .. "-" .. day
+
+-------------Work Timer----------
+function restore_time() 
+  local ret, saved_time_sec = reaper.GetProjExtState(0, "ARC_COUNTER_TIMER_IN_PROJ_WIN", "TIME_SEC_AFK_SESSION")
+  if saved_time_sec ~= "" then
+    return saved_time_sec
+  else
+    return 0
+  end
+end
+
+function sec_to_ddhhmm(time_sec)
+  local days = math.floor(time_sec/(60*60*24))
+  local hours = math.floor(time_sec/(60*60)%24)
+  local minutes = math.floor(time_sec/60%60) 
+  return string.format("%02d:%02d:%02d",days,hours,minutes)
+end
+
+restored_time_sec = restore_time()
+local timer =  sec_to_ddhhmm(restored_time_sec)
+
+------------------------------------------------------------------
+--rating, genre, finished, deadline---- Get User Input------------
+------------------------------------------------------------------
+ retval, author = reaper.GetSetProjectInfo_String( 0, "PROJECT_AUTHOR", "", false )
+title=string.gsub(string.gsub(reaper.GetProjectName( 0, "" ), ".rpp", ""), ".RPP", "")
+if title=="" then title="project unsaved"
+end
+
+retval, string_all = reaper.GetProjExtState( 0, "MARK", "COLUMN" )
+
+if string_all=="" 
+then
+string_all=""..title..",★,Mark,album,genre,key,no,11.11.2111,comment"
+end
 
 
+
+retval, retvals_csv = reaper.GetUserInputs( '', 9, "title:,rating:,artist:,album:,genre:,key:,finished:,deadline:,comment:,extrawidth=120", string_all)
+if not retval then return end
+
+
+
+title,rating,artist,album,genre,key,finished,deadline,comment = retvals_csv:match("(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.*)")
+
+
+title=string.gsub(string.gsub(reaper.GetProjectName( 0, "" ), ".rpp", ""), ".RPP", "")
+
+string_all=""..title..","..rating..","..artist..","..album..","..genre..","..key..","..finished..","..deadline..","..comment..""
+
+
+
+reaper.SetProjExtState(0, "MARK", "COLUMN", string_all )
+notes = reaper.GetSetProjectNotes( 0,true , comment )
+author = reaper.GetSetProjectAuthor( 0,true , artist )
+
+local deadlineTimestamp = retvals_csv
+
+local function dateToTime(s)
+  local xDay, xMonth, xYear = s:match("(%d+)%.(%d+)%.(%d+)")
+  return os.time({year = xYear, month = xMonth, day = xDay, hour = 0, min = 0, sec = 0})
+end
+
+local today = os.time()
+local deadlineDate = dateToTime(deadlineTimestamp)
+local daysLeft = deadlineDate - today
+
+deadline = math.floor(daysLeft/86400)
+if deadline >  400 then deadline=""
+elseif deadline ==  tostring("no deadline") then deadline=""
+end
+
+
+-------write to region name------
+local ok = reaper.SetProjectMarker4( 0, markrgnindexnumber, isrgn, pos, rgnend,
+                                          " title="..title.. 
+                                          ";   comment="..comment..
+                                          ";   rating="..rating..
+                                          ";   author="..author..
+                                          ";   album="..album..
+                                          ";   start_time="..start..
+                                          ";   deadline="..deadline..
+                                          ";   key="..key..
+                                          ";   genre="..genre..
+                                          ";   finished="..finished..
+                                          ";   work_timer="..timer..
+                                          ";", color, tr_name == "" and 1 or 0 )
+if ok then
+  reaper.Undo_OnStateChangeEx2( 0, "Timer to Region", 8, -1 )
+end
+
+end
 --------------------------------------------------------------------------------------------------------------
 -----------------------------------OTHERS import XML --------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------
