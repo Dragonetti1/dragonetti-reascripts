@@ -4,31 +4,6 @@
 -----------------------------------------------------FUNCTIONS---------------------------------------------------------------------------------------------------------------------------------
 --===========================================================================================================================================================================
 
---===========================================================================================================================
---=============================== renderregion ===============================================================================
---======================================================================================================================
-
-function create_render_region()
-
-a_start,b_end = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false) -- start and end from time selection
-
-reaper.Main_OnCommand(40182,0) -- select all itemns
-reaper.Main_OnCommand(40290,0) -- create time selection
-reaper.Main_OnCommand(40323,0) -- nudge right edge right 
-reaper.Main_OnCommand(40323,0) -- nudge right edge right
-reaper.Main_OnCommand(40323,0) -- nudge right edge right
-reaper.Main_OnCommand(40320,0) -- nudge left edge left
-reaper.Main_OnCommand(40320,0) -- nudge left edge left 
-
-time_sel_start, time_sel_end = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false)
-
-reaper.AddProjectMarker2( 0, true, time_sel_start, time_sel_end, "render region",0, reaper.ColorToNative( 150,150,150 )|0x1000000  )
-
-reaper.GetSet_LoopTimeRange(true, true, a_start, b_end, false) -- reset time selection
-
-reaper.Main_OnCommand(40289,0) -- deselect all items
-
-end
 
 
 --===========================================================================================================================
@@ -82,6 +57,7 @@ for i = 0, ICount-1 ,1 do
 
   item = reaper.GetSelectedMediaItem(0, i)
   take = reaper.GetActiveTake(item) 
+  if take == nil then return end
 
 
     ItemsSel[Idx] = {} 
@@ -131,6 +107,7 @@ end
     ItemsSel[Idx].newRate = new_rate
   
     reaper.SetMediaItemInfo_Value(item, "D_LENGTH",new_length)
+    if take == nil then return end
     reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", new_rate)
         
 
@@ -363,6 +340,7 @@ ItemsSelCount = reaper.CountSelectedMediaItems(0)
 if ItemsSelCount ==0 then Msg("no items selected")return
 end
 retval, rhymx = reaper.GetUserInputs( "input2length", 2,"1=1grid  2=2grid  etc.,1 /factor", "1111111111111111,1" )
+if not retval then return end
 
 
  name = {rhymx:match("^([^,]+),([^,]+)$")}
@@ -406,7 +384,9 @@ mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
 ItemsSelCount = reaper.CountSelectedMediaItems(0)
 for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)
+  
   take = reaper.GetActiveTake(item) 
+  if take == nil then return end
 
   local thisTrack = reaper.GetMediaItem_Track(item)
 
@@ -731,6 +711,7 @@ ItemsSelCount = reaper.CountSelectedMediaItems(0)
 for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)
   take = reaper.GetActiveTake(item) 
+  if take == nil then return end
 
   local thisTrack = reaper.GetMediaItem_Track(item)
 
@@ -748,7 +729,7 @@ for i = 0, ItemsSelCount - 1 do
     grid_length = grid_end - start
     
     source = reaper.GetMediaItemTake_Source( take ) reaper.GetMediaItemTake_Source( take ) 
-   source_length, lengthIsQN = reaper.GetMediaSourceLength( source )
+    source_length, lengthIsQN = reaper.GetMediaSourceLength( source )
   
   _,bpm1 = reaper.GetMediaFileMetadata(source,"Generic:BPM")
      _, _, tempo = reaper.TimeMap_GetTimeSigAtTime( 0, start )
@@ -1181,7 +1162,7 @@ ItemsSelCount = reaper.CountSelectedMediaItems(0)
 for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)
   take = reaper.GetActiveTake(item) 
-
+ if take == nil then return end
   local thisTrack = reaper.GetMediaItem_Track(item)
 
   if thisTrack == mainTrack then
@@ -1283,6 +1264,7 @@ for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)  
   
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
    
   Idx = i + 1 -- 1-based table in Lua      
@@ -1350,6 +1332,7 @@ ItemsSelCount = reaper.CountSelectedMediaItems(0)
 for i = 0, ItemsSelCount - 1 do
     item = reaper.GetSelectedMediaItem(0, i)
     take = reaper.GetActiveTake(item)
+    if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
      bpm = tonumber(({reaper.CF_GetMediaSourceMetadata( source, "BPM", "" )})[2]) or
    tonumber(({reaper.CF_GetMediaSourceMetadata( src, "bpm", "" )})[2])
@@ -1467,6 +1450,7 @@ ItemsSelCount = reaper.CountSelectedMediaItems(0)
 for i = 0, ItemsSelCount - 1 do
     item = reaper.GetSelectedMediaItem(0, i)
     take = reaper.GetActiveTake(item)
+    if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
      bpm = tonumber(({reaper.CF_GetMediaSourceMetadata( source, "BPM", "" )})[2]) or
    tonumber(({reaper.CF_GetMediaSourceMetadata( src, "bpm", "" )})[2])
@@ -1579,6 +1563,7 @@ ItemsSelCount = reaper.CountSelectedMediaItems(0)
 for i = 0, ItemsSelCount - 1 do
     item = reaper.GetSelectedMediaItem(0, i)
     take = reaper.GetActiveTake(item)
+    if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
      bpm = tonumber(({reaper.CF_GetMediaSourceMetadata( source, "BPM", "" )})[2]) or
    tonumber(({reaper.CF_GetMediaSourceMetadata( src, "bpm", "" )})[2])
@@ -1698,6 +1683,7 @@ ItemsSelCount = reaper.CountSelectedMediaItems(0)
 for i = 0, ItemsSelCount - 1 do
     item = reaper.GetSelectedMediaItem(0, i)
     take = reaper.GetActiveTake(item)
+    if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
      bpm = tonumber(({reaper.CF_GetMediaSourceMetadata( source, "BPM", "" )})[2]) or
        tonumber(({reaper.CF_GetMediaSourceMetadata( src, "bpm", "" )})[2])
@@ -2098,6 +2084,7 @@ function main()
       if i == 0 and reaper.GetMediaItem_Track( current_item ) == track then
       
       take = reaper.GetActiveTake(current_item)
+      if take == nil then return end
     source =  reaper.GetMediaItemTake_Source( take )
     _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
     
@@ -2644,6 +2631,7 @@ function main()
       if i == 0 and reaper.GetMediaItem_Track( current_item ) == track then
       
       take = reaper.GetActiveTake(current_item)
+      if take == nil then return end
     source =  reaper.GetMediaItemTake_Source( take )
     _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
     
@@ -2826,6 +2814,7 @@ function main()
       if i == 0 and reaper.GetMediaItem_Track( current_item ) == track then
       
       take = reaper.GetActiveTake(current_item)
+      if take == nil then return end
     source =  reaper.GetMediaItemTake_Source( take )
     _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
     
@@ -3630,7 +3619,8 @@ mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
 ItemsSelCount = reaper.CountSelectedMediaItems(0)
 for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)
-  take = reaper.GetActiveTake(item) 
+  take = reaper.GetActiveTake(item)
+  if take == nil then return end
 
   local thisTrack = reaper.GetMediaItem_Track(item)
 
@@ -3761,6 +3751,7 @@ for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)  
   reaper.SetMediaItemInfo_Value( item, "B_LOOPSRC", 0)  ---loop source off -----
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
     
     Idx = i + 1 -- 1-based table in Lua      
@@ -4257,6 +4248,7 @@ if ItemsSelCount ==0 then Msg("select items")return
 end
 
 retval, seq = reaper.GetUserInputs( "scale sequenzer", 2,"seq(q-i) mute=o  octa=(a-k),semi(1-8)//     accent(1,0)", "qeteqete,10001000" )
+if not retval then return end
 
  
 Table_Seq = {string.sub(seq,1,1),string.sub(seq,2,2),string.sub(seq,3,3),string.sub(seq,4,4),string.sub(seq,5,5)
@@ -4553,6 +4545,7 @@ function main()
       item_start = reaper.GetMediaItemInfo_Value( item0, "D_POSITION")+0.001
       if item_start > rgnend then break end  
       take0 = reaper.GetActiveTake(item0)
+      if take0 == nil then return end
       source =  reaper.GetMediaItemTake_Source( take0)         
       _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
       if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
@@ -4866,6 +4859,7 @@ end
 function pitch_compensation(current_item) -- compensate audi items with different source pitches -- metadata key must set
 
           take = reaper.GetActiveTake(current_item)
+          if take == nil then return end
         source =  reaper.GetMediaItemTake_Source( take )
         _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
         
@@ -5238,49 +5232,57 @@ function main()
       if i == 0 and reaper.GetMediaItem_Track( current_item ) == track then
       
       pitch_compensation(current_item)
-      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note1+transpo) -- chord root  
+      if take == nil then return end
+      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note1+transpo) -- chord root 
+     
       reaper.UpdateItemInProject(current_item)
       end
       
       if i == 1 and reaper.GetMediaItem_Track( current_item ) == track then
       
       pitch_compensation(current_item)
-      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note2+note1+transpo) -- chord root   
+      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note2+note1+transpo) -- chord root 
+      if take == nil then return end
       reaper.UpdateItemInProject(current_item)
       end
       
       if i == 2 and reaper.GetMediaItem_Track( current_item ) == track then
       
       pitch_compensation(current_item)
-      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note3+note1+transpo) -- chord root   
+      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note3+note1+transpo) -- chord root 
+      if take == nil then return end
       reaper.UpdateItemInProject(current_item)
       end
       
       if i == 3 and reaper.GetMediaItem_Track( current_item ) == track then
       
       pitch_compensation(current_item)
-      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note4+note1+transpo) -- chord root   
+      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note4+note1+transpo) -- chord root
+      if take == nil then return end
       reaper.UpdateItemInProject(current_item)
       end
       
       if i == 4 and reaper.GetMediaItem_Track( current_item ) == track then
       
       pitch_compensation(current_item)
-      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note5+note1+transpo) -- chord root   
+      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note5+note1+transpo) -- chord root 
+      if take == nil then return end
       reaper.UpdateItemInProject(current_item)
       end          
       
       if i == 5 and reaper.GetMediaItem_Track( current_item ) == track then
       
       pitch_compensation(current_item)
-      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note6+note1+transpo) -- chord root   
+      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note6+note1+transpo) -- chord root  
+      if take == nil then return end
       reaper.UpdateItemInProject(current_item)
       end          
       
       if i == 6 and reaper.GetMediaItem_Track( current_item ) == track then
       
       pitch_compensation(current_item)
-      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note7+note1+transpo) -- chord root   
+      reaper.SetMediaItemTakeInfo_Value(take, 'D_PITCH',note7+note1+transpo) -- chord root 
+      if take == nil then return end
       reaper.UpdateItemInProject(current_item)
        end          
      end
@@ -5418,6 +5420,7 @@ function main()
   end
   
         take = reaper.GetActiveTake(sel_item)
+        if take == nil then return end
       source = reaper.GetMediaItemTake_Source( take )
       _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
       
@@ -5688,6 +5691,7 @@ for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)  
   
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
     
     Idx = i + 1 -- 1-based table in Lua      
@@ -5836,6 +5840,7 @@ for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)  
   
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
     
     Idx = i + 1 -- 1-based table in Lua      
@@ -5905,6 +5910,7 @@ for i = 0, ItemsSelCount - 1 do
   
   
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
     
     Idx = i + 1 -- 1-based table in Lua      
@@ -6213,6 +6219,7 @@ function main()
                rgnend = pos+length  
   
     take = reaper.GetActiveTake(sel_item)
+    if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
   _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
   
@@ -6292,6 +6299,7 @@ end
      --   for i=0, item_count - 1 do
      item = reaper.GetSelectedMediaItem( 0, i )
      take =  reaper.GetActiveTake( item )
+     if take == nil then return end
     length = reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
 
   pitch =  reaper.GetMediaItemTakeInfo_Value( take, "D_PITCH" )
@@ -6326,6 +6334,7 @@ for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)  
   
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
    
   Idx = i + 1 -- 1-based table in Lua      
@@ -6355,6 +6364,7 @@ for i = 0, ItemsSelCount - 1 do
   item = reaper.GetSelectedMediaItem(0, i)  
   
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   source =  reaper.GetMediaItemTake_Source( take )
    
   Idx = i + 1 -- 1-based table in Lua      
@@ -7326,8 +7336,9 @@ function main()
 
       
       
-    take = reaper.GetActiveTake(current_item)
+     
      take = reaper.GetActiveTake(current_item)
+     if take == nil then return end
         source =  reaper.GetMediaItemTake_Source( take )
         _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
         
@@ -7403,6 +7414,7 @@ local function Msg(str)
 end
 
 retval, seq1 = reaper.GetUserInputs( "pattern select", 1,"1=select 0=unselect", "01" )
+if not retval then return end
 
 item_ptrs = {}
 itemCount = 1
@@ -8441,6 +8453,7 @@ function get_item_lengths()
   t[i].item = item  
   t[i].len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   t[i].pitch = reaper.GetMediaItemTakeInfo_Value(take, "D_PITCH")
     end
   end
@@ -8464,6 +8477,7 @@ sort_func = function(a,b) -- https://forums.coronalabs.com/topic/37595-nested-so
       
 function sort_items_by_length()
   local data = get_item_lengths()
+  if data == nil then return end
   if #data == 0 then return end
   local pos = reaper.GetMediaItemInfo_Value(data[1].item, "D_POSITION") -- get first item pos
   
@@ -8522,6 +8536,7 @@ function get_item_lengths()
   t[i].item = item  
   t[i].len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
   take = reaper.GetActiveTake(item)
+  if take == nil then return end
   t[i].pitch = reaper.GetMediaItemTakeInfo_Value(take, "D_PITCH")
   t[i].rate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
     end
@@ -8538,6 +8553,7 @@ sort_func = function(a,b) -- https://forums.coronalabs.com/topic/37595-nested-so
       
 function sort_items_by_length()
   local data = get_item_lengths()
+  if data == nil then return end
   if #data == 0 then return end
   local pos = reaper.GetMediaItemInfo_Value(data[1].item, "D_POSITION") -- get first item pos
   
@@ -8863,6 +8879,7 @@ bar_ppq = 3840
 grid_ppq = 3840/note_quantity
 accent = note_quantity/4  
 retval, rhy = reaper.GetUserInputs( "16 notes", 1,"seq(1-16)  1=1grid  2=2grid  etc.", "1111111111111111" )
+if not retval then return end
 
 Table_Rhy = {string.sub(rhy,1,1),string.sub(rhy,2,2),string.sub(rhy,3,3),string.sub(rhy,4,4),string.sub(rhy,5,5)
 ,string.sub(rhy,6,6),string.sub(rhy,7,7),string.sub(rhy,8,8),string.sub(rhy,9,9),string.sub(rhy,10,10),string.sub(rhy,11,11)
@@ -9310,6 +9327,7 @@ reaper.MIDIEditor_OnCommand(41281,0) --Notation: Identify chords on editor grid
 
   
 take = reaper.MIDIEditor_GetTake(reaper.MIDIEditor_GetActive())
+if take == nil then return end
 reaper.MIDI_Sort(take)
 MIDIOK, MIDI = reaper.MIDI_GetAllEvts(take, "")
 tChords = {}
@@ -11878,35 +11896,38 @@ local timer =  sec_to_ddhhmm(restored_time_sec)
 ------------------------------------------------------------------
  retval, author = reaper.GetSetProjectInfo_String( 0, "PROJECT_AUTHOR", "", false )
 title=string.gsub(string.gsub(reaper.GetProjectName( 0, "" ), ".rpp", ""), ".RPP", "")
-if title=="" then title="project unsaved"
-end
+comment = reaper.GetSetProjectNotes( 0,false, 0 )
+if comment =="" then comment = "no comment" end
+if title=="" then title="project unsaved" end
 
-retval, string_all = reaper.GetProjExtState( 0, "MARK", "COLUMN" )
+retval, string_all_ohne = reaper.GetProjExtState( 0, "MARK", "COLUMN" )
+string_all = ""..string_all_ohne..","..comment..""
 
-if string_all=="" 
+if string_all_ohne=="" 
 then
-string_all=""..title..",★,Mark,album,genre,key,no,11.11.2111,comment"
+string_all=""..title..",★,Mark,album,genre,key,no,11.11.2111,"..comment..""
 end
 
 
 
-retval, retvals_csv = reaper.GetUserInputs( '', 9, "title:,rating:,artist:,album:,genre:,key:,finished:,deadline:,comment:,extrawidth=120", string_all)
+retval, retvals_csv = reaper.GetUserInputs( '', 9, "title:,rating:,artist:,album:,genre:,key:,finished:,deadline:,comment:,extrawidth=240",string_all)
 if not retval then return end
 
 
 
-title,rating,artist,album,genre,key,finished,deadline,comment = retvals_csv:match("(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.*)")
+title,rating,artist,album,genre,key,finished,deadline,comment1 = retvals_csv:match("(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.-),(.*)")
 
 
 title=string.gsub(string.gsub(reaper.GetProjectName( 0, "" ), ".rpp", ""), ".RPP", "")
 
-string_all=""..title..","..rating..","..artist..","..album..","..genre..","..key..","..finished..","..deadline..","..comment..""
+string_all=""..title..","..rating..","..artist..","..album..","..genre..","..key..","..finished..","..deadline..""
 
 
 
 reaper.SetProjExtState(0, "MARK", "COLUMN", string_all )
-notes = reaper.GetSetProjectNotes( 0,true , comment )
+notes = reaper.GetSetProjectNotes( 0,true , comment1 )
 author = reaper.GetSetProjectAuthor( 0,true , artist )
+
 
 local deadlineTimestamp = retvals_csv
 
@@ -11928,7 +11949,7 @@ end
 -------write to region name------
 local ok = reaper.SetProjectMarker4( 0, markrgnindexnumber, isrgn, pos, rgnend,
                                           " title="..title.. 
-                                          ";   comment="..comment..
+                                          ";   comment="..comment1..
                                           ";   rating="..rating..
                                           ";   author="..author..
                                           ";   album="..album..
@@ -11944,6 +11965,36 @@ if ok then
 end
 
 end
+--===========================================================================================================================
+--=============================== renderregion ===============================================================================
+--======================================================================================================================
+
+
+
+
+
+function create_render_region()
+
+a_start,b_end = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false) -- start and end from time selection
+
+reaper.Main_OnCommand(40182,0) -- select all itemns
+reaper.Main_OnCommand(40290,0) -- create time selection
+reaper.Main_OnCommand(40323,0) -- nudge right edge right 
+reaper.Main_OnCommand(40323,0) -- nudge right edge right
+reaper.Main_OnCommand(40323,0) -- nudge right edge right
+reaper.Main_OnCommand(40320,0) -- nudge left edge left
+reaper.Main_OnCommand(40320,0) -- nudge left edge left 
+
+time_sel_start, time_sel_end = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false)
+
+reaper.AddProjectMarker2( 0, true, time_sel_start, time_sel_end, "render region",0, reaper.ColorToNative( 150,150,150 )|0x1000000  )
+
+reaper.GetSet_LoopTimeRange(true, true, a_start, b_end, false) -- reset time selection
+
+reaper.Main_OnCommand(40289,0) -- deselect all items
+
+end
+
 --------------------------------------------------------------------------------------------------------------
 -----------------------------------OTHERS import XML --------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------
@@ -11964,6 +12015,7 @@ for i = 0, selItemsCount - 1 do
 
  local item = reaper.GetSelectedMediaItem(0, i)
  local take = reaper.GetActiveTake(item)
+ if take == nil then return end
  local source = reaper.GetMediaItemTake_Source( take )
   src_bpm = tonumber(({reaper.CF_GetMediaSourceMetadata( source, "BPM", "" )})[2]) or
    tonumber(({reaper.CF_GetMediaSourceMetadata( source, "bpm", "" )})[2])

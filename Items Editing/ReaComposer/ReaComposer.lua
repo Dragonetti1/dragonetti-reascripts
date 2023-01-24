@@ -1,11 +1,11 @@
--- @version 1.8.1
+-- @version 1.8.2
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
 --    + render region
---    + additional metadata to render region
+--    + additional metadata to render region fixes
 
 ------------------------------
 info = debug.getinfo(1,'S')
@@ -171,7 +171,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x00D8C6B9)
                read_grid()
                reaper.ImGui_Button(ctx,grid_setting,(btn_w*2)+(spacing_x*1),y) 
-               reaper.ImGui_PopStyleColor(ctx,3)               
+               reaper.ImGui_PopStyleColor(ctx,3)  
+               
                reaper.ImGui_EndGroup(ctx)
 
               
@@ -180,17 +181,17 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
 
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx)
-            if reaper.ImGui_Button(ctx, 'LENGTH', (btn_w*3)+(spacing_x*2),y) then reset_rate_length() end
+            if reaper.ImGui_Button(ctx, 'LENGTH', (btn_w*3)+(spacing_x*2),y) then reset_rate_length() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "reset item length")
-            if reaper.ImGui_Button(ctx, 'tripl',32,y)then length_triplet()end
+            if reaper.ImGui_Button(ctx, 'tripl',32,y)then length_triplet()reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'x0.5', 32,y) then length_half() end
+            if reaper.ImGui_Button(ctx, 'x0.5', 32,y) then length_half() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() end
+            if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() reaper.SetCursorContext(1, nil)end
                
-            if reaper.ImGui_Button(ctx, 'a##b1', 15,y) then  b = math.floor(ICount/2) crazy_length(b,am) end
+            if reaper.ImGui_Button(ctx, 'a##b1', 15,y) then  b = math.floor(ICount/2) crazy_length(b,am) reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'b##b2', 15,y) then  b = math.floor(ICount/4) crazy_length(b,am) end
+            if reaper.ImGui_Button(ctx, 'b##b2', 15,y) then  b = math.floor(ICount/4) crazy_length(b,am) reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'split at grid', 32,32)then reaper.Main_OnCommand(40932,0)end
                reaper.ImGui_SameLine( ctx)
@@ -208,7 +209,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                local   old_b = b
                ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 0,(ICount))
                if ret then
-                 crazy_length(b,am)
+                 crazy_length(b,am) 
                end
                reaper.ImGui_SameLine( ctx ,0,2)
                ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,32)
@@ -217,7 +218,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                   ret, am = reaper.ImGui_DragInt( ctx, "##am",0, 1, -4,4)
                       if ret then
                      am = am - old_am
-                        crazy_length(b,am)
+                        crazy_length(b,am) 
                                                                                  end 
                reaper.ImGui_EndGroup(ctx)
            
@@ -226,13 +227,13 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx)
               
-            if reaper.ImGui_Button(ctx, 'RATE', (btn_w*2)+(spacing_x*1),y) then rate_reset() end
+            if reaper.ImGui_Button(ctx, 'RATE', (btn_w*2)+(spacing_x*1),y) then rate_reset() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "reset item rate")
-            if reaper.ImGui_Button(ctx, 'triplet',(btn_w*2)+(spacing_x*1),y) then rate_triplet() end
-            if reaper.ImGui_Button( ctx, "0.5x##5", 32,y ) then rate_half() end
+            if reaper.ImGui_Button(ctx, 'triplet',(btn_w*2)+(spacing_x*1),y) then rate_triplet() reaper.SetCursorContext(1, nil)end
+            if reaper.ImGui_Button( ctx, "0.5x##5", 32,y ) then rate_half() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button( ctx, "2x##5", 32,y ) then rate_double() end
-            if reaper.ImGui_Button(ctx, 'random', (btn_w*2)+(spacing_x*1),y) then rate_random() end
+            if reaper.ImGui_Button( ctx, "2x##5", 32,y ) then rate_double() reaper.SetCursorContext(1, nil) end
+            if reaper.ImGui_Button(ctx, 'random', (btn_w*2)+(spacing_x*1),y) then rate_random() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_EndGroup(ctx)
                
                
@@ -250,9 +251,9 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
               reaper.ImGui_PopFont(ctx)
                ToolTip(tt, "only audio!! \nSwitch item source file to next in folder")
             
-            if reaper.ImGui_Button(ctx, 'rand src', (btn_w*2)+(spacing_x*1),y) then random_source_x() end
+            if reaper.ImGui_Button(ctx, 'rand src', (btn_w*2)+(spacing_x*1),y) then random_source_x() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "only audio!! \nswitch item source file to random in folder \nlength remain")  
-            if reaper.ImGui_Button(ctx, 'rand src', (btn_w*2)+(spacing_x*1),y) then random_source_length_x() end
+            if reaper.ImGui_Button(ctx, 'rand src', (btn_w*2)+(spacing_x*1),y) then random_source_length_x() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "only audio!! \nswitch item source file to random in folder \nold source length")  
                reaper.ImGui_EndGroup(ctx)
                
@@ -264,13 +265,13 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_Button(ctx, 'CONTENT', (btn_w*2)+(spacing_x*1),y)
                ToolTip(tt, 'reset content to start 0')
                reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button(ctx, 'A##2',32,y) then startoffs_left() end
+            if reaper.ImGui_Button(ctx, 'A##2',32,y) then startoffs_left() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "useful for longer midi or audio phrases \ncontent one grid left")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'B##2',32,y) then startoffs_right() end 
+            if reaper.ImGui_Button(ctx, 'B##2',32,y) then startoffs_right() reaper.SetCursorContext(1, nil)end 
                reaper.ImGui_PopFont(ctx)
                ToolTip(tt, "useful for longer midi or audio phrases \ncontent one grid right")
-            if reaper.ImGui_Button(ctx, 'rand', (btn_w*2)+(spacing_x*1),y) then shuffle_startoffs() end
+            if reaper.ImGui_Button(ctx, 'rand', (btn_w*2)+(spacing_x*1),y) then shuffle_startoffs() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "useful for longer midi or audio phrases \ncontent start random depending on grid")               
                reaper.ImGui_EndGroup(ctx)
                
@@ -282,38 +283,38 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xF5FB2780)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0xC5C93366)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xF5FB2780)
-            if reaper.ImGui_Button(ctx, 'SCALE', (btn_w*3.5)+(spacing_x*6),y) then scale_builder() end
+            if reaper.ImGui_Button(ctx, 'SCALE', (btn_w*3.5)+(spacing_x*6),y) then scale_builder() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopStyleColor(ctx, 3)
                ToolTip(tt, "ARPEGGIATOR \nq,w,e,r... = scale tones      \n1,2,3,4... =scale tones +1 \na,s,d...     =scale tones -12 \n1,0 accent")
-               if reaper.ImGui_Button(ctx, '1##a',btn_w*0.5,y) then scale_step(1) end
+               if reaper.ImGui_Button(ctx, '1##a',btn_w*0.5,y) then scale_step(1) reaper.SetCursorContext(1, nil)end
                   ToolTip(tt, "Transposed within the scale depending on the chord symbol of the chord track.\nalso works with chords \nfor example:\nCmaj7 becomes Dm7")
                   reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '2##a',btn_w*0.5,y) then scale_step(2) end
+               if reaper.ImGui_Button(ctx, '2##a',btn_w*0.5,y) then scale_step(2) reaper.SetCursorContext(1, nil)end
                   ToolTip(tt, "Transposed within the scale depending on the chord symbol of the chord track.\nalso works with chords \nfor example:\nCmaj7 becomes Em7")
                reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '3##a',btn_w*0.5,y) then scale_step(3) end
+               if reaper.ImGui_Button(ctx, '3##a',btn_w*0.5,y) then scale_step(3) reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Transposed within the scale depending on the chord symbol of the chord track\nalso works with chords \nfor example:\nCmaj7 becomes Fmaj7")
                 reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '4##a',btn_w*0.5,y) then scale_step(4) end
+               if reaper.ImGui_Button(ctx, '4##a',btn_w*0.5,y) then scale_step(4) reaper.SetCursorContext(1, nil)end
                  reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '5##a',btn_w*0.5,y) then scale_step(5) end
+               if reaper.ImGui_Button(ctx, '5##a',btn_w*0.5,y) then scale_step(5) reaper.SetCursorContext(1, nil)end
                  reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '6##a',btn_w*0.5,y) then scale_step(6) end
+               if reaper.ImGui_Button(ctx, '6##a',btn_w*0.5,y) then scale_step(6) reaper.SetCursorContext(1, nil)end
                  reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '7##a',btn_w*0.5,y) then scale_step(7) end
-               if reaper.ImGui_Button(ctx, '-1##a',btn_w*0.5,y) then scale_step(-1) end                
+               if reaper.ImGui_Button(ctx, '7##a',btn_w*0.5,y) then scale_step(7) reaper.SetCursorContext(1, nil)end
+               if reaper.ImGui_Button(ctx, '-1##a',btn_w*0.5,y) then scale_step(-1) reaper.SetCursorContext(1, nil)end                
                   reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '-2##a',btn_w*0.5,y) then scale_step(-2) end
+               if reaper.ImGui_Button(ctx, '-2##a',btn_w*0.5,y) then scale_step(-2) reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '-3##a',btn_w*0.5,y) then scale_step(-3) end
+               if reaper.ImGui_Button(ctx, '-3##a',btn_w*0.5,y) then scale_step(-3) reaper.SetCursorContext(1, nil)end
                 reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '-4##a',btn_w*0.5,y) then scale_step(-4) end
+               if reaper.ImGui_Button(ctx, '-4##a',btn_w*0.5,y) then scale_step(-4) reaper.SetCursorContext(1, nil)end
                  reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '-5##a',btn_w*0.5,y) then scale_step(-5) end
+               if reaper.ImGui_Button(ctx, '-5##a',btn_w*0.5,y) then scale_step(-5) reaper.SetCursorContext(1, nil)end
                  reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '-6##a',btn_w*0.5,y) then scale_step(-6) end
+               if reaper.ImGui_Button(ctx, '-6##a',btn_w*0.5,y) then scale_step(-6) reaper.SetCursorContext(1, nil)end
                  reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '-7##a',btn_w*0.5,y) then scale_step(-7) end               
+               if reaper.ImGui_Button(ctx, '-7##a',btn_w*0.5,y) then scale_step(-7) reaper.SetCursorContext(1, nil)end               
                
                reaper.ImGui_EndGroup(ctx)
                
@@ -324,31 +325,32 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xFF000080)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x971616AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xFF000080)
-            if reaper.ImGui_Button(ctx, 'PHRASE', (btn_w*2)+(spacing_x*1),y) then phrase_builder() end
+            if reaper.ImGui_Button(ctx, 'PHRASE', (btn_w*2)+(spacing_x*1),y) then phrase_builder() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, 'A phrase in "C" major scale (white keys) is required.The transposition depends on the chord.\nExample: \n"Cmaj7" transpose 0\n"Dmaj7" transpose +2\n"Cm"      transpose +3\n"Dm7"(dorian) transpose 0 ')
                reaper.ImGui_PopStyleColor(ctx, 3)
                reaper.ImGui_PushFont(ctx, SymbolFont)
-               if reaper.ImGui_Button( ctx,"A##3", 32, y ) then phrase_1_left() end
+               if reaper.ImGui_Button( ctx,"A##3", 32, y ) then phrase_1_left() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopFont( ctx )
                ToolTip(tt, "transpose phrase one fifth to left")
                reaper.ImGui_SameLine( ctx)
                reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button( ctx,"B##3", 32, y )then phrase_1_right() end 
+            if reaper.ImGui_Button( ctx,"B##3", 32, y )then phrase_1_right() reaper.SetCursorContext(1, nil)end 
                reaper.ImGui_PopFont( ctx )
                ToolTip(tt, "transpose phrase one fifth to right")
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xE67A00B9)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x894A02B9)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0xE67A00B9)
-            if reaper.ImGui_Button(ctx, 'CHORD', (btn_w*2)+(spacing_x*1),y) then chord_builder() end
+            if reaper.ImGui_Button(ctx, 'CHORD', (btn_w*2)+(spacing_x*1),y) then chord_builder() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Transposes items(midi:note c, audio:metadata key) that lie on top of each other.\nExample : 3 items - triad root position")
                reaper.ImGui_PopStyleColor(ctx, 3)
                reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button( ctx,"D##1", 32, y ) then chord_inversion_down() end
+            if reaper.ImGui_Button( ctx,"D##1", 32, y ) then chord_inversion_down() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "chord_inversion_down")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button( ctx,"C##1", 32, y)   then chord_inversion_up() end
+            if reaper.ImGui_Button( ctx,"C##1", 32, y)   then chord_inversion_up() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "chord_inversion_up")
-               reaper.ImGui_PopFont( ctx )
+               reaper.ImGui_PopFont( ctx ) 
+            
                reaper.ImGui_EndGroup(ctx)
                 
                
@@ -361,21 +363,21 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                ToolTip(tt, "reset pitch")
             if reaper.ImGui_Button(ctx, '+1',32,y) then reaper.Main_OnCommand(40204,0) end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, '+7',32,y) then pitch_plus_7() end
+            if reaper.ImGui_Button(ctx, '+7',32,y) then pitch_plus_7() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, '+12',32,y) then reaper.Main_OnCommand(40515,0) end
             if reaper.ImGui_Button(ctx, '-1',32,y) then reaper.Main_OnCommand(40205,0) end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, '-7',32,y) then pitch_minus_7() end
+            if reaper.ImGui_Button(ctx, '-7',32,y) then pitch_minus_7() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, '-12',32,y) then reaper.Main_OnCommand(40516,0) end
-            if reaper.ImGui_Button(ctx, 'com.',32,y) then  pitch_comp() end
+            if reaper.ImGui_Button(ctx, 'com.',32,y) then  pitch_comp() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "compress pitch \npitch above +12 is octaved down \npitch below -12 is octaved up")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'inv.',32,y) then pitch_invers_x() end
+            if reaper.ImGui_Button(ctx, 'inv.',32,y) then pitch_invers_x()reaper.SetCursorContext(1, nil) end
                ToolTip(tt, "the scale tones are inverted \nexample(Cmaj7): \nc e g becomes c a f")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'rand',32,y) then pitch_rand() end
+            if reaper.ImGui_Button(ctx, 'rand',32,y) then pitch_rand() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "the transposition is random but fitting to the chord")            
                reaper.ImGui_EndGroup(ctx)   
               
@@ -384,24 +386,24 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx) 
                
-            if reaper.ImGui_Button(ctx, 'SELECT',(btn_w*3)+(spacing_x*2),y) then pattern_select() end
+            if reaper.ImGui_Button(ctx, 'SELECT',(btn_w*3)+(spacing_x*2),y) then pattern_select() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Creates a select pattern \n0 = unselected \n1 = selected")
                reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button(ctx, 'A##4',32,y) then select_prev_item() end
+            if reaper.ImGui_Button(ctx, 'A##4',32,y) then select_prev_item() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopFont(ctx)
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'inv.',32,y) then invert_item_selection() end
+            if reaper.ImGui_Button(ctx, 'inv.',32,y) then invert_item_selection() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
                reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button(ctx, 'B##4',32,y ) then select_next_item() end
+            if reaper.ImGui_Button(ctx, 'B##4',32,y ) then select_next_item() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopFont(ctx)
-            if reaper.ImGui_Button(ctx, 'chord',32,y) then select_chord() end
+            if reaper.ImGui_Button(ctx, 'chord',32,y) then select_chord() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Select only the selected items that are in the chord range \nunder which the cursor is positioned.")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'root',32,y) then select_root_note() end
+            if reaper.ImGui_Button(ctx, 'root',32,y) then select_root_note() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "select root note")
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'grid##1',32,y) then select_only_on_grid() end
+            if reaper.ImGui_Button(ctx, 'grid##1',32,y) then select_only_on_grid() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "only selects items that start on the grid")            
                reaper.ImGui_EndGroup(ctx)  
            
@@ -433,11 +435,11 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
            
             if reaper.ImGui_Button(ctx, 'rand##1', (btn_w), y) then
                        ran = false
-               mute_exact(teiler,dinger,ran) end
+               mute_exact(teiler,dinger,ran) reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine(ctx)
             if reaper.ImGui_Button(ctx, 'nor##1',(btn_w), y) then
                        ran = true
-                     mute_exact(teiler,dinger,ran) end
+                     mute_exact(teiler,dinger,ran) reaper.SetCursorContext(1, nil)end
            
                reaper.ImGui_EndGroup(ctx)  
           
@@ -446,12 +448,12 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
               reaper.ImGui_SameLine(ctx, nil, 10)
               reaper.ImGui_BeginGroup(ctx)   
               reaper.ImGui_Button(ctx, 'ORDER',(btn_w*2)+(spacing_x*1),y)
-           if reaper.ImGui_Button(ctx, 'rate', btn_w,y) then order_rate() end
+           if reaper.ImGui_Button(ctx, 'rate', btn_w,y) then order_rate() reaper.SetCursorContext(1, nil)end
               reaper.ImGui_SameLine( ctx )
-           if reaper.ImGui_Button(ctx, 'pitch', 32,y) then order_pitch() end               
+           if reaper.ImGui_Button(ctx, 'pitch', 32,y) then order_pitch() reaper.SetCursorContext(1, nil)end               
            if reaper.ImGui_Button(ctx, 'reverse', (btn_w*2)+(spacing_x*1),y) then reverse = reaper.NamedCommandLookup("_XENAKIOS_REVORDSELITEMS")
               reaper.Main_OnCommand(reverse,0) end 
-           if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then shuffle_order() end
+           if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then shuffle_order() reaper.SetCursorContext(1, nil)end
               reaper.ImGui_EndGroup(ctx) 
         
 --========================= MIDI  ============================================================================  
@@ -463,11 +465,11 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0x34D632AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x1A6E19AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x34D632AA)
-            if reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y) then midi_creator() end
+            if reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y) then midi_creator() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopStyleColor(ctx, 3) 
-            if reaper.ImGui_Button(ctx, 'SEQ', (btn_w*2)+(spacing_x*1),y) then midi_creator() end 
+            if reaper.ImGui_Button(ctx, 'SEQ', (btn_w*2)+(spacing_x*1),y) then midi_creator() reaper.SetCursorContext(1, nil)end 
                ToolTip(tt, "Generates midi notes in time selection\n1 for one grid\n2 for two grids\netc. \nfor selected tracks")
-            if reaper.ImGui_Button(ctx, 'pattern', (btn_w*2)+(spacing_x*1),y) then midi_rand() end
+            if reaper.ImGui_Button(ctx, 'pattern', (btn_w*2)+(spacing_x*1),y) then midi_rand() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Creates a random midi pattern depending on grid for selected tracks")
                reaper.ImGui_EndGroup(ctx) 
                 
@@ -479,7 +481,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0x20CFFFAA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x167B97AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x20CFFFAA)
-            if reaper.ImGui_Button(ctx, 'CHORDTRACK', (btn_w*4)+(spacing_x*3),y) then create_chordtrack() end
+            if reaper.ImGui_Button(ctx, 'CHORDTRACK', (btn_w*4)+(spacing_x*3),y) then create_chordtrack() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopStyleColor(ctx, 3)
                ToolTip(tt, "Creates a chordtrack at the top if already available - move above selected track")
                
@@ -552,19 +554,19 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
                   end  
 
                   reaper.ImGui_PushFont(ctx, SymbolFont)
-                  if reaper.ImGui_Button(ctx, "D##2", 32,y ) then chordsymbol_trans_down() end
+                  if reaper.ImGui_Button(ctx, "D##2", 32,y ) then chordsymbol_trans_down() reaper.SetCursorContext(1, nil)end
                                   ToolTip(tt, "Transposes the selected chord symbols down")
                   reaper.ImGui_SameLine(ctx)
-                  if reaper.ImGui_Button( ctx, "C##2", 32,y ) then chordsymbol_trans_up() end 
+                  if reaper.ImGui_Button( ctx, "C##2", 32,y ) then chordsymbol_trans_up() reaper.SetCursorContext(1, nil)end 
                   ToolTip(tt, "Transposes the selected chord symbols up")
                   reaper.ImGui_PopFont(ctx)
                   reaper.ImGui_SameLine( ctx )
-                  if reaper.ImGui_Button(ctx, 'detection',(btn_w*2)+(spacing_x*1),y) then detect_midi_chords() end
+                  if reaper.ImGui_Button(ctx, 'detection',(btn_w*2)+(spacing_x*1),y) then detect_midi_chords() reaper.SetCursorContext(1, nil)end
                   ToolTip(tt, "only midi!! \nWrites the recognised chords into the chordtrack")
              
-                  if reaper.ImGui_Button(ctx, '- extension##5',66,22) then chordsymbol_left() end
+                  if reaper.ImGui_Button(ctx, '- extension##5',66,22) then chordsymbol_left() reaper.SetCursorContext(1, nil)end
                   reaper.ImGui_SameLine(ctx)
-                  if reaper.ImGui_Button(ctx, '+ extension##5',66,22) then chordsymbol_right() end
+                  if reaper.ImGui_Button(ctx, '+ extension##5',66,22) then chordsymbol_right() reaper.SetCursorContext(1, nil)end
                   reaper.ImGui_EndGroup(ctx) 
              
 --========================= OTHER ============================================================================   
@@ -574,13 +576,13 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
          
              reaper.ImGui_Button(ctx, 'OTHER',(btn_w*2)+(spacing_x*1),y)
            
-             if reaper.ImGui_Button(ctx, 'XML', (btn_w*2)+(spacing_x*1),y) then import_xml() end
+             if reaper.ImGui_Button(ctx, 'XML', (btn_w*2)+(spacing_x*1),y) then import_xml() reaper.SetCursorContext(1, nil)end
                         ToolTip(tt, "loads the appropriate xml file for the audio file.(if available)\nselect track and don't allow import midi tempo..")
              if reaper.ImGui_Button(ctx, 'Color', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end 
              if reaper.ImGui_Button(ctx, 'Ren.', (btn_w),y) then create_render_region() end 
              ToolTip(tt, "create a render region")
              reaper.ImGui_SameLine(ctx)
-             if reaper.ImGui_Button(ctx, 'Rig.', (btn_w),y) then metadata_entries_2_region() end 
+             if reaper.ImGui_Button(ctx, 'Rig.', (btn_w),y) then metadata_entries_2_region() reaper.SetCursorContext(1, nil)end 
              ToolTip(tt, "additional metadata \nfor the rendered song(mp3,wav..) \nyou need a render region")
              reaper.ImGui_EndGroup(ctx)    
              
