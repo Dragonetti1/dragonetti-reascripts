@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="b148e4526a498944d0db1d25c2a9a25ed3eef884">
+<index version="1" name="dragonetti-reascripts" commit="9de15f9d2e6ce2f0f23476eb6d37230e5422066b">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -167,6 +167,13 @@
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/b148e4526a498944d0db1d25c2a9a25ed3eef884/Items%20Editing/ReaComposer/ReaComposer.lua</source>
         <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/b148e4526a498944d0db1d25c2a9a25ed3eef884/Items%20Editing/ReaComposer/functions.lua</source>
         <source file="Fonts/Symbols.ttf">https://github.com/Dragonetti1/dragonetti-reascripts/raw/b148e4526a498944d0db1d25c2a9a25ed3eef884/Items%20Editing/ReaComposer/Fonts/Symbols.ttf</source>
+      </version>
+      <version name="1.8.2" author="Dragonetti" time="2023-01-24T23:18:30Z">
+        <changelog><![CDATA[+ render region
++ additional metadata to render region fixes]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/9de15f9d2e6ce2f0f23476eb6d37230e5422066b/Items%20Editing/ReaComposer/ReaComposer.lua</source>
+        <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/9de15f9d2e6ce2f0f23476eb6d37230e5422066b/Items%20Editing/ReaComposer/functions.lua</source>
+        <source file="Fonts/Symbols.ttf">https://github.com/Dragonetti1/dragonetti-reascripts/raw/9de15f9d2e6ce2f0f23476eb6d37230e5422066b/Items%20Editing/ReaComposer/Fonts/Symbols.ttf</source>
       </version>
     </reapack>
   </category>
