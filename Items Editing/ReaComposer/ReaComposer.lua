@@ -1,11 +1,11 @@
--- @version 1.8.2
+-- @version 1.8.3
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + render region
---    + additional metadata to render region fixes
+--    + focus to Arrangement
+
 
 ------------------------------
 info = debug.getinfo(1,'S')
@@ -211,15 +211,18 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                if ret then
                  crazy_length(b,am) 
                end
+          
                reaper.ImGui_SameLine( ctx ,0,2)
                ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,32)
+          
                reaper.ImGui_SameLine( ctx ,0,2)
                local   old_am = am
                   ret, am = reaper.ImGui_DragInt( ctx, "##am",0, 1, -4,4)
                       if ret then
                      am = am - old_am
                         crazy_length(b,am) 
-                                                                                 end 
+                                                                                 end
+              if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                reaper.ImGui_EndGroup(ctx)
            
 --========================= RATE ============================================================================    
@@ -417,6 +420,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                retval, dinger = reaper.ImGui_DragInt( ctx, "##d", dinger, 0.1, 0,128)
                if retval then
                mute_exact(dinger,teiler) end
+               if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
               
                ToolTip(tt, "Unmuted group consists of x items")
          
@@ -426,11 +430,13 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                ret, teiler = reaper.ImGui_DragInt( ctx, "##1", teiler, 0.1, 1,24)
                 if ret then 
                mute_exact(teiler,dinger) end
+               if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "how many unmuted groups")
                reaper.ImGui_SameLine(ctx)
                ret, sub = reaper.ImGui_DragInt( ctx, "##3", sub, 0.1, 1,16)
                 if ret then 
-               mute_exact(sub) end 
+               mute_exact(sub) end
+               if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "push unmuted groups")
            
             if reaper.ImGui_Button(ctx, 'rand##1', (btn_w), y) then
@@ -532,6 +538,7 @@ local chords = {
                   if reaper.ImGui_Selectable(ctx, chord, ca == i) then
                   chord_progression(i)
                    end
+                   if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                   end
                   reaper.ImGui_EndCombo(ctx)
                   end 
@@ -546,13 +553,16 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
                    if reaper.ImGui_Selectable(ctx, mods, ma == i) then
                    if m==0 then sudden_dominant()end
                    if m==1 then minor_subdominant()end
-                   if m==2 then create_subdominant()end
+                   if m==2 then create_subdominant()end 
                    if m==3 then create_parallel()end 
+                   if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                   end
                   end
-                  reaper.ImGui_EndCombo(ctx)  
+                
+                  reaper.ImGui_EndCombo(ctx) 
+                  
                   end  
-
+                  
                   reaper.ImGui_PushFont(ctx, SymbolFont)
                   if reaper.ImGui_Button(ctx, "D##2", 32,y ) then chordsymbol_trans_down() reaper.SetCursorContext(1, nil)end
                                   ToolTip(tt, "Transposes the selected chord symbols down")
