@@ -1,10 +1,10 @@
--- @version 1.8.3
+-- @version 1.8.4
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + focus to Arrangement
+--    + new volume(velocity) curves
 
 
 ------------------------------
@@ -384,22 +384,12 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                ToolTip(tt, "the transposition is random but fitting to the chord")            
                reaper.ImGui_EndGroup(ctx)   
               
---========================= SELECT ============================================================================   
+--========================= SELECT   VOLUME ============================================================================   
 
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx) 
-               
             if reaper.ImGui_Button(ctx, 'SELECT',(btn_w*3)+(spacing_x*2),y) then pattern_select() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Creates a select pattern \n0 = unselected \n1 = selected")
-               reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button(ctx, 'A##4',32,y) then select_prev_item() reaper.SetCursorContext(1, nil)end
-               reaper.ImGui_PopFont(ctx)
-               reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'inv.',32,y) then invert_item_selection() reaper.SetCursorContext(1, nil)end
-               reaper.ImGui_SameLine( ctx)
-               reaper.ImGui_PushFont(ctx, SymbolFont)
-            if reaper.ImGui_Button(ctx, 'B##4',32,y ) then select_next_item() reaper.SetCursorContext(1, nil)end
-               reaper.ImGui_PopFont(ctx)
             if reaper.ImGui_Button(ctx, 'chord',32,y) then select_chord() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Select only the selected items that are in the chord range \nunder which the cursor is positioned.")
                reaper.ImGui_SameLine( ctx)
@@ -407,7 +397,42 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                ToolTip(tt, "select root note")
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'grid##1',32,y) then select_only_on_grid() reaper.SetCursorContext(1, nil)end
-               ToolTip(tt, "only selects items that start on the grid")            
+               ToolTip(tt, "only selects items that start on the grid") 
+               
+               --VOLUME
+               
+            if reaper.ImGui_Button(ctx, 'VOLUME',(btn_w*3)+(spacing_x*2),y) then reaper.Main_OnCommand(41923,0) reaper.SetCursorContext(1, nil)end
+               ToolTip(tt, "reset Volume")  
+               
+            if divider == nil then divider = 10 end
+            if phase== nil then phase = 1 end
+            if amplitude== nil then amplitude = 1 end                   
+               reaper.ImGui_NewLine(ctx)
+               reaper.ImGui_SameLine( ctx ,0,0)
+               reaper.ImGui_PushItemWidth( ctx, 32 )
+     
+               ret, divider = reaper.ImGui_DragInt( ctx, "##divider",divider, 1, 1,1000)
+               ToolTip(tt, "Divider")
+            if ret then
+               volume_curve(divider,phase,amplitude)
+               end
+            if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end         
+               reaper.ImGui_SameLine( ctx ,0,2)
+               ret, phase = reaper.ImGui_DragInt( ctx, "##phaseDrag",phase, 1, 1,100)
+               ToolTip(tt, "Phase")
+            if ret then 
+               volume_curve(divider,phase,amplitude)
+               end
+            if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end          
+               reaper.ImGui_SameLine( ctx ,0,2)
+      
+               ret, amplitude = reaper.ImGui_DragInt( ctx, "##amplitude",amplitude, 1, 1,10)
+               ToolTip(tt, "Amplitude")
+            if ret then
+               volume_curve(divider,phase,amplitude)
+               end
+            if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end 
+               
                reaper.ImGui_EndGroup(ctx)  
            
 --========================= MUTE  ============================================================================  

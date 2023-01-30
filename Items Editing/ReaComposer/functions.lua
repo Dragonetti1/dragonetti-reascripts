@@ -7870,6 +7870,103 @@ end
 reaper.UpdateArrange()
 reaper.Undo_EndBlock(script_name, 0)
 end
+
+
+--=================================================================================================================
+--====================== VOLUME ===========================================================================
+--=================================================================================================================
+function volume_curve(divider,phase,amplitude)
+
+select_tracks = reaper.NamedCommandLookup("_SWS_SELTRKWITEM")
+reaper.Main_OnCommand(select_tracks,0)
+track_count = reaper.CountSelectedTracks( 0 )
+ItemsSelCount = reaper.CountSelectedMediaItems(0)
+if ItemsSelCount ==0 then return
+end
+reaper.PreventUIRefresh(1)
+
+
+
+xx=math.floor(ItemsSelCount/track_count)
+
+
+ItemsSelCount = reaper.CountSelectedMediaItems(0)
+if ItemsSelCount ==0 then Msg("no selected items")return
+end
+reaper.PreventUIRefresh(1)
+
+local function Msg(str)
+  reaper.ShowConsoleMsg(tostring(str) .. "\n")
+end
+
+
+item_ptrs = {}
+itemCount = 1
+other_items = {}
+otherCount = 1
+
+mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
+
+for selitem = 1, reaper.CountSelectedMediaItems(0) do
+  local thisItem = reaper.GetSelectedMediaItem(0 , selitem - 1)
+  local thisTrack = reaper.GetMediaItem_Track(thisItem)
+
+  if thisTrack == mainTrack then
+    item_ptrs[itemCount] =  thisItem
+    itemCount = itemCount + 1
+  
+  else
+    other_items[otherCount] = {
+  item = thisItem,
+  track = thisTrack,
+    }
+
+    otherCount = otherCount + 1
+  end
+end
+
+
+
+--divider=400
+--phase=1
+--amplitude=8
+
+parsed_t = {}
+for e = 1, xx do
+parsed_t[e] = (amplitude*0.1*math.cos((divider*0.1*((math.pi*e)+(phase*0.1*xx)))/(xx/7))+1)--+ (1*math.cos((0.5*math.pi*e)/(1))+0.5)
+
+end
+
+for i = 1, itemCount - 1 do 
+  local ptid = (1+ (i-1)%#parsed_t)
+
+  if parsed_t[ptid] then
+ 
+    reaper.SetMediaItemInfo_Value(item_ptrs[i], "D_VOL",parsed_t[ptid])
+ 
+  end
+end
+
+
+local lastTrack, index
+for i = 1, otherCount - 1 do
+  if not lastTrack or lastTrack ~= other_items[i].track then
+    index = 1
+    lastTrack = other_items[i].track
+  elseif not parsed_t[index] then
+    index = 1
+  end
+
+
+  reaper.SetMediaItemInfo_Value(other_items[i].item, "D_VOL",parsed_t[index])
+
+  index = index + 1
+end
+
+reaper.PreventUIRefresh(-1)
+reaper.UpdateArrange()
+
+end
 ----------------------------------------------------------------------------------------------------
 -----------------------------UNMUTE-----------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
