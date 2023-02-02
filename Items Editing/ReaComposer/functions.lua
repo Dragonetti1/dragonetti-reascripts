@@ -11710,7 +11710,98 @@ function main()
 main() 
 
 end
+--==============================================================================================
+--================================== convert ChordPro to empty_item_notes ======================
+--==============================================================================================
+function convert_chordpro()
 
+
+local function Msg(str)
+reaper.ShowConsoleMsg(tostring(str) .. "\n")
+end
+
+
+local ret, fn = reaper.GetUserFileNameForRead(reaper.GetProjectPath("").."\\*.*", "Project path:", "")
+if ret then
+local file = io.open(fn, "r")
+   chords = {}
+   count = 1
+
+ -- read each line of the file
+ for line in file:lines() do
+   -- look for lines that contain chord symbols
+   for chord_symbol in line:gmatch("%[(%w+)%]") do
+     -- add the chord symbol to the table
+     chords[count] = chord_symbol
+     count = count + 1
+   end
+ end
+ 
+ -- close the file
+ file:close()
+
+ 
+ 
+
+  -- ...
+end
+function CreateTextItem(track, position, length, text, color)
+   if track ==  nil then return end
+  local item = reaper.AddMediaItemToTrack(track)
+
+  reaper.SetMediaItemInfo_Value(item, "D_POSITION", position)
+  reaper.SetMediaItemInfo_Value(item, "D_LENGTH", length)
+
+  if text ~= nil then
+    reaper.ULT_SetMediaItemNote(item, text)
+  end
+
+  if color ~= nil then
+    reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
+  end
+
+  return item
+
+end
+
+start_time, end_time = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
+bpm = reaper.TimeMap2_GetDividedBpmAtTime(0, start_time )
+reaper.SetEditCurPos(start_time, false, false )
+reaper.Main_OnCommand(41042,0) -- move cursor one measure
+one_bar = tonumber((reaper.GetCursorPosition()-start_time))
+bar = math.floor(one_bar*10000000000)/10000000000
+
+
+-- find the chord track
+function getTrackByName(name)
+  for trackIndex = 0, reaper.CountTracks(0) - 1 do
+    local track = reaper.GetTrack(0, trackIndex)
+    local ok, trackName = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+
+    if ok and trackName == name then
+      return track -- found it! stopping the search here
+    end
+  end
+end
+
+ ctrack = getTrackByName("chordtrack")
+ if ctrack == nil then Msg("no chordtrack") end
+
+if ctrack then -- if a track named "Structure" was found
+  reaper.SetOnlyTrackSelected(ctrack)
+end
+
+-- loop through each chord symbol in the table
+for i, chord_symbol in ipairs(chords) do
+  -- create an empty item with the length of one bar on the chord track
+  
+  track = ctrack
+  -- add the chord symbol as a note in the item
+  text = chords[i]
+  CreateTextItem(ctrack,(((i-1)*bar)+start_time),bar,text)
+end
+
+end
 --==========================================================================================================
 --========================== chord_progression ===========================================================
 --==========================================================================================================

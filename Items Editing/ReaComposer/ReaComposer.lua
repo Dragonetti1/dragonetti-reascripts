@@ -1,10 +1,10 @@
--- @version 1.8.4
+-- @version 1.8.5
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + new volume(velocity) curves
+--    + load ChordPro files
 
 
 ------------------------------
@@ -571,8 +571,9 @@ local chords = {
 mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdominant (1items)", "  parallel key (1item)"}
              
                   reaper.ImGui_PushItemWidth( ctx, (btn_w*4)+(spacing_x*3) )
-                  ToolTip(tt, "quick change of the chord symbols")
+                  ToolTip(tt, "the most common progressions")
                   if reaper.ImGui_BeginCombo(ctx, '##modulationen', "            modulation",reaper.ImGui_ComboFlags_NoArrowButton()) then
+                  
                   for m, mods in ipairs(mods) do
                    m = m - 1
                    if reaper.ImGui_Selectable(ctx, mods, ma == i) then
@@ -580,14 +581,17 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
                    if m==1 then minor_subdominant()end
                    if m==2 then create_subdominant()end 
                    if m==3 then create_parallel()end 
+                  
                    if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
+                   
                   end
+                  
                   end
-                
+            
                   reaper.ImGui_EndCombo(ctx) 
-                  
+                 
                   end  
-                  
+                  ToolTip(tt, "With this you can extend and change progressions")
                   reaper.ImGui_PushFont(ctx, SymbolFont)
                   if reaper.ImGui_Button(ctx, "D##2", 32,y ) then chordsymbol_trans_down() reaper.SetCursorContext(1, nil)end
                                   ToolTip(tt, "Transposes the selected chord symbols down")
@@ -599,9 +603,14 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
                   if reaper.ImGui_Button(ctx, 'detection',(btn_w*2)+(spacing_x*1),y) then detect_midi_chords() reaper.SetCursorContext(1, nil)end
                   ToolTip(tt, "only midi!! \nWrites the recognised chords into the chordtrack")
              
-                  if reaper.ImGui_Button(ctx, '- extension##5',66,22) then chordsymbol_left() reaper.SetCursorContext(1, nil)end
+                  if reaper.ImGui_Button(ctx, '-ext##5',32,22) then chordsymbol_left() reaper.SetCursorContext(1, nil)end
+                  ToolTip(tt, "add extension to chord symbol  \nmaj7 m7b9 7aug ...")
                   reaper.ImGui_SameLine(ctx)
-                  if reaper.ImGui_Button(ctx, '+ extension##5',66,22) then chordsymbol_right() reaper.SetCursorContext(1, nil)end
+                  if reaper.ImGui_Button(ctx, '+ext##5',32,22) then chordsymbol_right() reaper.SetCursorContext(1, nil)end
+                  ToolTip(tt, "add extension to chord symbol  \nmaj7 m7b9 7aug ...")
+                  reaper.ImGui_SameLine(ctx)
+               if reaper.ImGui_Button(ctx, 'ChordPro',66,22) then convert_chordpro() reaper.SetCursorContext(1, nil)end
+                  ToolTip(tt, "import ChordPro File,extract Chords  \nyou can find many ChordPro files on the internet")
                   reaper.ImGui_EndGroup(ctx) 
              
 --========================= OTHER ============================================================================   
