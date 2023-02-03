@@ -12652,7 +12652,7 @@ for i , marker  in ipairs(markers) do
  --  end
 end
 
-for i = 0, num_markers - 1 do
+for i = 1, num_markers do
 reaper.DeleteProjectMarker( 0, i, true )
 end
 end
