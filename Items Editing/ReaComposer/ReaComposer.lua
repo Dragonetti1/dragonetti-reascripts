@@ -1,11 +1,11 @@
--- @version 1.8.5
+-- @version 1.8.6
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
 --    + load ChordPro files
-
+--    + load BIAB songs
 
 ------------------------------
 info = debug.getinfo(1,'S')
@@ -609,8 +609,11 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
                   if reaper.ImGui_Button(ctx, '+ext##5',32,22) then chordsymbol_right() reaper.SetCursorContext(1, nil)end
                   ToolTip(tt, "add extension to chord symbol  \nmaj7 m7b9 7aug ...")
                   reaper.ImGui_SameLine(ctx)
-               if reaper.ImGui_Button(ctx, 'ChordPro',66,22) then convert_chordpro() reaper.SetCursorContext(1, nil)end
+               if reaper.ImGui_Button(ctx, 'pro',32,22) then convert_chordpro() reaper.SetCursorContext(1, nil)end
                   ToolTip(tt, "import ChordPro File,extract Chords  \nyou can find many ChordPro files on the internet")
+                  reaper.ImGui_SameLine(ctx)
+                  if reaper.ImGui_Button(ctx, 'SGU',32,22) then import_biab_song() reaper.SetCursorContext(1, nil)end
+                  ToolTip(tt, "import BIAB Songs")
                   reaper.ImGui_EndGroup(ctx) 
              
 --========================= OTHER ============================================================================   

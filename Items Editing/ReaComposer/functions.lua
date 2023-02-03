@@ -11710,6 +11710,952 @@ function main()
 main() 
 
 end
+--==================================================================================================================
+--================== BIAB SONG IMPORT ============================================================================
+--=============================================================================================================
+function import_biab_song()
+
+function print(value)
+  
+    reaper.ShowConsoleMsg(tostring(value) .. "\n")
+  
+end
+
+
+rootNames = { "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "C#", "D#", "F#", "G#", "A#" }
+
+--pad the rest of rootNames with ? for unknown types
+for j = 18,26 do 
+  rootNames[j] = "?"
+end
+--add in any unusual chord types
+
+rootNames[27] ="Ab/A"
+rootNames[28] ="A/Bb"
+rootNames[29] ="Bb/B"
+rootNames[30] ="B/C"
+rootNames[31] ="C#/Db"
+rootNames[32] ="D#/D"
+rootNames[33] ="F#/Eb"
+rootNames[34] ="G#/E"
+rootNames[35] ="A#/F"
+rootNames[36] ="A#/Db"
+rootNames[37] ="C/D"
+rootNames[38] ="Db/Eb"
+rootNames[39] ="D/E"
+rootNames[40] ="Eb/F"
+rootNames[41] ="E/Gb"
+rootNames[42] ="F/G"
+rootNames[43] ="Gb/Ab"
+rootNames[44] ="G/A"
+rootNames[45] ="Ab/Bb"
+rootNames[46] ="A/B"
+rootNames[47] ="Bb/C"
+rootNames[48] ="B/Db"
+rootNames[49] ="C#/D"
+rootNames[50] ="D#/Eb"
+rootNames[51] ="F#/E"
+rootNames[52] ="G#/F"
+rootNames[53] ="A#/Gb"
+rootNames[54] ="A#/D"
+rootNames[55] ="C/Eb"
+rootNames[56] ="Db/E"
+rootNames[57] ="D/F"
+rootNames[58] ="Eb/Gb"
+rootNames[59] ="E/G"
+rootNames[60] ="F/Ab"
+rootNames[61] ="Gb/A"
+rootNames[62] ="G/Bb"
+rootNames[63] ="Ab/B"
+rootNames[64] ="A/C"
+rootNames[65] ="Bb/Db"
+rootNames[66] ="B/D"
+rootNames[67] ="C#/Eb"
+rootNames[68] ="D#/E"
+rootNames[69] ="F#/F"
+rootNames[70] ="G#/Gb"
+rootNames[71] ="A#/G"
+rootNames[72] ="A#/Eb"
+rootNames[73] ="C/E"
+rootNames[74] ="Db/F"
+rootNames[75] ="D/Gb"
+rootNames[76] ="Eb/G"
+rootNames[77] ="E/Ab"
+rootNames[78] ="F/A"
+rootNames[79] ="Gb/Bb"
+rootNames[80] ="G/B"
+rootNames[81] ="Ab/C"
+rootNames[82] ="A/Db"
+rootNames[83] ="Bb/D"
+rootNames[84] ="B/Eb"
+rootNames[85] ="C#/E"
+rootNames[86] ="D#/F"
+rootNames[87] ="F#/Gb"
+rootNames[88] ="G#/G"
+rootNames[89] ="A#/Ab"
+rootNames[90] ="A#/E"
+rootNames[91] ="C/F"
+rootNames[92] ="Db/Gb"
+rootNames[93] ="D/G"
+rootNames[94] ="Eb/Ab"
+rootNames[95] ="E/A"
+rootNames[96] ="F/Bb"
+rootNames[97] ="Gb/B"
+rootNames[98] ="G/C"
+rootNames[99] ="Ab/Db"
+rootNames[100] ="A/D"
+rootNames[101] ="Bb/Eb"
+rootNames[102] ="B/E"
+rootNames[103] ="C#/F"
+rootNames[104] ="D#/Gb"
+rootNames[105] ="F#/G"
+rootNames[106] ="G#/Ab"
+rootNames[107] ="A#/A"
+rootNames[108] ="A#/F"
+rootNames[109] ="C/Gb"
+rootNames[110] ="Db/G"
+rootNames[111] ="D/Ab"
+rootNames[112] ="Eb/A"
+rootNames[113] ="E/Bb"
+rootNames[114] ="F/B"
+rootNames[115] ="Gb/C"
+rootNames[116] ="G/Db"
+rootNames[117] ="Ab/D"
+rootNames[118] ="A/Eb"
+rootNames[119] ="Bb/E"
+rootNames[120] ="B/F"
+rootNames[121] ="C#/Gb"
+rootNames[122] ="D#/G"
+rootNames[123] ="F#/Ab"
+rootNames[124] ="G#/A"
+rootNames[125] ="A#/Bb"
+rootNames[126] ="A#/Gb"
+rootNames[127] ="C/G"
+rootNames[128] ="Db/Ab"
+rootNames[129] ="D/A"
+rootNames[130] ="Eb/Bb"
+rootNames[131] ="E/B"
+rootNames[132] ="F/C"
+rootNames[133] ="Gb/Db"
+rootNames[134] ="G/D"
+rootNames[135] ="Ab/Eb"
+rootNames[136] ="A/E"
+rootNames[137] ="Bb/F"
+rootNames[138] ="B/Gb"
+rootNames[139] ="C#/G"
+rootNames[140] ="D#/Ab"
+rootNames[141] ="F#/A"
+rootNames[142] ="G#/Bb"
+rootNames[143] ="A#/B"
+rootNames[144] ="A#/G"
+rootNames[145] ="C/Ab"
+rootNames[146] ="Db/A"
+rootNames[147] ="D/Bb"
+rootNames[148] ="Eb/B"
+rootNames[149] ="E/C"
+rootNames[150] ="F/Db"
+rootNames[151] ="Gb/D"
+rootNames[152] ="G/Eb"
+rootNames[153] ="Ab/E"
+rootNames[154] ="A/F"
+rootNames[155] ="Bb/Gb"
+rootNames[156] ="B/G"
+rootNames[157] ="C#/Ab"
+rootNames[158] ="D#/A"
+rootNames[159] ="F#/Bb"
+rootNames[160] ="G#/B"
+rootNames[161] ="A#/C"
+rootNames[162] ="A#/Ab"
+rootNames[163] ="C/A"
+rootNames[164] ="Db/Bb"
+rootNames[165] ="D/B"
+rootNames[166] ="Eb/C"
+rootNames[167] ="E/Db"
+rootNames[168] ="F/D"
+rootNames[169] ="Gb/Eb"
+rootNames[170] ="G/E"
+rootNames[171] ="Ab/F"
+rootNames[172] ="A/Gb"
+rootNames[173] ="Bb/G"
+rootNames[174] ="B/Ab"
+rootNames[175] ="C#/A"
+rootNames[176] ="D#/Bb"
+rootNames[177] ="F#/B"
+rootNames[178] ="G#/C"
+rootNames[179] ="A#/Db"
+rootNames[180] ="A#/A"
+rootNames[181] ="C/Bb"
+rootNames[182] ="Db/B"
+rootNames[183] ="D/C"
+rootNames[184] ="Eb/Db"
+rootNames[185] ="E/D"
+rootNames[186] ="F/Eb"
+rootNames[187] ="Gb/E"
+rootNames[188] ="G/F"
+rootNames[189] ="Ab/Gb"
+rootNames[190] ="A/G"
+rootNames[191] ="Bb/Ab"
+rootNames[192] ="B/A"
+rootNames[193] ="C#/Bb"
+rootNames[194] ="D#/B"
+rootNames[195] ="F#/C"
+rootNames[196] ="G#/Db"
+rootNames[197] ="A#/D"
+rootNames[198] ="A#/Bb"
+rootNames[199] ="C/B"
+rootNames[200] ="Db/C"
+rootNames[201] ="D/Db"
+rootNames[202] ="Eb/D"
+rootNames[203] ="E/Eb"
+rootNames[204] ="F/E"
+rootNames[205] ="Gb/F"
+rootNames[206] ="G/Gb"
+rootNames[207] ="Ab/G"
+rootNames[208] ="A/Ab"
+rootNames[209] ="Bb/A"
+rootNames[210] ="B/Bb"
+rootNames[211] ="C#/B"
+rootNames[212] ="D#/C"
+rootNames[213] ="F#/Db"
+rootNames[214] ="G#/D"
+rootNames[215] ="A#/Eb"
+rootNames[216] ="A#/B"
+
+--pad the rest of unknown types with ?
+for j = 217,255 do 
+  rootNames[j] = "?"
+end
+
+typeNames = {
+  "",  -- 1 
+  "Maj",  -- 2 
+  "b5",  -- 3 
+  "aug",  -- 4 
+  "6",  -- 5 
+  "Maj7",  -- 6 
+  "Maj9",  -- 7 
+  "Maj9#11",  -- 8 
+  "Maj13#11",  -- 9 
+  "Maj13",  -- 10 
+  "Maj9(no 3)",  -- 11 
+  "+",  -- 12 
+  "Maj7#5",  -- 13 
+  "69",  -- 14 
+  "2",  -- 15 
+  "m",  -- 16 
+  "maug",  -- 17 
+  "mMaj7",  -- 18 
+  "m7",  -- 19 
+  "m9",  -- 20 
+  "m11",  -- 21 
+  "m13",  -- 22 
+  "m6",  -- 23 
+  "m#5",  -- 24 
+  "m7#5",  -- 25 
+  "?",  -- 26 
+  "?",  -- 27 
+  "?",  -- 28 
+  "?",  -- 29 
+  "?",  -- 30 
+  "?",  -- 31 
+  "m7b5",  -- 32 
+  "dim",  -- 33 
+  "?",  -- 34 
+  "?",  -- 35 
+  "?",  -- 36 
+  "?",  -- 37 
+  "?",  -- 38 
+  "?",  -- 39 
+  "5",  -- 40 
+  "?",  -- 41 
+  "?",  -- 42 
+  "?",  -- 43 
+  "?",  -- 44 
+  "?",  -- 45 
+  "?",  -- 46 
+  "?",  -- 47 
+  "?",  -- 48 
+  "?",  -- 49 
+  "?",  -- 50 
+  "?",  -- 51 
+  "?",  -- 52 
+  "?",  -- 53 
+  "?",  -- 54 
+  "?",  -- 55 
+  "7+",  -- 56 
+  "9+",  -- 57 
+  "13+",  -- 58 
+  "?",  -- 59 
+  "?",  -- 60 
+  "?",  -- 61 
+  "?",  -- 62 
+  "?",  -- 63 
+  "7",  -- 64 
+  "13",  -- 65 
+  "7b13",  -- 66 
+  "7#11",  -- 67 
+  "13#11",  -- 68 
+  "7#11b13",  -- 69 
+  "9",  -- 70 
+  "?",  -- 71 
+  "9b13",  -- 72 
+  "9#11",  -- 73 
+  "13#11",  -- 74 
+  "9#11b13",  -- 75 
+  "7b9",  -- 76 
+  "13b9",  -- 77 
+  "7b9b13",  -- 78 
+  "7b9#11",  -- 79 
+  "13b9#11",  -- 80 
+  "7b9#11b13",  -- 81 
+  "7#9",  -- 82 
+  "13#9",  -- 83 
+  "7#9b13",  -- 84 
+  "9#11",  -- 85 
+  "13#9#11",  -- 86 
+  "7#9#11b13",  -- 87 
+  "7b5",  -- 88 
+  "13b5",  -- 89 
+  "7b5b13",  -- 90 
+  "9b5",  -- 91 
+  "9b5b13",  -- 92 
+  "7b5b9",  -- 93 
+  "13b5b9",  -- 94 
+  "7b5b9b13",  -- 95 
+  "7b5#9",  -- 96 
+  "13b5#9",  -- 97 
+  "7b5#9b13",  -- 98 
+  "7#5",  -- 99 
+  "13#5",  -- 100 
+  "7#5#11",  -- 101 
+  "13#5#11",  -- 102 
+  "9#5",  -- 103 
+  "9#5#11",  -- 104 
+  "7#5b9",  -- 105 
+  "13#5b9",  -- 106 
+  "7#5b9#11",  -- 107 
+  "13#5b9#11",  -- 108 
+  "7#5#9",  -- 109 
+  "13#5#9#11",  -- 110 
+  "7#5#9#11",  -- 111 
+  "13#5#9#11",  -- 112 
+  "7alt",  -- 113 
+  "?",  -- 114 
+  "?",  -- 115 
+  "?",  -- 116 
+  "?",  -- 117 
+  "?",  -- 118 
+  "?",  -- 119 
+  "?",  -- 120 
+  "?",  -- 121 
+  "?",  -- 122 
+  "?",  -- 123 
+  "?",  -- 124 
+  "?",  -- 125 
+  "?",  -- 126 
+  "?",  -- 127 
+  "7sus",  -- 128 
+  "13sus",  -- 129 
+  "7susb13",  -- 130 
+  "7sus#11",  -- 131 
+  "13sus#11",  -- 132 
+  "7sus#11b13",  -- 133 
+  "9sus",  -- 134 
+  "?",  -- 135 
+  "9susb13",  -- 136 
+  "9sus#11",  -- 137 
+  "13sus#11",  -- 138 
+  "9sus#11b13",  -- 139 
+  "7susb9",  -- 140 
+  "13susb9",  -- 141 
+  "7susb913",  -- 142 
+  "7susb9#11",  -- 143 
+  "13susb9#11",  -- 144 
+  "7susb9#11b13",  -- 145 
+  "7sus#9",  -- 146 
+  "13sus#9",  -- 147 
+  "7sus#9b13",  -- 148 
+  "9sus#11",  -- 149 
+  "13sus#9#11",  -- 150 
+  "7sus#9#11b13",  -- 151 
+  "7susb5",  -- 152 
+  "13susb5",  -- 153 
+  "7susb5b13",  -- 154 
+  "9susb5",  -- 155 
+  "9susb5b13",  -- 156 
+  "7susb5b9",  -- 157 
+  "13susb5b9",  -- 158 
+  "7susb5b9b13",  -- 159 
+  "7susb5#9",  -- 160 
+  "13susb5#9",  -- 161 
+  "7susb5#9b13",  -- 162 
+  "7sus#5",  -- 163 
+  "13sus#5",  -- 164 
+  "7sus#5#11",  -- 165 
+  "13sus#5#11",  -- 166 
+  "9sus#5",  -- 167 
+  "9sus#5#11",  -- 168 
+  "7sus#5b9",  -- 169 
+  "13sus#5b9",  -- 170 
+  "7sus#5b9#11",  -- 171 
+  "13sus#5b9#11",  -- 172 
+  "7sus#5#9",  -- 173 
+  "13sus#5#9#11",  -- 174 
+  "7sus#5#9#11",  -- 175 
+  "13sus#5#9#11",  -- 176 
+  "4",  -- 177 
+  "?",  -- 178 
+  "?",  -- 179 
+  "?",  -- 180 
+  "?",  -- 181 
+  "?",  -- 182 
+  "?",  -- 183 
+  "sus"}  -- 184 
+
+
+function tablelength(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
+
+
+function round(val, decimal)
+  local exp = decimal and 10^decimal or 1
+  return math.ceil(val * exp - 0.5) / exp
+end
+
+
+
+
+
+function GetFilename(path)   
+    local start, finish = path:find('[%w%s!-={-|]+[_%.].+')   
+    return path:sub(start,#path) 
+end 
+
+function chords_34()
+    retval, filetxt = reaper.GetUserFileNameForRead("", "Import Chords from SGU,MGU...", "")
+    
+    --print(GetFilename(filetxt))
+    
+    f = assert(io.open(filetxt, "rb"))
+    
+    local first_byte_sig = f:read(1)
+    local name_bytes = f:read(1)
+    --print("First byte = "..tostring(first_byte_sig))
+    name_len = string.byte(name_bytes)
+    --print("Name_length =" ..name_len)
+    local bytes = f:read(name_len)
+    --print("Name: "..tostring(bytes))
+    local meter_denominator = 4
+    --print("Meter: "..tostring(4).."/"..tostring(meter_denominator))
+    local byte1 = string.byte(f:read(1))
+    local byte2 = string.byte(f:read(1))
+    local byte3 = string.byte(f:read(1))
+    local keyByte = string.byte(f:read(1)) --read 
+    local tempoByte = string.byte(f:read(1)) --read tempo byte
+    
+    if keyByte <= 17 then
+      key = rootNames[keyByte]
+      isMinor = false 
+    else key = rootNames[keyByte - 17]
+      isMinor = true
+    end
+    if isMinor then
+      --print("Key : " ..key.. "m")
+    else --print("Key: " ..key)
+    end
+    --print("Tempo: " ..tempoByte)
+    reaper.Main_OnCommand( 40042, 0 ) -- Transport: Go to start of project
+    reaper.SetCurrentBPM( 0, tempoByte, 0 ) -- 0 no undo points 1 undo points
+    
+    
+    reaper.SetTempoTimeSigMarker( 0, -1, 0, -1, -1, -1, 3, 4, false )
+    
+    local bar = string.byte(f:read(1)) --read start bar number
+    --print("Start bar: " ..bar)
+    
+    local types = {}
+    local roots = {}
+    local beats = {}
+    local partm = {}
+    numberOfChords = 1
+
+-- count through the bars and bar types to find section boundaries
+    
+    while bar < 255 do -- maximum of 255 bars
+      local barType = string.byte(f:read(1)) --read bar type
+      
+      if barType == 0 then
+        duration = string.byte(f:read(1))
+        bar = bar + duration
+      else bar = bar + 1
+      end
+    
+
+      partm[bar] = barType
+       
+    end
+    
+    total_bars = bar - duration -1
+    --print("Total number of bars =" ..total_bars)
+-- count through the chord type/duration section recording the beat count where chord changes occur in table beats[] and the chord type in types[] 
+    local beat = 1 --start at beat 1
+    while beat < 1020 do --maximum of 1020 beats (= 255 bars x 4 beats)
+      local chordType = string.byte(f:read(1))
+      if chordType == 0 then
+        local duration = string.byte(f:read(1))
+        beat = beat + duration
+      else types[numberOfChords] = chordType
+        --print("Chord change number "..tostring(numberOfChords).." to "..tostring(chordType).." ["..typeNames[chordType].."] at beat count "..tostring(beat))
+        beats[numberOfChords] = beat
+        numberOfChords = numberOfChords + 1
+        last_beat = beat
+        beat = beat + 1
+      end
+    end
+  total_beats = last_beat - 1
+
+
+  local i=1
+  beat = 1 --start at beat 1
+  
+  while beat < 1020 do --maximum of 1020 beats
+    
+    local chordRoot = string.byte(f:read(1))
+    if chordRoot == 0 then 
+      local duration = string.byte(f:read(1))
+      beat = beat + duration
+    else roots[i] = chordRoot
+      if beat ~= beats[i] then
+        --print("Inconsistent chord type and root beat")
+      end
+      
+
+      i = i + 1
+      beat = beat + 1
+    end
+ 
+  end
+
+
+  if i ~= numberOfChords then
+    print("Inconsistent number of chord types and roots")
+  end
+
+
+  beats_no = (last_beat +15) / 4 * 3
+  --print("Toatal 3/4 Beats ".. beats_no  )
+  waltz_bars = 0
+  
+  
+  chord_name = {}
+  beat_count = {}
+  part_marker = {}
+  part_marker_beats = {}
+  
+  for i = 1, tablelength(roots)  do
+  
+    waltz_beats = ((beats[i] / 4) * 3) +.75 --+.25 
+    beat_number = 1
+    --print("waltz_beats ".. waltz_beats)
+    
+    
+    waltz_bars = (waltz_beats / 3) + .66666666666667
+    --if waltz_bars ~= math.floor(waltz_bars) then
+      
+      waltz_bars2 = round(waltz_bars,0)
+      --print("waltz_bars ".. waltz_bars .." floor ".. waltz_bars2)
+      if tostring(waltz_bars2) == tostring(waltz_bars) then
+        beat_number = 1 --print("Is Equal")
+      
+      elseif waltz_bars2 < waltz_bars then
+        beat_number = 2 --print("Is Less")
+       
+      elseif waltz_bars2 > waltz_bars then 
+        beat_number = 3 --print("Is Greater")
+      end 
+     
+     waltz_beats2 = math.floor(waltz_beats)
+     
+     
+  --end
+   --print("Beat ".. waltz_beats2 .." Bar ".. math.floor(waltz_bars) .."[" .. beat_number .."]".." " ..tostring(rootNames[roots[i]]) ..tostring(typeNames[types[i]]))
+ 
+  --end
+  
+
+  
+  
+    --print("Beat ".. waltz_beats2 .." " ..tostring(rootNames[roots[i]]) ..tostring(typeNames[types[i]]))
+    
+    chord_name[i] = tostring(rootNames[roots[i]]) ..tostring(typeNames[types[i]])
+    beat_count[i] = waltz_beats2
+    
+  
+  end
+  
+
+  
+  part_marker_count = 0
+  for i = 2, total_bars +1 do --tablelength(roots) do --total_bars +1 do
+    if partm[i] and partm[i] > 0 then
+      --print("PartM ".. (i*3 )-5  .. " " ..tostring(partm[i]))
+      part_marker[i] = tostring(partm[i])
+      part_marker_beats[i] = (i*3 )-5
+    end
+    part_marker_count = part_marker_count +1
+  end   
+  
+  for i = 1, part_marker_count +1 do
+    if part_marker_beats[i] then
+      --print("part_marker_beats ".. part_marker_beats[i] .." type ".. part_marker[i])
+    --print("beat_count ".. beat_count[3] .." ".. chord_name[3])
+  
+    --print("Toatal Bars ".. total_bars+3)
+    end
+  end
+  
+  for i = 1, tablelength(roots) +1 do --total_bars +1 do
+  
+    --chord_name[i]
+    --beat_count[i]
+    
+    for m = 1, part_marker_count +1 do
+      if part_marker_beats[m] then
+        --print("PM Color ".. beat_count[i] .." ".. part_marker_beats[m])
+        if beat_count[i] == part_marker_beats[m] then
+          --print("FOUND part_marker_beats ".. part_marker_beats[m])
+          if part_marker[m] == "1" then
+            --print("BLUE")
+            color = reaper.ColorToNative(55,118,235)|0x1000000
+          end
+          if part_marker[m] == "2" then
+            --print("GREEN")
+            color = reaper.ColorToNative(17,174,59)|0x1000000
+          end      
+        end
+      end  
+      
+    end  
+    
+    if beat_count[i] then
+      --print("REG START beat_count[i] ".. beat_count[i] .." " ..tostring(rootNames[roots[i]]) ..tostring(typeNames[types[i]]))
+      reg_start = reaper.TimeMap2_beatsToTime( 0, beat_count[i]+5 )
+      reg_start = reaper.SnapToGrid( 0, reg_start )
+      --print("TIME reg_start "..reg_start)
+    end  
+    --reg_start = reaper.SnapToGrid( 0, reg_start )
+    --print("reg_start "..reg_start)
+   
+    -- ADD 2 bar for count-in
+    if i < tablelength(roots) then
+      --print("REG END beat_count[i] ".. beat_count[i+1])
+      reg_end = reaper.TimeMap2_beatsToTime( 0, beat_count[i+1]+5 )
+      reg_end = reaper.SnapToGrid( 0, reg_end )
+      --print("TIME reg_end "..reg_end)
+      reaper.AddProjectMarker2( 0, true, reg_start, reg_end, chord_name[i], 1, color )
+    end
+    if i == tablelength(roots) then
+      ending_bars = reaper.TimeMap2_beatsToTime( 0, 12)
+      ending_bars = reaper.SnapToGrid( 0, ending_bars )
+      reaper.AddProjectMarker2( 0, true, reg_start, reg_start+ending_bars, chord_name[i], 1, color )
+    end
+  end
+  
+  --reaper.Main_OnCommand( 40898, 0 ) -- Markers: Renumber all markers in timeline order
+  reaper.SNM_SetIntConfigVar( "projmeasoffs", -2) -- offset measures
+  
+  
+  
+end  
+
+function chords_44()
+    retval, filetxt = reaper.GetUserFileNameForRead("", "Import Chords from SGU,MGU...", "")
+    
+    --print(GetFilename(filetxt))
+    
+    f = assert(io.open(filetxt, "rb"))
+    
+    local first_byte_sig = f:read(1)
+    local name_bytes = f:read(1)
+    --print("First byte = "..tostring(first_byte_sig))
+    name_len = string.byte(name_bytes)
+    --print("Name_length =" ..name_len)
+    local bytes = f:read(name_len)
+    --print("Name: "..tostring(bytes))
+    local meter_denominator = 4
+    --print("Meter: "..tostring(4).."/"..tostring(meter_denominator))
+    local byte1 = string.byte(f:read(1))
+    local byte2 = string.byte(f:read(1))
+    local byte3 = string.byte(f:read(1))
+    local keyByte = string.byte(f:read(1)) --read 
+    local tempoByte = string.byte(f:read(1)) --read tempo byte
+    
+    if keyByte <= 17 then
+      key = rootNames[keyByte]
+      isMinor = false 
+    else key = rootNames[keyByte - 17]
+      isMinor = true
+    end
+    if isMinor then
+      --print("Key : " ..key.. "m")
+    else --print("Key: " ..key)
+    end
+    --print("Tempo: " ..tempoByte)
+    reaper.Main_OnCommand( 40042, 0 ) -- Transport: Go to start of project
+    reaper.SetCurrentBPM( 0, tempoByte, 0 ) -- 0 no undo points 1 undo points
+    
+    
+    reaper.SetTempoTimeSigMarker( 0, -1, 0, -1, -1, -1, 4, 4, false )
+    
+    local bar = string.byte(f:read(1)) --read start bar number
+    --print("Start bar: " ..bar)
+    
+    local types = {}
+    local roots = {}
+    local beats = {}
+    local partm = {}
+    numberOfChords = 1
+
+-- count through the bars and bar types to find section boundaries
+    
+    while bar < 255 do -- maximum of 255 bars
+      local barType = string.byte(f:read(1)) --read bar type
+      
+      if barType == 0 then
+        duration = string.byte(f:read(1))
+        bar = bar + duration
+      else bar = bar + 1
+      end
+    
+
+      partm[bar] = barType
+       
+    end
+    
+    total_bars = bar - duration -1
+    --print("Total number of bars =" ..total_bars)
+-- count through the chord type/duration section recording the beat count where chord changes occur in table beats[] and the chord type in types[] 
+    local beat = 1 --start at beat 1
+    while beat < 1020 do --maximum of 1020 beats (= 255 bars x 4 beats)
+      local chordType = string.byte(f:read(1))
+      if chordType == 0 then
+        local duration = string.byte(f:read(1))
+        beat = beat + duration
+      else types[numberOfChords] = chordType
+        --print("Chord change number "..tostring(numberOfChords).." to "..tostring(chordType).." ["..typeNames[chordType].."] at beat count "..tostring(beat))
+        beats[numberOfChords] = beat
+        numberOfChords = numberOfChords + 1
+        last_beat = beat
+        beat = beat + 1
+      end
+    end
+  total_beats = last_beat - 1
+
+
+  local i=1
+  beat = 1 --start at beat 1
+  
+  while beat < 1020 do --maximum of 1020 beats
+    
+    local chordRoot = string.byte(f:read(1))
+    if chordRoot == 0 then 
+      local duration = string.byte(f:read(1))
+      beat = beat + duration
+    else roots[i] = chordRoot
+      if beat ~= beats[i] then
+        --print("Inconsistent chord type and root beat")
+      end
+      
+
+      i = i + 1
+      beat = beat + 1
+    end
+ 
+  end
+
+
+  if i ~= numberOfChords then
+    print("Inconsistent number of chord types and roots")
+  end
+
+
+  beats_no = (last_beat +15) / 4 * 4
+  --print("Toatal 3/4 Beats ".. beats_no  )
+  waltz_bars = 0
+
+  
+    --types = {}
+    --roots = {}
+    --beats = {}
+    --partm = {}  
+  
+  chord_name = {}
+  beat_count = {}
+  part_marker = {}
+  part_marker_beats = {}
+  
+  for i = 1, tablelength(roots) do
+  
+    nom_beats = beats[i] --((beats[i] / 4) * 4) 
+    beat_number = 1
+    
+    nom_bars = (nom_beats / 4) 
+    
+    nom_bars  = math.floor(nom_bars)
+    --nom_bars2 = round(nom_bars,0)
+     
+     
+    nom_beats2 = math.floor(nom_beats)
+     
+    --print("BAR ".. math.floor(nom_beats2 /4))
+    --end
+    --print("Beat ".. nom_beats2 .." " ..tostring(rootNames[roots[i]]) ..tostring(typeNames[types[i]]))
+    
+    chord_name[i] = tostring(rootNames[roots[i]]) ..tostring(typeNames[types[i]])
+    beat_count[i] = nom_beats2
+    
+  
+  end
+  part_marker_count = 0
+  for i = 2, total_bars +1 do --tablelength(roots) do --total_bars +1 do
+    if partm[i] and partm[i] > 0 then
+      --print("PartM ".. (i*4 )-7  .. " " ..tostring(partm[i]))
+      part_marker[i] = tostring(partm[i])
+      part_marker_beats[i] = (i*4 )-7
+    end
+    part_marker_count = part_marker_count +1
+  end   
+  
+  for i = 1, part_marker_count +1 do
+    if part_marker_beats[i] then
+      --print("part_marker_beats ".. part_marker_beats[i] .." type ".. part_marker[i])
+    --print("beat_count ".. beat_count[3] .." ".. chord_name[3])
+
+    --print("Toatal Bars ".. total_bars+3)
+    end
+  end
+  
+  for i = 1, tablelength(roots) +1 do --total_bars +1 do
+  
+    --chord_name[i]
+    --beat_count[i]
+    
+    for m = 1, part_marker_count +1 do
+      if part_marker_beats[m] then
+        --print("PM Color ".. beat_count[i] .." ".. part_marker_beats[m])
+        if beat_count[i] == part_marker_beats[m] then
+          --print("FOUND part_marker_beats ".. part_marker_beats[m])
+          if part_marker[m] == "1" then
+            --print("BLUE")
+            color = reaper.ColorToNative(55,118,235)|0x1000000
+          end
+          if part_marker[m] == "2" then
+            --print("GREEN")
+            color = reaper.ColorToNative(17,174,59)|0x1000000
+          end      
+        end
+      end  
+      
+    end  
+    
+    if beat_count[i] then
+      reg_start = reaper.TimeMap2_beatsToTime( 0, beat_count[i]+7 )
+    end  
+    reg_start = reaper.SnapToGrid( 0, reg_start )
+    --print("reg_start "..reg_start)
+   
+    -- ADD 2 bar for count-in
+    if i < tablelength(roots) then
+      reg_end = reaper.TimeMap2_beatsToTime( 0, beat_count[i+1]+7 )
+      reg_end = reaper.SnapToGrid( 0, reg_end )
+      --print("reg_end "..reg_end)
+      reaper.AddProjectMarker2( 0, true, reg_start, reg_end, chord_name[i], 1, color )
+    end
+    if i == tablelength(roots) then
+      ending_bars = reaper.TimeMap2_beatsToTime( 0, 16)
+      ending_bars = reaper.SnapToGrid( 0, ending_bars )
+      reaper.AddProjectMarker2( 0, true, reg_start, reg_start+ending_bars, chord_name[i], 1, color )
+    end
+  end
+  
+  --reaper.Main_OnCommand( 40898, 0 ) -- Markers: Renumber all markers in timeline order
+  reaper.SNM_SetIntConfigVar( "projmeasoffs", -2) -- offset measures
+  
+end
+
+ retval = reaper.MB( "Yes the Song 4/4 or No for 3/4", "Time Signature", 4 ) 
+ if retval == 6 then
+   chords_44()
+ end
+ if retval == 7 then
+   chords_34()
+ end 
+
+-- Get the number of markers
+local num_markers = reaper.CountProjectMarkers(0)
+function CreateTextItem(track, position, length, text, color)
+   if track ==  nil then return end
+  local item = reaper.AddMediaItemToTrack(track)
+
+  reaper.SetMediaItemInfo_Value(item, "D_POSITION", position)
+  reaper.SetMediaItemInfo_Value(item, "D_LENGTH", length)
+
+  if text ~= nil then
+    reaper.ULT_SetMediaItemNote(item, text)
+  end
+
+  if color ~= nil then
+    reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
+  end
+
+  return item
+
+end
+
+function getTrackByName(name)
+  for trackIndex = 0, reaper.CountTracks(0) - 1 do
+    local track = reaper.GetTrack(0, trackIndex)
+    local ok, trackName = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+
+    if ok and trackName == name then
+      return track -- found it! stopping the search here
+    end
+  end
+end
+
+ ctrack = getTrackByName("chordtrack")
+ if ctrack == nil then Msg("no chordtrack") end
+
+if ctrack then -- if a track named "Structure" was found
+  reaper.SetOnlyTrackSelected(ctrack)
+end
+-- Iterate through all markers
+local markers = {}
+for i = 0, num_markers - 1 do
+  local retval, isrgn, pos, regend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers(i)
+
+  table.insert(markers, {pos = pos, name = name, regend = regend})
+end
+
+-- Create a new text item for each marker
+for i , marker  in ipairs(markers) do
+   length = (markers[i].regend)-(markers[i].pos)
+--  local text_item = reaper.CreateNewMIDIItemInProj(first_track, marker.pos, end_time, false)
+  
+  CreateTextItem(ctrack,marker.pos,length,marker.name)
+--  reaper.ULT_SetMediaItemNote(text_item, marker.name)
+--  if color ~= nil then
+ --    reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
+ --  end
+end
+
+for i = 0, num_markers - 1 do
+reaper.DeleteProjectMarker( 0, i, true )
+end
+end
 --==============================================================================================
 --================================== convert ChordPro to empty_item_notes ======================
 --==============================================================================================
