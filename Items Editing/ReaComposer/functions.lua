@@ -4230,7 +4230,7 @@ function scale_builder()
 function Msg(variable) 
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
-function getTrackByName(name)
+function getTrackByName(name)  
   for trackIndex = 0, reaper.CountTracks(0) - 1 do
      tracko = reaper.GetTrack(0, trackIndex)
     local ok, trackName = reaper.GetSetMediaTrackInfo_String(tracko, 'P_NAME', '', false)
@@ -4247,7 +4247,7 @@ ItemsSelCount = reaper.CountSelectedMediaItems(0)
 if ItemsSelCount ==0 then Msg("select items")return
 end
 
-retval, seq = reaper.GetUserInputs( "scale sequenzer", 2,"seq(q-i) mute=o  octa=(a-k),semi(1-8)//     accent(1,0)", "qeteqete,10001000" )
+retval, seq = reaper.GetUserInputs( "scale sequenzer", 2,"seq(q-i) mute=o  octa=(a-k),semi(1-8)//     accent(1,0)", "iteiteit,10010010" )
 if not retval then return end
 
  
@@ -4316,10 +4316,10 @@ function get_chord_notes(r)
   elseif root == "G" then note_root = 7 
   elseif root == "G#" then note_root = 8
   elseif root == "Ab" then note_root = 8
-  elseif root == "A" then note_root = 9
-  elseif root == "A#" then note_root = 10
-  elseif root == "Bb" then note_root = 10
-  elseif root == "B" then note_root = 11
+  elseif root == "A" then note_root = -3
+  elseif root == "A#" then note_root = -2  
+  elseif root == "Bb" then note_root = -2
+  elseif root == "B" then note_root = -1
   if not root then end
   end
   
@@ -4831,6 +4831,981 @@ main()
 
 
 end
+--=================================================================================================================
+--============================= arpeggio inversion up ==================================================================
+--=================================================================================================================
+function arpeggio_up()
+
+function Msg(variable)
+  reaper.ShowConsoleMsg(tostring(variable).."\n")
+end
+
+function getTrackByName(name)
+  for trackIndex = 0, reaper.CountTracks(0) - 1 do
+     tracko = reaper.GetTrack(0, trackIndex)
+    local ok, trackName = reaper.GetSetMediaTrackInfo_String(tracko, 'P_NAME', '', false)
+
+    if ok and trackName == name then
+      return tracko -- found it! stopping the search here
+    end 
+  end
+end
+
+
+
+  
+function get_chord_notes(r)  
+
+   item0 =  reaper.GetTrackMediaItem(ctrack,r )
+      _, item_notes = reaper.GetSetMediaItemInfo_String(item0, "P_NOTES", "", false) 
+      
+    if string.match( item_notes, "@.*") then next_region() end -- skip region marked @ ignore     
+     if string.find(item_notes, "/") then
+        root, chord, slash = string.match(item_notes, "(%w[#b]?)(.*)(/%a[#b]?)$")
+     else
+        root, chord = string.match(item_notes, "(%w[#b]?)(.*)$") slashnote = 0 slash = ""
+     end
+       
+       if not chord or #chord == 0 then chord = "Maj" end
+       if not slash then slash = "" end
+
+  note1 = 0
+  -- 60 = C3
+  if root == "C" then note1 = 0
+  elseif root == "C#" then note1 = 1
+  elseif root == "Db" then note1 = 1
+  elseif root == "D" then note1 = 2
+  elseif root == "D#" then note1 = 3
+  elseif root == "Eb" then note1 = 3
+  elseif root == "E" then note1 = 4
+  elseif root == "F" then note1 = 5
+  elseif root == "F#" then note1 = 6
+  elseif root == "Gb" then note1 = 6
+  elseif root == "G" then note1 = 7
+  elseif root == "G#" then note1 = 8
+  elseif root == "Ab" then note1 = 8
+  elseif root == "A" then note1 = 9
+  elseif root == "A#" then note1 = 10
+  elseif root == "Bb" then note1 = 10
+  elseif root == "B" then note1 = 11
+  if not root then end
+  end
+  
+  slashnote = 255
+  -- 48 = C2
+
+  if slash == "/C" then slashnote = -12
+  elseif slash == "/C#" then slashnote = -11
+  elseif slash == "/Db" then slashnote = -11
+  elseif slash == "/D" then slashnote = -10
+  elseif slash == "/D#" then slashnote = -9
+  elseif slash == "/Eb" then slashnote = -9
+  elseif slash == "/E" then slashnote = -8
+  elseif slash == "/F" then slashnote = -7
+  elseif slash == "/F#" then slashnote = -6
+  elseif slash == "/Gb" then slashnote = -6
+  elseif slash == "/G" then slashnote = -5
+  elseif slash == "/G#" then slashnote = -4
+  elseif slash == "/Ab" then slashnote = -4
+  elseif slash == "/A" then slashnote = -3
+  elseif slash == "/A#" then slashnote = -2
+  elseif slash == "/Bb" then slashnote = -2
+  elseif slash == "/B" then slashnote = -1
+  if not slash then slashnote = 255 end
+  end
+
+  note2 = 255
+  note3 = 255
+  note4 = 255
+  note5 = 255
+  note6 = 255
+  note7 = 255
+
+  if string.find(",Maj,maj7,", ","..chord..",", 1, true) then note2=4  note3=7 note4=12 end      
+  if string.find(",m,min,-,", ","..chord..",", 1, true) then note2=3  note3=7 note4=12 end      
+  if string.find(",dim,m-5,mb5,m(b5),0,", ","..chord..",", 1, true) then note2=3  note3=6 note4=12 end   
+  if string.find(",aug,+,+5,(#5),", ","..chord..",", 1, true) then note2=4  note3=8 end   
+  if string.find(",-5,(b5),", ","..chord..",", 1, true) then note2=4  note3=6 end   
+  if string.find(",sus2,", ","..chord..",", 1, true) then note2=2  note3=7 end   
+  if string.find(",sus4,sus,(sus4),", ","..chord..",", 1, true) then note2=5  note3=7 end   
+  if string.find(",5,", ","..chord..",", 1, true) then note2=7 note3=12 end   
+  if string.find(",5add7,5/7,", ","..chord..",", 1, true) then note2=7  note3=10 note4=10 end   
+  if string.find(",add2,(add2),", ","..chord..",", 1, true) then note2=2  note3=4  note4=7 end   
+  if string.find(",add4,(add4),", ","..chord..",", 1, true) then note2=4  note3=5  note4=7 end   
+  if string.find(",madd4,m(add4),", ","..chord..",", 1, true) then note2=3  note3=5  note4=7 end   
+  if string.find(",11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=17 end  
+  if string.find(",11sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14  note6=17 end  
+  if string.find(",m11,min11,-11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=17 end  
+  if string.find(",Maj11,maj11,M11,Maj7(add11),M7(add11),", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=14  note6=17 end     
+  if string.find(",mMaj11,minmaj11,mM11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=11  note5=14  note6=17 end  
+  if string.find(",aug11,9+11,9aug11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18 end  
+  if string.find(",augm11, m9#11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=18 end  
+  if string.find(",11b5,11-5,11(b5),", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=14  note6=17 end  
+  if string.find(",11#5,11+5,11(#5),", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=14  note6=17 end  
+  if string.find(",11b9,11-9,11(b9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=17 end  
+  if string.find(",11#9,11+9,11(#9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=17 end  
+  if string.find(",11b5b9,11-5-9,11(b5b9),", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=13  note6=17 end  
+  if string.find(",11#5b9,11+5-9,11(#5b9),", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=13  note6=17 end  
+  if string.find(",11b5#9,11-5+9,11(b5#9),", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=15  note6=17 end  
+  if string.find(",11#5#9,11+5+9,11(#5#9),", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=15  note6=17 end  
+  if string.find(",m11b5,m11-5,m11(b5),", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=14  note6=17 end  
+  if string.find(",m11#5,m11+5,m11(#5),", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=14  note6=17 end  
+  if string.find(",m11b9,m11-9,m11(b9),", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=13  note6=17 end  
+  if string.find(",m11#9,m11+9,m11(#9),", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=15  note6=17 end  
+  if string.find(",m11b5b9,m11-5-9,m11(b5b9),", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=13  note6=17 end
+  if string.find(",m11#5b9,m11+5-9,m11(#5b9),", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=13  note6=17 end
+  if string.find(",m11b5#9,m11-5+9,m11(b5#9),", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=15  note6=17 end
+  if string.find(",m11#5#9,m11+5+9,m11(#5#9),", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=15  note6=17 end
+  if string.find(",Maj11b5,maj11b5,maj11-5,maj11(b5),", ","..chord..",", 1, true)    then note2=4  note3=6  note4=11  note5=14  note6=17 end
+  if string.find(",Maj11#5,maj11#5,maj11+5,maj11(#5),", ","..chord..",", 1, true)    then note2=4  note3=8  note4=11  note5=14  note6=17 end
+  if string.find(",Maj11b9,maj11b9,maj11-9,maj11(b9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=13  note6=17 end
+  if string.find(",Maj11#9,maj11#9,maj11+9,maj11(#9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=15  note6=17 end
+  if string.find(",Maj11b5b9,maj11b5b9,maj11-5-9,maj11(b5b9),", ","..chord..",", 1, true)   then note2=4  note3=6  note4=11  note5=13  note6=17 end
+  if string.find(",Maj11#5b9,maj11#5b9,maj11+5-9,maj11(#5b9),", ","..chord..",", 1, true)   then note2=4  note3=8  note4=11  note5=13  note6=17 end
+  if string.find(",Maj11b5#9,maj11b5#9,maj11-5+9,maj11(b5#9),", ","..chord..",", 1, true)   then note2=4  note3=6  note4=11  note5=15  note6=17 end
+  if string.find(",Maj11#5#9,maj11#5#9,maj11+5+9,maj11(#5#9),", ","..chord..",", 1, true)   then note2=4  note3=8  note4=11  note5=15  note6=17 end
+  if string.find(",13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",m13,min13,-13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",Maj13,maj13,M13,Maj7(add13),M7(add13),", ","..chord..",", 1, true)   then note2=4  note3=7  note4=11  note5=14  note6=17  note7=21 end  
+  if string.find(",mMaj13,minmaj13,mM13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=11  note5=14  note6=17  note7=21 end  
+  if string.find(",13b5,13-5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",13#5,13+5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",13b9,13-9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13#9,13+9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",13#11,13+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=18  note7=21 end  
+  if string.find(",13b5b9,13-5-9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13#5b9,13+5-9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13b5#9,13-5+9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",13#5#9,13+5+9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",13b9#11,13-9+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=18  note7=21 end  
+  if string.find(",m13b5,m13-5,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",m13#5,m13+5,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",m13b9,m13-9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",m13#9,m13+9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",m13b5b9,m13-5-9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",m13#5b9,m13+5-9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",m13b5#9,m13-5+9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",m13#5#9,m13+5+9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",Maj13b5,maj13b5,maj13-5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=14  note6=17  note7=21 end  
+  if string.find(",Maj13#5,maj13#5,maj13+5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=14  note6=17  note7=21 end  
+  if string.find(",Maj13b9,maj13b9,maj13-9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=13  note6=17  note7=21 end  
+  if string.find(",Maj13#9,maj13#9,maj13+9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=15  note6=17  note7=21 end  
+  if string.find(",Maj13b5b9,maj13b5b9,maj13-5-9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=13  note6=17  note7=21 end  
+  if string.find(",Maj13#5b9,maj13#5b9,maj13+5-9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=13  note6=17  note7=21 end  
+  if string.find(",Maj13b5#9,maj13b5#9,maj13-5+9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=15  note6=17  note7=21 end  
+  if string.find(",Maj13#5#9,maj13#5#9,maj13+5+9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=15  note6=17  note7=21 end  
+  if string.find(",Maj13#11,maj13#11,maj13+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=14  note6=18  note7=21 end  
+  if string.find(",13#11,13+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18  note7=21 end  
+  if string.find(",m13#11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=18  note7=21 end  
+  if string.find(",13sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",6,M6,Maj6,maj6,", ","..chord..",", 1, true) then note2=4  note3=7  note4=9 end   
+  if string.find(",m6,min6,", ","..chord..",", 1, true) then note2=3  note3=7  note4=9 end   
+  if string.find(",6add4,6/4,6(add4),Maj6(add4),M6(add4),", ","..chord..",", 1, true)    then note2=4  note3=5  note4=7  note5=9 end   
+  if string.find(",m6add4,m6/4,m6(add4),", ","..chord..",", 1, true) then note2=3  note3=5  note4=7  note5=9 end   
+  if string.find(",69,6add9,6/9,6(add9),Maj6(add9),M6(add9),", ","..chord..",", 1, true)   then note2=4  note3=7  note4=9  note5=14 end  
+  if string.find(",m6add9,m6/9,m6(add9),", ","..chord..",", 1, true) then note2=3  note3=7  note4=9  note5=14 end  
+  if string.find(",6sus2,", ","..chord..",", 1, true) then note2=2  note3=7  note4=9 end   
+  if string.find(",6sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=9 end   
+  if string.find(",6add11,6/11,6(add11),Maj6(add11),M6(add11),", ","..chord..",", 1, true)   then note2=4  note3=7  note4=9  note5=17 end  
+  if string.find(",m6add11,m6/11,m6(add11),m6(add11),", ","..chord..",", 1, true)    then note2=3  note3=7  note4=9  note5=17 end  
+  if string.find(",7,dom,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10 note5=12 note6=16 note7=19 end   
+  if string.find(",7add2,", ","..chord..",", 1, true) then note2=2  note3=4  note4=7  note5=10 end  
+  if string.find(",7add4,", ","..chord..",", 1, true) then note2=4  note3=5  note4=7  note5=10 end  
+  if string.find(",m7,min7,-7,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10 note5=12 note6=15 note7=19 end  
+  if string.find(",m7add4,", ","..chord..",", 1, true) then note2=3  note3=5  note4=7  note5=10 end  
+  if string.find(",Maj7,maj7,Maj7,M7,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11 end   
+  if string.find(",dim7,07,", ","..chord..",", 1, true) then note2=3  note3=6  note4=9 end   
+  if string.find(",mMaj7,minmaj7,mmaj7,min/maj7,mM7,m(addM7),m(+7),-(M7),m(maj7),", ","..chord..",", 1, true)  then note2=3  note3=7  note4=11 end    
+  if string.find(",7sus2,", ","..chord..",", 1, true) then note2=2  note3=7  note4=10 end   
+  if string.find(",7sus4,7sus,7sus11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10 end   
+  if string.find(",Maj7sus2,maj7sus2,M7sus2,", ","..chord..",", 1, true) then note2=2  note3=7  note4=11 end    
+  if string.find(",Maj7sus4,maj7sus4,M7sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=11 end    
+  if string.find(",aug7,+7,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10 end   
+  if string.find(",7b5,7-5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10 end   
+  if string.find(",7#5,7+5,7+,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10 end   
+  if string.find(",m7b5,m7-5,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10 end   
+  if string.find(",m7#5,m7+5,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10 end   
+  if string.find(",Maj7b5,maj7b5,maj7-5,M7b5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11 end   
+  if string.find(",Maj7#5,maj7#5,maj7+5,M7+5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11 end   
+  if string.find(",7b9,7-9,7(addb9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13 end  
+  if string.find(",7#9,7+9,7(add#9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15 end  
+  if string.find(",m7b9, m7-9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=13 end  
+  if string.find(",m7#9, m7+9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=15 end  
+  if string.find(",Maj7b9,maj7b9,maj7-9,maj7(addb9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=13 end 
+  if string.find(",Maj7#9,maj7#9,maj7+9,maj7(add#9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=15 end 
+  if string.find(",7b9b13,7-9-13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=20 end  
+  if string.find(",m7b9b13, m7-9-13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=13  note6=20 end
+  if string.find(",7b13,7-13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=20 end  
+  if string.find(",m7b13,m7-13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=20 end  
+  if string.find(",7#9b13,7+9-13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=20 end  
+  if string.find(",m7#9b13,m7+9-13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=15  note6=20 end  
+  if string.find(",7b5b9,7-5-9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=13 end  
+  if string.find(",7b5#9,7-5+9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=15 end  
+  if string.find(",7#5b9,7+5-9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=13 end  
+  if string.find(",7#5#9,7+5+9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=15 end  
+  if string.find(",7#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=18 end  
+  if string.find(",7add6,7/6,", ","..chord..",", 1, true) then note2=4  note3=7  note4=9  note5=10 end  
+  if string.find(",7add11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=17 end  
+  if string.find(",7add13,7/13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=21 end  
+  if string.find(",m7add11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=17 end  
+  if string.find(",m7b5b9,m7-5-9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=13 end  
+  if string.find(",m7b5#9,m7-5+9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=15 end  
+  if string.find(",m7#5b9,m7+5-9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=13 end  
+  if string.find(",m7#5#9,m7+5+9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=15 end  
+  if string.find(",m7#11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=18 end  
+  if string.find(",Maj7b5b9,maj7b5b9,maj7-5-9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=13 end 
+  if string.find(",Maj7b5#9,maj7b5#9,maj7-5+9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=15 end 
+  if string.find(",Maj7#5b9,maj7#5b9,maj7+5-9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=13 end 
+  if string.find(",Maj7#5#9,maj7#5#9,maj7+5+9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=15 end 
+  if string.find(",Maj7add11,maj7add11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=17 end  
+  if string.find(",Maj7#11,maj7#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=18 end  
+  if string.find(",9,7(add9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=16  note7=19 end
+  if string.find(",m9,min9,-9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14 end  
+  if string.find(",Maj9,maj9,M9,Maj7(add9),M7(add9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=14 end 
+  if string.find(",Maj9sus4,maj9sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=11  note5=14 end  
+  if string.find(",mMaj9,minmaj9,mmaj9,min/maj9,mM9,m(addM9),m(+9),-(M9),", ","..chord..",", 1, true)  then note2=3  note3=7  note4=11  note5=14 end 
+  if string.find(",9sus4,9sus,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14 end  
+  if string.find(",aug9,+9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15 end  
+  if string.find(",9add6,9/6,", ","..chord..",", 1, true) then note2=4  note3=7  note4=9  note5=10  note6=14 end  
+  if string.find(",m9add6,m9/6,", ","..chord..",", 1, true) then note2=3  note3=7  note4=9  note5=14 end  
+  if string.find(",9b5,9-5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=14 end  
+  if string.find(",9#5,9+5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=14 end  
+  if string.find(",m9b5,m9-5,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=14 end  
+  if string.find(",m9#5,m9+5,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=14 end  
+  if string.find(",Maj9b5,maj9b5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=14 end  
+  if string.find(",Maj9#5,maj9#5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=14 end  
+  if string.find(",Maj9#11,maj9#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=14  note6=18 end  
+  if string.find(",b9#11,-9+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=18 end  
+  if string.find(",add9,2,", ","..chord..",", 1, true) then note2=4  note3=7  note4=14 end   
+  if string.find(",madd9,m(add9),-(add9),", ","..chord..",", 1, true) then note2=3  note3=7  note4=14 end   
+  if string.find(",add11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=17 end   
+  if string.find(",madd11,m(add11),-(add11),", ","..chord..",", 1, true) then note2=3  note3=7  note4=17 end    
+  if string.find(",(b9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=13 end   
+  if string.find(",(#9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=15 end   
+  if string.find(",(b5b9),", ","..chord..",", 1, true) then note2=4  note3=6  note4=13 end   
+  if string.find(",(#5b9),", ","..chord..",", 1, true) then note2=4  note3=8  note4=13 end   
+  if string.find(",(b5#9),", ","..chord..",", 1, true) then note2=4  note3=6  note4=15 end   
+  if string.find(",(#5#9),", ","..chord..",", 1, true) then note2=4  note3=8  note4=15 end   
+  if string.find(",m(b9), mb9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=13 end   
+  if string.find(",m(#9), m#9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=15 end   
+  if string.find(",m(b5b9), mb5b9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=13 end   
+  if string.find(",m(#5b9), m#5b9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=13 end   
+  if string.find(",m(b5#9), mb5#9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=15 end   
+  if string.find(",m(#5#9), m#5#9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=15 end   
+  if string.find(",m(#11), m#11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=18 end   
+  if string.find(",(#11),", ","..chord..",", 1, true) then note2=4  note3=7  note4=18 end   
+  if string.find(",m#5,", ","..chord..",", 1, true) then note2=3  note3=8 end   
+  if string.find(",maug,augaddm3,augadd(m3),", ","..chord..",", 1, true) then note2=3  note3=7 note4=8 end  
+  if string.find(",13#9#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=18  note7=21 end  
+  if string.find(",13#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18  note7=21 end  
+  if string.find(",13susb5,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",13susb5#9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=15  note6=21 end  
+  if string.find(",13susb5b9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13susb9,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13susb9#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=18  note7=21 end  
+  if string.find(",13sus#5,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=17  note6=21 end  
+  if string.find(",13sus#5b9,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13sus#5b9#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=13  note6=18  note7=21 end  
+  if string.find(",13sus#5#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=18 end  
+  if string.find(",13sus#5#9#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=15  note6=18 end
+  if string.find(",13sus#9,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",13sus#9#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15  note6=18  note7=21 end  
+  if string.find(",13sus#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14  note6=18  note7=21 end  
+  if string.find(",7b5b13,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10 note5=17  note6=20 end   
+  if string.find(",7b5#9b13,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=15  note6=20 end  
+  if string.find(",7#5#11,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=18 end  
+  if string.find(",7#5#9#11,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=15  note6=18 end  
+  if string.find(",7#5b9#11,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=13  note6=18 end  
+  if string.find(",7#9#11b13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=18 note7=20 end  
+  if string.find(",7#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10 note5=18 end   
+  if string.find(",7#11b13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=18  note6=20 end  
+  if string.find(",7susb5,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10 end   
+  if string.find(",7susb5b9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=13 end  
+  if string.find(",7b5b9b13,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=13  note6=20 end  
+  if string.find(",7susb5b13,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14  note6=20 end  
+  if string.find(",7susb5#9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=15 end  
+  if string.find(",7susb5#9b13,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=15  note6=20 end  
+  if string.find(",7susb9,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13 end  
+  if string.find(",7susb9b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=20 end  
+  if string.find(",7susb9#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=18 end  
+  if string.find(",7susb9#11b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=18  note7=20 end  
+  if string.find(",7susb13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=20 end  
+  if string.find(",7sus#5,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10 end   
+  if string.find(",7sus#5#9#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=15  note6=18 end  
+  if string.find(",7sus#5#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=18 end  
+  if string.find(",7sus#9,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15 end  
+  if string.find(",7sus#9b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15  note6=20 end  
+  if string.find(",7sus#9#11b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15  note6=18  note7=20 end  
+  if string.find(",7sus#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=18 end  
+  if string.find(",7sus#11b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=18  note6=20 end  
+  if string.find(",9b5b13,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=14  note6=20 end  
+  if string.find(",9b13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=20 end  
+  if string.find(",9#5#11,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=14  note6=18 end  
+  if string.find(",9#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18 end  
+  if string.find(",9#11b13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18  note7=20 end  
+  if string.find(",9susb5,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14  end  
+  if string.find(",9susb5b13,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14 note6=20 end  
+  if string.find(",9sus#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14 note6=18 end  
+  if string.find(",9susb5#9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14  note6=15 end  
+  if string.find(",9sus#5#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=14  note6=18 end   
+  if string.find(",quartal,", ","..chord..",", 1, true) then note2=5  note3=10  note4=15 end
+  if string.find(",sowhat,", ","..chord..",", 1, true) then note2=5  note3=10  note4=16 end
+  
+
+end
+
+
+
+--MAIN---------------------------------------------------------------
+function main()
+
+  commandID2 = reaper.NamedCommandLookup("_SWS_SELTRKWITEM")
+  reaper.Main_OnCommand(commandID2, 0) -- SWS: Select only track(s) with selected item(s) _SWS_SELTRKWITEM
+
+  items = reaper.CountMediaItems(0)
+  
+  sel_tracks = reaper.CountSelectedTracks(0) 
+  
+ ctrack = getTrackByName("chordtrack")
+    
+    if ctrack==nil then -- if a track named "chordtrack" was found/that track doesn't equal nil
+    reaper.ShowMessageBox("There is no track with name: chordtrack" ,"Error: Name Not Found", 0) do return end
+     
+    else -- track == nil/no track with that name was
+      num_chords = reaper.CountTrackMediaItems(ctrack)
+      
+    end
+
+    for r = 0, num_chords -1 do -- regions loop start    
+    
+  chord_item = reaper.GetTrackMediaItem(ctrack, r )
+                        pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
+                     length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
+                     rgnend = pos+length  
+  
+  for x = 0, items -1 do -- items loop start
+   
+   media_item = reaper.GetMediaItem( 0, x )
+   
+   selected_item = reaper.IsMediaItemSelected(media_item) 
+   
+   if selected_item then
+    
+    current_item = reaper.GetMediaItem( 0, x )
+  
+    item_start = (reaper.GetMediaItemInfo_Value( current_item, "D_POSITION"))+0.1
+    
+    --Does item start within region
+    
+    if item_start  >= pos and item_start < rgnend then 
+      --Msg("r "..r) 
+      --Msg("markrgnindexnumber ".. markrgnindexnumber)
+     get_chord_notes(r) -- get the chord notes for current region
+      
+
+      
+      
+     
+     take = reaper.GetActiveTake(current_item)
+     if take == nil then return end
+        source =  reaper.GetMediaItemTake_Source( take )
+        _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
+        
+            if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
+                   elseif key == "C#" or key == "A#m"then transpo = -1
+                   elseif key == "Db" or key == "Bbm"then transpo = -1
+                   elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
+                   elseif key == "Eb" or key == "Cm"then transpo = -3
+                    elseif key == "E" or key == "e" or key == "C#m"then transpo = -4 
+                    elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
+                   elseif key == "F#" or key == "D#m"then transpo = -6
+                   elseif key == "Gb" or key == "Ebm"then transpo = -6
+                    elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
+                   elseif key == "G#" or key == "E#m"then transpo = -8
+                   elseif key == "Ab" or key == "Fm"then transpo = -8  
+                    elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
+                    elseif key == "Bb" or key == "Gm"then transpo = -10
+                    elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
+                    elseif key == "Cb" or key == "Abm"then transpo = -11
+                   if not key then end
+                   end         
+ 
+   
+        
+     old_pitch = reaper.GetMediaItemTakeInfo_Value(take, 'D_PITCH')
+     root_note = old_pitch - transpo - note1  
+     third_note = old_pitch - transpo - note1
+     quint_note = old_pitch - transpo - note1
+     sept_note = old_pitch - transpo - note1
+     
+        
+         if root_note ==-48   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2-48 )
+     elseif root_note ==-36   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2-36 )
+     elseif root_note ==-24   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2-24 )
+     elseif root_note ==-12   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2-12 )
+     elseif root_note ==0     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2 )
+     elseif root_note ==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+12 )
+     elseif root_note ==24    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+24 )
+     elseif root_note ==36    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+36 )
+     elseif root_note ==48    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+48 )
+     elseif root_note ==60    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+48 )
+     
+     elseif third_note ==-45 or third_note ==-32   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-48 )
+     elseif third_note ==-33 or third_note ==-32   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-36 )
+     elseif third_note ==-21 or third_note ==-20   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-24 )
+     elseif third_note ==-9 or third_note ==-8     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-12 )
+     elseif third_note ==3  or third_note ==4      then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3 )
+     elseif third_note ==15 or third_note ==16     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+12 )
+     elseif third_note ==27 or third_note ==28     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+24 )
+     elseif third_note ==39 or third_note ==40     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+36 )
+     elseif third_note ==51 or third_note ==40     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+48 )
+    
+     elseif quint_note ==-41   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4-48 )
+     elseif quint_note ==-29   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4-36 )
+     elseif quint_note ==-17   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4-24 )
+     elseif quint_note ==-5   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH",  note1+note4-12 )
+     elseif quint_note ==7    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH",  note1+note4 )
+     elseif quint_note ==19   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH",  note1+note4+12 )
+     elseif quint_note ==31   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH",  note1+note4+24 )
+     elseif quint_note ==43   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH",  note1+note4+36 )
+     elseif quint_note ==55   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH",  note1+note4+48 )
+     
+     
+     elseif sept_note ==-38 or sept_note ==-37    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1-36 )
+     elseif sept_note ==-26 or sept_note ==-25    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1-24 )
+     elseif sept_note ==-14 or sept_note ==-13    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1-12 )
+     elseif sept_note ==-2  or sept_note ==-1     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1 )
+     elseif sept_note ==10  or sept_note ==11     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+12 )
+     elseif sept_note ==22  or sept_note ==23     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+24 )
+     elseif sept_note ==34  or sept_note ==35     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+36 )
+     elseif sept_note ==46  or sept_note ==47     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+48 )
+     elseif sept_note ==58  or sept_note ==59     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+48 )
+          
+
+     
+    reaper.UpdateItemInProject(current_item)
+      end
+
+     
+      end          
+     
+      end       
+        
+    end
+   end
+   
+  end -- items loop end
+   -- regions loop end
+  
+ 
+  
+ 
+
+  
+main()  
+  
+reaper.Main_OnCommand(40297,0)   
+
+
+::skip:: 
+  
+
+end
+
+--=================================================================================================================
+--============================= arpeggio inversion down ==================================================================
+--=================================================================================================================
+-- Display a message in the console for debugging
+function arpeggio_down()
+
+function Msg(variable)
+  reaper.ShowConsoleMsg(tostring(variable).."\n")
+end
+
+function getTrackByName(name)
+  for trackIndex = 0, reaper.CountTracks(0) - 1 do
+     tracko = reaper.GetTrack(0, trackIndex)
+    local ok, trackName = reaper.GetSetMediaTrackInfo_String(tracko, 'P_NAME', '', false)
+
+    if ok and trackName == name then
+      return tracko -- found it! stopping the search here
+    end 
+  end
+end
+
+
+
+  
+function get_chord_notes(r)  
+
+   item0 =  reaper.GetTrackMediaItem(ctrack,r )
+      _, item_notes = reaper.GetSetMediaItemInfo_String(item0, "P_NOTES", "", false) 
+      
+    if string.match( item_notes, "@.*") then next_region() end -- skip region marked @ ignore     
+     if string.find(item_notes, "/") then
+        root, chord, slash = string.match(item_notes, "(%w[#b]?)(.*)(/%a[#b]?)$")
+     else
+        root, chord = string.match(item_notes, "(%w[#b]?)(.*)$") slashnote = 0 slash = ""
+     end
+       
+       if not chord or #chord == 0 then chord = "Maj" end
+       if not slash then slash = "" end
+
+  note1 = 0
+  -- 60 = C3
+  if root == "C" then note1 = 0
+  elseif root == "C#" then note1 = 1
+  elseif root == "Db" then note1 = 1
+  elseif root == "D" then note1 = 2
+  elseif root == "D#" then note1 = 3
+  elseif root == "Eb" then note1 = 3
+  elseif root == "E" then note1 = 4
+  elseif root == "F" then note1 = 5
+  elseif root == "F#" then note1 = 6
+  elseif root == "Gb" then note1 = 6
+  elseif root == "G" then note1 =7
+  elseif root == "G#" then note1 = 8
+  elseif root == "Ab" then note1 = 8
+  elseif root == "A" then note1 = 9
+  elseif root == "A#" then note1 = 10
+  elseif root == "Bb" then note1 = 10
+  elseif root == "B" then note1 = 11
+  if not root then end
+  end
+  
+  slashnote = 255
+  -- 48 = C2
+
+  if slash == "/C" then slashnote = -12
+  elseif slash == "/C#" then slashnote = -11
+  elseif slash == "/Db" then slashnote = -11
+  elseif slash == "/D" then slashnote = -10
+  elseif slash == "/D#" then slashnote = -9
+  elseif slash == "/Eb" then slashnote = -9
+  elseif slash == "/E" then slashnote = -8
+  elseif slash == "/F" then slashnote = -7
+  elseif slash == "/F#" then slashnote = -6
+  elseif slash == "/Gb" then slashnote = -6
+  elseif slash == "/G" then slashnote = -5
+  elseif slash == "/G#" then slashnote = -4
+  elseif slash == "/Ab" then slashnote = -4
+  elseif slash == "/A" then slashnote = -3
+  elseif slash == "/A#" then slashnote = -2
+  elseif slash == "/Bb" then slashnote = -2
+  elseif slash == "/B" then slashnote = -1
+  if not slash then slashnote = 255 end
+  end
+
+  note2 = 255
+  note3 = 255
+  note4 = 255
+  note5 = 255
+  note6 = 255
+  note7 = 255
+
+  if string.find(",Maj,maj,", ","..chord..",", 1, true) then note2=4  note3=7 note4=12 end      
+  if string.find(",m,min,-,", ","..chord..",", 1, true) then note2=3  note3=7 note4=12 end      
+  if string.find(",dim,m-5,mb5,m(b5),0,", ","..chord..",", 1, true) then note2=3  note3=6 note4=12 end   
+  if string.find(",aug,+,+5,(#5),", ","..chord..",", 1, true) then note2=4  note3=8 end   
+  if string.find(",-5,(b5),", ","..chord..",", 1, true) then note2=4  note3=6 end   
+  if string.find(",sus2,", ","..chord..",", 1, true) then note2=2  note3=7 end   
+  if string.find(",sus4,sus,(sus4),", ","..chord..",", 1, true) then note2=5  note3=7 end   
+  if string.find(",5,", ","..chord..",", 1, true) then note2=7 note3=12 end   
+  if string.find(",5add7,5/7,", ","..chord..",", 1, true) then note2=7  note3=10 note4=10 end   
+  if string.find(",add2,(add2),", ","..chord..",", 1, true) then note2=2  note3=4  note4=7 end   
+  if string.find(",add4,(add4),", ","..chord..",", 1, true) then note2=4  note3=5  note4=7 end   
+  if string.find(",madd4,m(add4),", ","..chord..",", 1, true) then note2=3  note3=5  note4=7 end   
+  if string.find(",11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=17 end  
+  if string.find(",11sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14  note6=17 end  
+  if string.find(",m11,min11,-11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=17 end  
+  if string.find(",Maj11,maj11,M11,Maj7(add11),M7(add11),", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=14  note6=17 end     
+  if string.find(",mMaj11,minmaj11,mM11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=11  note5=14  note6=17 end  
+  if string.find(",aug11,9+11,9aug11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18 end  
+  if string.find(",augm11, m9#11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=18 end  
+  if string.find(",11b5,11-5,11(b5),", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=14  note6=17 end  
+  if string.find(",11#5,11+5,11(#5),", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=14  note6=17 end  
+  if string.find(",11b9,11-9,11(b9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=17 end  
+  if string.find(",11#9,11+9,11(#9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=17 end  
+  if string.find(",11b5b9,11-5-9,11(b5b9),", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=13  note6=17 end  
+  if string.find(",11#5b9,11+5-9,11(#5b9),", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=13  note6=17 end  
+  if string.find(",11b5#9,11-5+9,11(b5#9),", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=15  note6=17 end  
+  if string.find(",11#5#9,11+5+9,11(#5#9),", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=15  note6=17 end  
+  if string.find(",m11b5,m11-5,m11(b5),", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=14  note6=17 end  
+  if string.find(",m11#5,m11+5,m11(#5),", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=14  note6=17 end  
+  if string.find(",m11b9,m11-9,m11(b9),", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=13  note6=17 end  
+  if string.find(",m11#9,m11+9,m11(#9),", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=15  note6=17 end  
+  if string.find(",m11b5b9,m11-5-9,m11(b5b9),", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=13  note6=17 end
+  if string.find(",m11#5b9,m11+5-9,m11(#5b9),", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=13  note6=17 end
+  if string.find(",m11b5#9,m11-5+9,m11(b5#9),", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=15  note6=17 end
+  if string.find(",m11#5#9,m11+5+9,m11(#5#9),", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=15  note6=17 end
+  if string.find(",Maj11b5,maj11b5,maj11-5,maj11(b5),", ","..chord..",", 1, true)    then note2=4  note3=6  note4=11  note5=14  note6=17 end
+  if string.find(",Maj11#5,maj11#5,maj11+5,maj11(#5),", ","..chord..",", 1, true)    then note2=4  note3=8  note4=11  note5=14  note6=17 end
+  if string.find(",Maj11b9,maj11b9,maj11-9,maj11(b9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=13  note6=17 end
+  if string.find(",Maj11#9,maj11#9,maj11+9,maj11(#9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=15  note6=17 end
+  if string.find(",Maj11b5b9,maj11b5b9,maj11-5-9,maj11(b5b9),", ","..chord..",", 1, true)   then note2=4  note3=6  note4=11  note5=13  note6=17 end
+  if string.find(",Maj11#5b9,maj11#5b9,maj11+5-9,maj11(#5b9),", ","..chord..",", 1, true)   then note2=4  note3=8  note4=11  note5=13  note6=17 end
+  if string.find(",Maj11b5#9,maj11b5#9,maj11-5+9,maj11(b5#9),", ","..chord..",", 1, true)   then note2=4  note3=6  note4=11  note5=15  note6=17 end
+  if string.find(",Maj11#5#9,maj11#5#9,maj11+5+9,maj11(#5#9),", ","..chord..",", 1, true)   then note2=4  note3=8  note4=11  note5=15  note6=17 end
+  if string.find(",13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",m13,min13,-13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",Maj13,maj13,M13,Maj7(add13),M7(add13),", ","..chord..",", 1, true)   then note2=4  note3=7  note4=11  note5=14  note6=17  note7=21 end  
+  if string.find(",mMaj13,minmaj13,mM13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=11  note5=14  note6=17  note7=21 end  
+  if string.find(",13b5,13-5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",13#5,13+5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",13b9,13-9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13#9,13+9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",13#11,13+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=18  note7=21 end  
+  if string.find(",13b5b9,13-5-9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13#5b9,13+5-9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13b5#9,13-5+9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",13#5#9,13+5+9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",13b9#11,13-9+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=18  note7=21 end  
+  if string.find(",m13b5,m13-5,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",m13#5,m13+5,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",m13b9,m13-9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",m13#9,m13+9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",m13b5b9,m13-5-9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",m13#5b9,m13+5-9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",m13b5#9,m13-5+9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",m13#5#9,m13+5+9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",Maj13b5,maj13b5,maj13-5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=14  note6=17  note7=21 end  
+  if string.find(",Maj13#5,maj13#5,maj13+5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=14  note6=17  note7=21 end  
+  if string.find(",Maj13b9,maj13b9,maj13-9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=13  note6=17  note7=21 end  
+  if string.find(",Maj13#9,maj13#9,maj13+9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=15  note6=17  note7=21 end  
+  if string.find(",Maj13b5b9,maj13b5b9,maj13-5-9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=13  note6=17  note7=21 end  
+  if string.find(",Maj13#5b9,maj13#5b9,maj13+5-9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=13  note6=17  note7=21 end  
+  if string.find(",Maj13b5#9,maj13b5#9,maj13-5+9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=15  note6=17  note7=21 end  
+  if string.find(",Maj13#5#9,maj13#5#9,maj13+5+9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=15  note6=17  note7=21 end  
+  if string.find(",Maj13#11,maj13#11,maj13+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=14  note6=18  note7=21 end  
+  if string.find(",13#11,13+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18  note7=21 end  
+  if string.find(",m13#11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=18  note7=21 end  
+  if string.find(",13sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",6,M6,Maj6,maj6,", ","..chord..",", 1, true) then note2=4  note3=7  note4=9 end   
+  if string.find(",m6,min6,", ","..chord..",", 1, true) then note2=3  note3=7  note4=9 end   
+  if string.find(",6add4,6/4,6(add4),Maj6(add4),M6(add4),", ","..chord..",", 1, true)    then note2=4  note3=5  note4=7  note5=9 end   
+  if string.find(",m6add4,m6/4,m6(add4),", ","..chord..",", 1, true) then note2=3  note3=5  note4=7  note5=9 end   
+  if string.find(",69,6add9,6/9,6(add9),Maj6(add9),M6(add9),", ","..chord..",", 1, true)   then note2=4  note3=7  note4=9  note5=14 end  
+  if string.find(",m6add9,m6/9,m6(add9),", ","..chord..",", 1, true) then note2=3  note3=7  note4=9  note5=14 end  
+  if string.find(",6sus2,", ","..chord..",", 1, true) then note2=2  note3=7  note4=9 end   
+  if string.find(",6sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=9 end   
+  if string.find(",6add11,6/11,6(add11),Maj6(add11),M6(add11),", ","..chord..",", 1, true)   then note2=4  note3=7  note4=9  note5=17 end  
+  if string.find(",m6add11,m6/11,m6(add11),m6(add11),", ","..chord..",", 1, true)    then note2=3  note3=7  note4=9  note5=17 end  
+  if string.find(",7,dom,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10 note5=12 note6=16 note7=19 end   
+  if string.find(",7add2,", ","..chord..",", 1, true) then note2=2  note3=4  note4=7  note5=10 end  
+  if string.find(",7add4,", ","..chord..",", 1, true) then note2=4  note3=5  note4=7  note5=10 end  
+  if string.find(",m7,min7,-7,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10 note5=12 note6=15 note7=19 end  
+  if string.find(",m7add4,", ","..chord..",", 1, true) then note2=3  note3=5  note4=7  note5=10 end  
+  if string.find(",Maj7,maj7,Maj7,M7,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11 end   
+  if string.find(",dim7,07,", ","..chord..",", 1, true) then note2=3  note3=6  note4=9 end   
+  if string.find(",mMaj7,minmaj7,mmaj7,min/maj7,mM7,m(addM7),m(+7),-(M7),m(maj7),", ","..chord..",", 1, true)  then note2=3  note3=7  note4=11 end    
+  if string.find(",7sus2,", ","..chord..",", 1, true) then note2=2  note3=7  note4=10 end   
+  if string.find(",7sus4,7sus,7sus11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10 end   
+  if string.find(",Maj7sus2,maj7sus2,M7sus2,", ","..chord..",", 1, true) then note2=2  note3=7  note4=11 end    
+  if string.find(",Maj7sus4,maj7sus4,M7sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=11 end    
+  if string.find(",aug7,+7,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10 end   
+  if string.find(",7b5,7-5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10 end   
+  if string.find(",7#5,7+5,7+,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10 end   
+  if string.find(",m7b5,m7-5,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10 end   
+  if string.find(",m7#5,m7+5,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10 end   
+  if string.find(",Maj7b5,maj7b5,maj7-5,M7b5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11 end   
+  if string.find(",Maj7#5,maj7#5,maj7+5,M7+5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11 end   
+  if string.find(",7b9,7-9,7(addb9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13 end  
+  if string.find(",7#9,7+9,7(add#9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15 end  
+  if string.find(",m7b9, m7-9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=13 end  
+  if string.find(",m7#9, m7+9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=15 end  
+  if string.find(",Maj7b9,maj7b9,maj7-9,maj7(addb9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=13 end 
+  if string.find(",Maj7#9,maj7#9,maj7+9,maj7(add#9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=15 end 
+  if string.find(",7b9b13,7-9-13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=20 end  
+  if string.find(",m7b9b13, m7-9-13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=13  note6=20 end
+  if string.find(",7b13,7-13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=20 end  
+  if string.find(",m7b13,m7-13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14  note6=20 end  
+  if string.find(",7#9b13,7+9-13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=20 end  
+  if string.find(",m7#9b13,m7+9-13,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=15  note6=20 end  
+  if string.find(",7b5b9,7-5-9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=13 end  
+  if string.find(",7b5#9,7-5+9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=15 end  
+  if string.find(",7#5b9,7+5-9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=13 end  
+  if string.find(",7#5#9,7+5+9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=15 end  
+  if string.find(",7#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=18 end  
+  if string.find(",7add6,7/6,", ","..chord..",", 1, true) then note2=4  note3=7  note4=9  note5=10 end  
+  if string.find(",7add11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=17 end  
+  if string.find(",7add13,7/13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=21 end  
+  if string.find(",m7add11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=17 end  
+  if string.find(",m7b5b9,m7-5-9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=13 end  
+  if string.find(",m7b5#9,m7-5+9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=15 end  
+  if string.find(",m7#5b9,m7+5-9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=13 end  
+  if string.find(",m7#5#9,m7+5+9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=15 end  
+  if string.find(",m7#11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=18 end  
+  if string.find(",Maj7b5b9,maj7b5b9,maj7-5-9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=13 end 
+  if string.find(",Maj7b5#9,maj7b5#9,maj7-5+9,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=15 end 
+  if string.find(",Maj7#5b9,maj7#5b9,maj7+5-9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=13 end 
+  if string.find(",Maj7#5#9,maj7#5#9,maj7+5+9,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=15 end 
+  if string.find(",Maj7add11,maj7add11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=17 end  
+  if string.find(",Maj7#11,maj7#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=18 end  
+  if string.find(",9,7(add9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=16  note7=19 end
+  if string.find(",m9,min9,-9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=10  note5=14 end  
+  if string.find(",Maj9,maj9,M9,Maj7(add9),M7(add9),", ","..chord..",", 1, true)    then note2=4  note3=7  note4=11  note5=14 end 
+  if string.find(",Maj9sus4,maj9sus4,", ","..chord..",", 1, true) then note2=5  note3=7  note4=11  note5=14 end  
+  if string.find(",mMaj9,minmaj9,mmaj9,min/maj9,mM9,m(addM9),m(+9),-(M9),", ","..chord..",", 1, true)  then note2=3  note3=7  note4=11  note5=14 end 
+  if string.find(",9sus4,9sus,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14 end  
+  if string.find(",aug9,+9,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15 end  
+  if string.find(",9add6,9/6,", ","..chord..",", 1, true) then note2=4  note3=7  note4=9  note5=10  note6=14 end  
+  if string.find(",m9add6,m9/6,", ","..chord..",", 1, true) then note2=3  note3=7  note4=9  note5=14 end  
+  if string.find(",9b5,9-5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=14 end  
+  if string.find(",9#5,9+5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=14 end  
+  if string.find(",m9b5,m9-5,", ","..chord..",", 1, true) then note2=3  note3=6  note4=10  note5=14 end  
+  if string.find(",m9#5,m9+5,", ","..chord..",", 1, true) then note2=3  note3=8  note4=10  note5=14 end  
+  if string.find(",Maj9b5,maj9b5,", ","..chord..",", 1, true) then note2=4  note3=6  note4=11  note5=14 end  
+  if string.find(",Maj9#5,maj9#5,", ","..chord..",", 1, true) then note2=4  note3=8  note4=11  note5=14 end  
+  if string.find(",Maj9#11,maj9#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=11  note5=14  note6=18 end  
+  if string.find(",b9#11,-9+11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=13  note6=18 end  
+  if string.find(",add9,2,", ","..chord..",", 1, true) then note2=4  note3=7  note4=14 end   
+  if string.find(",madd9,m(add9),-(add9),", ","..chord..",", 1, true) then note2=3  note3=7  note4=14 end   
+  if string.find(",add11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=17 end   
+  if string.find(",madd11,m(add11),-(add11),", ","..chord..",", 1, true) then note2=3  note3=7  note4=17 end    
+  if string.find(",(b9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=13 end   
+  if string.find(",(#9),", ","..chord..",", 1, true) then note2=4  note3=7  note4=15 end   
+  if string.find(",(b5b9),", ","..chord..",", 1, true) then note2=4  note3=6  note4=13 end   
+  if string.find(",(#5b9),", ","..chord..",", 1, true) then note2=4  note3=8  note4=13 end   
+  if string.find(",(b5#9),", ","..chord..",", 1, true) then note2=4  note3=6  note4=15 end   
+  if string.find(",(#5#9),", ","..chord..",", 1, true) then note2=4  note3=8  note4=15 end   
+  if string.find(",m(b9), mb9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=13 end   
+  if string.find(",m(#9), m#9,", ","..chord..",", 1, true) then note2=3  note3=7  note4=15 end   
+  if string.find(",m(b5b9), mb5b9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=13 end   
+  if string.find(",m(#5b9), m#5b9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=13 end   
+  if string.find(",m(b5#9), mb5#9,", ","..chord..",", 1, true) then note2=3  note3=6  note4=15 end   
+  if string.find(",m(#5#9), m#5#9,", ","..chord..",", 1, true) then note2=3  note3=8  note4=15 end   
+  if string.find(",m(#11), m#11,", ","..chord..",", 1, true) then note2=3  note3=7  note4=18 end   
+  if string.find(",(#11),", ","..chord..",", 1, true) then note2=4  note3=7  note4=18 end   
+  if string.find(",m#5,", ","..chord..",", 1, true) then note2=3  note3=8 end   
+  if string.find(",maug,augaddm3,augadd(m3),", ","..chord..",", 1, true) then note2=3  note3=7 note4=8 end  
+  if string.find(",13#9#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=18  note7=21 end  
+  if string.find(",13#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18  note7=21 end  
+  if string.find(",13susb5,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14  note6=17  note7=21 end  
+  if string.find(",13susb5#9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=15  note6=21 end  
+  if string.find(",13susb5b9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13susb9,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13susb9#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=18  note7=21 end  
+  if string.find(",13sus#5,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=17  note6=21 end  
+  if string.find(",13sus#5b9,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=13  note6=17  note7=21 end  
+  if string.find(",13sus#5b9#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=13  note6=18  note7=21 end  
+  if string.find(",13sus#5#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=18 end  
+  if string.find(",13sus#5#9#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=15  note6=18 end
+  if string.find(",13sus#9,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15  note6=17  note7=21 end  
+  if string.find(",13sus#9#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15  note6=18  note7=21 end  
+  if string.find(",13sus#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14  note6=18  note7=21 end  
+  if string.find(",7b5b13,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10 note5=17  note6=20 end   
+  if string.find(",7b5#9b13,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=15  note6=20 end  
+  if string.find(",7#5#11,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=18 end  
+  if string.find(",7#5#9#11,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=15  note6=18 end  
+  if string.find(",7#5b9#11,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=13  note6=18 end  
+  if string.find(",7#9#11b13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=15  note6=18 note7=20 end  
+  if string.find(",7#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10 note5=18 end   
+  if string.find(",7#11b13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=18  note6=20 end  
+  if string.find(",7susb5,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10 end   
+  if string.find(",7susb5b9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=13 end  
+  if string.find(",7b5b9b13,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=13  note6=20 end  
+  if string.find(",7susb5b13,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14  note6=20 end  
+  if string.find(",7susb5#9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=15 end  
+  if string.find(",7susb5#9b13,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=15  note6=20 end  
+  if string.find(",7susb9,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13 end  
+  if string.find(",7susb9b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=20 end  
+  if string.find(",7susb9#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=18 end  
+  if string.find(",7susb9#11b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=13  note6=18  note7=20 end  
+  if string.find(",7susb13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=20 end  
+  if string.find(",7sus#5,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10 end   
+  if string.find(",7sus#5#9#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=15  note6=18 end  
+  if string.find(",7sus#5#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=18 end  
+  if string.find(",7sus#9,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15 end  
+  if string.find(",7sus#9b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15  note6=20 end  
+  if string.find(",7sus#9#11b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=15  note6=18  note7=20 end  
+  if string.find(",7sus#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=18 end  
+  if string.find(",7sus#11b13,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=18  note6=20 end  
+  if string.find(",9b5b13,", ","..chord..",", 1, true) then note2=4  note3=6  note4=10  note5=14  note6=20 end  
+  if string.find(",9b13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=20 end  
+  if string.find(",9#5#11,", ","..chord..",", 1, true) then note2=4  note3=8  note4=10  note5=14  note6=18 end  
+  if string.find(",9#11,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18 end  
+  if string.find(",9#11b13,", ","..chord..",", 1, true) then note2=4  note3=7  note4=10  note5=14  note6=18  note7=20 end  
+  if string.find(",9susb5,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14  end  
+  if string.find(",9susb5b13,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14 note6=20 end  
+  if string.find(",9sus#11,", ","..chord..",", 1, true) then note2=5  note3=7  note4=10  note5=14 note6=18 end  
+  if string.find(",9susb5#9,", ","..chord..",", 1, true) then note2=5  note3=6  note4=10  note5=14  note6=15 end  
+  if string.find(",9sus#5#11,", ","..chord..",", 1, true) then note2=5  note3=8  note4=10  note5=14  note6=18 end   
+  if string.find(",quartal,", ","..chord..",", 1, true) then note2=5  note3=10  note4=15 end
+  if string.find(",sowhat,", ","..chord..",", 1, true) then note2=5  note3=10  note4=16 end
+  
+
+end
+
+
+
+--MAIN---------------------------------------------------------------
+function main()
+
+  commandID2 = reaper.NamedCommandLookup("_SWS_SELTRKWITEM")
+  reaper.Main_OnCommand(commandID2, 0) -- SWS: Select only track(s) with selected item(s) _SWS_SELTRKWITEM
+
+  items = reaper.CountMediaItems(0)
+  
+  sel_tracks = reaper.CountSelectedTracks(0) 
+  
+ ctrack = getTrackByName("chordtrack")
+    
+    if ctrack==nil then -- if a track named "chordtrack" was found/that track doesn't equal nil
+    reaper.ShowMessageBox("There is no track with name: chordtrack" ,"Error: Name Not Found", 0) do return end
+     
+    else -- track == nil/no track with that name was
+      num_chords = reaper.CountTrackMediaItems(ctrack)
+      
+    end
+
+    for r = 0, num_chords -1 do -- regions loop start    
+    
+  chord_item = reaper.GetTrackMediaItem(ctrack, r )
+                        pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
+                     length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
+                     rgnend = pos+length  
+  
+  for x = 0, items -1 do -- items loop start
+   
+   media_item = reaper.GetMediaItem( 0, x )
+   
+   selected_item = reaper.IsMediaItemSelected(media_item) 
+   
+   if selected_item then
+    
+    current_item = reaper.GetMediaItem( 0, x )
+  
+    item_start = (reaper.GetMediaItemInfo_Value( current_item, "D_POSITION"))+0.1
+    
+    --Does item start within region
+    
+    if item_start  >= pos and item_start < rgnend then 
+      --Msg("r "..r) 
+      --Msg("markrgnindexnumber ".. markrgnindexnumber)
+     get_chord_notes(r) -- get the chord notes for current region
+      
+
+      
+      
+     
+     take = reaper.GetActiveTake(current_item)
+     if take == nil then return end
+        source =  reaper.GetMediaItemTake_Source( take )
+        _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
+        
+            if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
+                   elseif key == "C#" or key == "A#m"then transpo = -1
+                   elseif key == "Db" or key == "Bbm"then transpo = -1
+                   elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
+                   elseif key == "Eb" or key == "Cm"then transpo = -3
+                    elseif key == "E" or key == "e" or key == "C#m"then transpo = -4 
+                    elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
+                   elseif key == "F#" or key == "D#m"then transpo = -6
+                   elseif key == "Gb" or key == "Ebm"then transpo = -6
+                    elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
+                   elseif key == "G#" or key == "E#m"then transpo = -8
+                   elseif key == "Ab" or key == "Fm"then transpo = -8  
+                    elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
+                    elseif key == "Bb" or key == "Gm"then transpo = -10
+                    elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
+                    elseif key == "Cb" or key == "Abm"then transpo = -11
+                   if not key then end
+                   end         
+    -- Msg(note3)
+   --  Msg(note4)
+        
+     old_pitch  = reaper.GetMediaItemTakeInfo_Value(take, 'D_PITCH')
+     root_note  = old_pitch - transpo - note1  
+     third_note = old_pitch - transpo - note1
+     quint_note = old_pitch - transpo - note1
+     sept_note  = old_pitch - transpo - note1
+     
+  --   Msg(third_note)
+  
+         if root_note ==-48 and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-60 )
+     elseif root_note ==-36 and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-48 )
+     elseif root_note ==-24 and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-36)
+     elseif root_note ==-12 and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-24)
+     elseif root_note ==0   and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-12)
+     elseif root_note ==12  and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3)
+     elseif root_note ==24  and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+12)
+     elseif root_note ==36  and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+24 )
+     elseif root_note ==48  and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+36 )
+     elseif root_note ==60  and note4==12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+48 )
+     
+     elseif root_note ==-48 and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4-60 )
+     elseif root_note ==-36 and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4-48 )
+     elseif root_note ==-12 and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4-24 )
+     elseif root_note ==-12 and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4-24 )
+     elseif root_note ==0   and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4-12 )
+     elseif root_note ==12  and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4 )
+     elseif root_note ==24  and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4+12 )
+     elseif root_note ==36  and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4+24 )
+     elseif root_note ==48  and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4+36 )
+     elseif root_note ==60  and note4~=12    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note4+48 )
+     
+     elseif third_note ==-45 or third_note ==-32   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1-48 )
+     elseif third_note ==-33 or third_note ==-32   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1-36 )
+     elseif third_note ==-21 or third_note ==-20   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1-24 )
+     elseif third_note ==-9 or third_note ==-8     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1-12 )
+     elseif third_note ==3  or third_note ==4      then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1 )
+     elseif third_note ==15 or third_note ==16     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+12 )
+     elseif third_note ==27 or third_note ==28     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+24 )
+     elseif third_note ==39 or third_note ==40     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+36 )
+     elseif third_note ==51 or third_note ==40     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+48 )
+     
+     elseif quint_note ==-41  then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2-48 )
+     elseif quint_note ==-29  then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2-36 )
+     elseif quint_note ==-17  then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2-24 )
+     elseif quint_note ==-5   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2-12 )
+     elseif quint_note ==7    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2 )
+     elseif quint_note ==19   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+12 )
+     elseif quint_note ==31   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+24 )
+     elseif quint_note ==43   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+36 )
+     elseif quint_note ==55   then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note2+48 )
+    
+     elseif sept_note ==-38 or sept_note ==-25    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-48 )
+     elseif sept_note ==-26 or sept_note ==-25    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-36 )
+     elseif sept_note ==-14 or sept_note ==-13    then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-24 )
+     elseif sept_note ==-2  or sept_note ==-1     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3-12 )
+     elseif sept_note ==10  or sept_note ==11     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3 )
+     elseif sept_note ==22  or sept_note ==23     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+12 )
+     elseif sept_note ==34  or sept_note ==35     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+24 )
+     elseif sept_note ==46  or sept_note ==47     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+36 )
+     elseif sept_note ==58  or sept_note ==47     then   reaper.SetMediaItemTakeInfo_Value( take,"D_PITCH", note1+note3+48 )
+     
+          
+    
+     
+    reaper.UpdateItemInProject(current_item)
+      end
+  
+     
+      end          
+     
+      end       
+        
+    end
+   end
+   
+  end -- items loop end
+   -- regions loop end
+  
+ 
+  
+ 
+
+  
+main()  
+  
+reaper.Main_OnCommand(40297,0)   
+
+
+::skip:: 
+  
+
+end
+
 --===========================================================================================================================
 --============================================ CHORD_BUILDER ==================================================================
 --============================================================================================================================
@@ -9139,8 +10114,7 @@ v14 = velo[math.random(1,#velo)]
 v15 = velo[math.random(1,#velo)]
 v16 = velo[math.random(1,#velo)]
 
-
-velocity_values={126,100}
+velocity_values={126,126}
 velo = velocity_values[math.random(1,#velocity_values)] 
 
 for i=0, reaper.CountSelectedTracks(0) do   
@@ -13044,7 +14018,7 @@ end
 
 
 
-retval, retvals_csv = reaper.GetUserInputs( '', 9, "title:,rating:,artist:,album:,genre:,key:,finished:,deadline:,comment:,extrawidth=240",string_all)
+retval, retvals_csv = reaper.GetUserInputs( '', 9, "Title:,Rating:,Author:,Album:,Genre:,Key:,Finished:,Deadline:,Comment:,extrawidth=240",string_all)
 if not retval then return end
 
 
@@ -13082,17 +14056,17 @@ end
 
 -------write to region name------
 local ok = reaper.SetProjectMarker4( 0, markrgnindexnumber, isrgn, pos, rgnend,
-                                          " title="..title.. 
-                                          ";   comment="..comment1..
-                                          ";   rating="..rating..
-                                          ";   author="..author..
-                                          ";   album="..album..
-                                          ";   start_time="..start..
-                                          ";   deadline="..deadline..
-                                          ";   key="..key..
-                                          ";   genre="..genre..
-                                          ";   finished="..finished..
-                                          ";   work_timer="..timer..
+                                          " Title="..title.. 
+                                          ";   Comment="..comment1..
+                                          ";   Rating="..rating..
+                                          ";   Author="..author..
+                                          ";   Album="..album..
+                                          ";   Start_time="..start..
+                                          ";   Deadline="..deadline..
+                                          ";   Key="..key..
+                                          ";   Genre="..genre..
+                                          ";   Finished="..finished..
+                                          ";   WorkTimer="..timer..
                                           ";", color, tr_name == "" and 1 or 0 )
 if ok then
   reaper.Undo_OnStateChangeEx2( 0, "Timer to Region", 8, -1 )

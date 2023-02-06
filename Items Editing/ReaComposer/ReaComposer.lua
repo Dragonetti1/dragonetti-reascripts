@@ -1,11 +1,11 @@
--- @version 1.8.6
+-- @version 1.8.7
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + load ChordPro files
---    + load BIAB songs
+--    + arpeggio inversion up and down
+
 
 ------------------------------
 info = debug.getinfo(1,'S')
@@ -317,8 +317,12 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                  reaper.ImGui_SameLine( ctx)
                if reaper.ImGui_Button(ctx, '-6##a',btn_w*0.5,y) then scale_step(-6) reaper.SetCursorContext(1, nil)end
                  reaper.ImGui_SameLine( ctx)
-               if reaper.ImGui_Button(ctx, '-7##a',btn_w*0.5,y) then scale_step(-7) reaper.SetCursorContext(1, nil)end               
-               
+               if reaper.ImGui_Button(ctx, '-7##a',btn_w*0.5,y) then scale_step(-7) reaper.SetCursorContext(1, nil)end   
+               reaper.ImGui_PushFont(ctx, SymbolFont)
+               if reaper.ImGui_Button(ctx, 'A##inv',61,y) then arpeggio_down() reaper.SetCursorContext(1, nil)end 
+               reaper.ImGui_SameLine( ctx)
+               if reaper.ImGui_Button(ctx, 'B##inv',61,y) then arpeggio_up() reaper.SetCursorContext(1, nil)end 
+               reaper.ImGui_PopFont( ctx )
                reaper.ImGui_EndGroup(ctx)
                
 --========================= PHRASE CHORD  ============================================================================    
