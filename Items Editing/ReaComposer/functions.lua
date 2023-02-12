@@ -11,7 +11,9 @@
 --======================================================================================================================
 function crazy_length(b,am)
 
-
+select_tracks = reaper.NamedCommandLookup("_SWS_SELTRKWITEM")
+reaper.Main_OnCommand(select_tracks,0)
+sel_tracks_count =  reaper.CountSelectedTracks( 0 )
 
  local function Msg(str)
   reaper.ShowConsoleMsg(tostring(str) .. "\n")
@@ -83,7 +85,7 @@ if i==0 then aos = 0 end
 
 if b==0 then
 
-  aos = (am*-0.1*xpi*(i-(ICount/2-0.5))/ICount)
+  aos = (am*-0.1*xpi*(i-(ICount/sel_tracks_count/2-0.5))/ICount)
   else
 
   aos = am*0.1*math.cos((2*math.pi*(i-(ICount/2-0.5))/(ICount/b))-math.pi/xpi*2)   -- aos is an add or subtract factor of 1/64
@@ -133,7 +135,62 @@ for i = 2, Idx - 1 do
 
 end
 
+local selected_item_count = 0 -- counter for selected items
+for i = 0, reaper.CountTracks() - 1 do
+  local track = reaper.GetTrack(0, i) -- get track
+  local track_item_count = reaper.CountTrackMediaItems(track) -- get number of items on track
+  for j = 0, track_item_count - 1 do
+    local item = reaper.GetTrackMediaItem(track, j) -- get item on track
+    if reaper.IsMediaItemSelected(item) then -- check if item is selected
+      selected_item_count = selected_item_count + 1 -- increment counter for selected items
+      reaper.SetTrackSelected(track, true) -- select track
+      break -- break inner loop to avoid selecting track multiple times
+    end
+  end
+end
 
+if selected_item_count == 0 then -- if no items are selected
+  reaper.ShowMessageBox("No items selected.", "Error", 0) -- show error message
+end
+
+
+
+local first_track = reaper.GetSelectedTrack(0, 0) -- get first selected track
+local item_count = reaper.CountTrackMediaItems(first_track) -- get number of items on first track
+local positions = {} -- table to store positions
+local lengths = {} -- table to store lengths
+local playrates = {} -- table to store playrates
+
+for i = 0, item_count - 1 do
+  local item = reaper.GetTrackMediaItem(first_track, i) -- get item on first track
+  if reaper.IsMediaItemSelected(item) then -- check if item is selected
+    local position = reaper.GetMediaItemInfo_Value(item, "D_POSITION") -- get position of selected item
+    local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH") -- get length of selected item
+    local playrate = reaper.GetMediaItemTakeInfo_Value(reaper.GetActiveTake(item), "D_PLAYRATE") -- get playrate of selected item
+    table.insert(positions, position) -- insert position into table
+    table.insert(lengths, length) -- insert length into table
+    table.insert(playrates, playrate) -- insert playrate into table
+  end
+end
+ 
+for j = 0, reaper.CountTracks() - 1 do
+  local track = reaper.GetTrack(0, j) -- get track
+  if track ~= first_track then -- don't process first track again
+    local track_item_count = reaper.CountTrackMediaItems(track) -- get number of items on track
+    local index = 1 -- counter for tables
+    for k = 0, track_item_count - 1 do
+      local track_item = reaper.GetTrackMediaItem(track, k) -- get item on track
+      if reaper.IsMediaItemSelected(track_item) then -- check if item is selected
+        reaper.SetMediaItemInfo_Value(track_item, "D_POSITION", positions[index]) -- set position of selected item
+        reaper.SetMediaItemInfo_Value(track_item, "D_LENGTH", lengths[index]) -- set length of selected item
+        reaper.SetMediaItemTakeInfo_Value(reaper.GetActiveTake(track_item), "D_PLAYRATE", playrates[index]) -- set playrate of selected item
+        index = index + 1 -- increment index
+      end
+    end
+  end
+end
+
+reaper.UpdateArrange() -- update arrangement view
 reaper.PreventUIRefresh(-1)
 reaper.UpdateArrange()
 reaper.Undo_EndBlock("Item Random Position", -1)
@@ -4219,18 +4276,21 @@ reaper.UpdateArrange() -- Update the arrangement (often needed)
 reaper.PreventUIRefresh(-1)
 
 end
---========================================================================================================================
---=========================================SCALE BUILDER =================================================================
---=======================================================================================================================
+--==========================================================================================================================
+--===================================== SCALE BUILDER ======================================================================
+--==========================================================================================================================
+
 
 function scale_builder()
 
+local reaper = reaper
 
 
-function Msg(variable) 
-  reaper.ShowConsoleMsg(tostring(variable).."\n")
-end
-function getTrackByName(name)  
+local retval, seq = reaper.GetUserInputs("scale sequencer", 1, "seq (q-o)octa=(a-k)semi(1-8) extrawidth=80", "iteiteit")
+if not retval then return end
+
+
+function getTrackByName(name)
   for trackIndex = 0, reaper.CountTracks(0) - 1 do
      tracko = reaper.GetTrack(0, trackIndex)
     local ok, trackName = reaper.GetSetMediaTrackInfo_String(tracko, 'P_NAME', '', false)
@@ -4240,53 +4300,15 @@ function getTrackByName(name)
     end 
   end
 end
-ctrack = getTrackByName("chordtrack")
-if ctrack == nil then Msg("no chordtrack")return end
-
-ItemsSelCount = reaper.CountSelectedMediaItems(0)
-if ItemsSelCount ==0 then Msg("select items")return
-end
-
-retval, seq = reaper.GetUserInputs( "scale sequenzer", 2,"seq(q-i) mute=o  octa=(a-k),semi(1-8)//     accent(1,0)", "iteiteit,10010010" )
-if not retval then return end
-
- 
-Table_Seq = {string.sub(seq,1,1),string.sub(seq,2,2),string.sub(seq,3,3),string.sub(seq,4,4),string.sub(seq,5,5)
-,string.sub(seq,6,6),string.sub(seq,7,7),string.sub(seq,8,8)}
-
-Table_Vel = {string.sub(seq,10,10),string.sub(seq,11,11),string.sub(seq,12,12),string.sub(seq,13,13),string.sub(seq,14,14)
-,string.sub(seq,15,15),string.sub(seq,16,16),string.sub(seq,17,17)}
 
 
-seq1w ="note"..tostring(Table_Seq[1])
-seq2w ="note"..tostring(Table_Seq[2])
-seq3w ="note"..tostring(Table_Seq[3])
-seq4w ="note"..tostring(Table_Seq[4])
-seq5w ="note"..tostring(Table_Seq[5])
-seq6w ="note"..tostring(Table_Seq[6])
-seq7w ="note"..tostring(Table_Seq[7])
-seq8w ="note"..tostring(Table_Seq[8])
-
-velo1s ="vel"..tostring(Table_Vel[1])
-velo2s ="vel"..tostring(Table_Vel[2])
-velo3s ="vel"..tostring(Table_Vel[3])
-velo4s ="vel"..tostring(Table_Vel[4])
-velo5s ="vel"..tostring(Table_Vel[5])
-velo6s ="vel"..tostring(Table_Vel[6])
-velo7s ="vel"..tostring(Table_Vel[7])
-velo8s ="vel"..tostring(Table_Vel[8])
- 
-function get_chord_notes(r)  
+function get_chord_notes(citem)  
       
-          item0 =  reaper.GetTrackMediaItem(ctrack,r )
-         
- _, region_name = reaper.GetSetMediaItemInfo_String(item0, "P_NOTES", "", false) 
-            pos = reaper.GetMediaItemInfo_Value( item0, "D_POSITION" )-0.05
-         length = reaper.GetMediaItemInfo_Value( item0, "D_LENGTH" )
+ _, region_name = reaper.GetSetMediaItemInfo_String(citem, "P_NOTES", "", false) 
+            pos = reaper.GetMediaItemInfo_Value( citem, "D_POSITION" )-0.05
+         length = reaper.GetMediaItemInfo_Value( citem, "D_LENGTH" )
      region_end = pos+length      
     
-
- 
      
   if string.match( region_name, "@.*") then next_region() end -- skip region marked @ ignore     
    if string.find(region_name, "/") then
@@ -4295,7 +4317,6 @@ function get_chord_notes(r)
       root, chord = string.match(region_name, "(%w[#b]?)(.*)$") slashnote = 0 slash = ""
    end
 
-     
      if not chord then Msg("Can't recognize a chord") end 
      if #chord == 0 then chord = "Maj" end
      if not slash then slash = "" end
@@ -4303,30 +4324,25 @@ function get_chord_notes(r)
 
   note_root = 0 
   -- 60 = C3
-  if root == "C" then note_root = 0
-  elseif root == "C#" then note_root = 1
-  elseif root == "Db" then note_root = 1 
-  elseif root == "D" then note_root = 2
-  elseif root == "D#" then note_root = 3 
-  elseif root == "Eb" then note_root = 3
-  elseif root == "E" then note_root = 4
-  elseif root == "F" then note_root = 5
-  elseif root == "F#" then note_root = 6
-  elseif root == "Gb" then note_root = 6
-  elseif root == "G" then note_root = 7 
-  elseif root == "G#" then note_root = 8
-  elseif root == "Ab" then note_root = 8
-  elseif root == "A" then note_root = -3
-  elseif root == "A#" then note_root = -2  
-  elseif root == "Bb" then note_root = -2
-  elseif root == "B" then note_root = -1
+  if root == "C" then root_note = 0
+  elseif root == "C#" then root_note = 1
+  elseif root == "Db" then root_note = 1 
+  elseif root == "D"  then root_note = 2
+  elseif root == "D#" then root_note = 3 
+  elseif root == "Eb" then root_note = 3
+  elseif root == "E"  then root_note = 4
+  elseif root == "F"  then root_note = 5
+  elseif root == "F#" then root_note = 6
+  elseif root == "Gb" then root_note = 6
+  elseif root == "G"  then root_note = 7 
+  elseif root == "G#" then root_note = 8
+  elseif root == "Ab" then root_note = 8
+  elseif root == "A"  then root_note = 9
+  elseif root == "A#" then root_note = 10  
+  elseif root == "Bb" then root_note = 10
+  elseif root == "B"  then root_note = 11
   if not root then end
   end
-  
-
-
-
-
   
     if string.find(",Maj7,maj7,Maj7,Maj,M,M7,maj9,maj13,", ","..chord..",", 1, true) then notew=2  notee=4  noter=5  notet=7  notez=9  noteu=11  end -- Ionian 
     if string.find(",m7,min7,-7,m9,m11,m13,", ","..chord..",", 1, true)              then notew=2  notee=3  noter=5  notet=7  notez=9  noteu=10  end -- Dorian
@@ -4338,142 +4354,18 @@ function get_chord_notes(r)
     if string.find(",7aug,7+,", ","..chord..",", 1, true)           then notew=2  notee=4  noter=6  notet=8  notez=10  noteu=12  end -- whole tone scale
     if string.find(",7b9,7b5,", ","..chord..",", 1, true)           then notew=1  notee=3  noter=4  notet=6  notez=7  noteu=9  end -- diminish scale
     if string.find(",7alt,", ","..chord..",", 1, true)           then notew=1  notee=3  noter=4  notet=6  notez=8  noteu=10  end -- altered Scale
-
-        
-end
-
-function deselect_items()
- 
-  get_chord_notes(region_num)
-  
-  un_item = reaper.GetSelectedMediaItem( 0, 0 )
-  
-  item_number = reaper.GetMediaItemInfo_Value( un_item, "IP_ITEMNUMBER" )
-  
-  for d = item_number, item_number+reg_item_count do-- -1 do
-    
-    un_item = reaper.GetSelectedMediaItem( 0, 0 )
-    reaper.SetMediaItemSelected( un_item, 0 )
-    reaper.UpdateItemInProject(un_item)
-    if region_num == num_regions then goto break_loop end
-    
-    last_item_reg = reaper.GetSelectedMediaItem( 0, 0 )
-    
-    if not last_item_reg then break end
-    
-    last_item_pos = reaper.GetMediaItemInfo_Value( last_item_reg, "D_POSITION")
-   
-    if last_item_pos >= region_end then break end
-    
-    
-    
-  end
-
-  
-  
-  main()
-  
-::break_loop::  
-end  
-
---MAIN---------------------------------------------------------------
-function main()
-     ctrack = getTrackByName("chordtrack")
-   
-    num_regions = reaper.CountTrackMediaItems(ctrack)
-     if num_regions==0 then Msg("no chords") return end
-   for r = 0, num_regions -1 do -- regions loop start 
-                   chord_item = reaper.GetTrackMediaItem(ctrack, r )
-                          pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
-                       length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
-                       rgnend = pos+length      
-   
-    
-  --    retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, r )
-    --  akkord = get_chord_notes(num_regions)
-
-    items = 0
-    items = reaper.CountSelectedMediaItems(0)
-    
-    if items == 0 then goto finish end
-
-    count_items = 1
-    
-    first_item = reaper.GetSelectedMediaItem( 0, 0 )
-    
-    first_item_pos = reaper.GetMediaItemInfo_Value( first_item, "D_POSITION")+0.001
-  
-    last_item = reaper.GetSelectedMediaItem( 0, items -1 )
-    
-    last_item_pos = reaper.GetMediaItemInfo_Value( last_item, "D_POSITION")+0.001    
-    
-     
-  
- 
-    
-    for rs = 0, num_regions -1 do -- regions start loop  
-                       chord_item = reaper.GetTrackMediaItem(ctrack, rs )
-                              pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
-                           length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
-                           rgnend = pos+length      
-  
-
-  
-  region_num = rs
-  
-
-  
-  if first_item_pos >= pos and first_item_pos < rgnend then break end
-    end 
-    
-    for re = 0, num_regions -1 do -- regions end loop start 
-    chord_item = reaper.GetTrackMediaItem(ctrack, re )
-           pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
-        length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
-        rgnend = pos+length      
-      
-  
-
-  
-  last_region = re
---  Msg(re)
-  if last_item_pos <= pos and last_item_pos >= rgnend then break end
-    end    
- 
- 
- get_chord_notes(region_num)
-  
-  for i = 0, items -1 do -- region items loop start
-  
-    count_item =  reaper.GetSelectedMediaItem(0, i )
-    take =  reaper.GetActiveTake( count_item )
-     
-     
-    chord_item = reaper.GetTrackMediaItem(ctrack, region_num )
-           pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
-        length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
-        rgnend = pos+length   
-        
-
-     
-    last_reg_item = reaper.GetMediaItemInfo_Value( count_item, "D_POSITION")
-     
-    reg_item_count = i
-    
-    if last_reg_item >= rgnend then break end 
-    
-  end 
-    
-            noteq=0
-            notei=12
-            noteo=99
+             
+            noteq=0 
+            notei=noteq+12
             notey=notez
             note1=noteq-1
             note2=notew-1
             note3=notee-1
+            note4=noteq
             note5=noter+1
             note6=notet+1
             note7=notez+1
+            note8=noteq
             note9=notei+1
             notea=noteq-12
             notes=notew-12
@@ -4484,351 +4376,91 @@ function main()
             notej=noteu-12
             notek=notei-12
 
-  
-         seq1=_G[seq1w]
-         seq2=_G[seq2w]
-         seq3=_G[seq3w]
-         seq4=_G[seq4w]
-         seq5=_G[seq5w]
-         seq6=_G[seq6w]
-         seq7=_G[seq7w]
-         seq8=_G[seq8w]
-         
-         if seq1==nil then seq1=0 end
-         if seq2==nil then seq2=12 end
-         if seq3==nil then seq3=-12 end
-         if seq4==nil then seq4=0 end
-         if seq5==nil then seq5=12 end
-         if seq6==nil then seq6=-12 end
-         if seq7==nil then seq7=0 end
-         if seq8==nil then seq8=12 end
-         
-  
+end
 
-   vel0 = 100
-   vel1 = 126
+local function main()
+
+  local ctrack = getTrackByName("chordtrack")
+  if ctrack == nil then
+    return
+  end
+
+   num_ctrack_items = reaper.CountTrackMediaItems(ctrack)
+   selected_items = reaper.CountSelectedMediaItems(0 )
+   local takes = {}
+  for i = 0, selected_items - 1 do
+    local item = reaper.GetSelectedMediaItem(0, i)
+    local take = reaper.GetActiveTake(item)
+    takes[#takes + 1] = take
+  end
+  
+  -- Loop through each selected item
+  for i = 0, selected_items - 1 do
+    local item = reaper.GetSelectedMediaItem(0, i)
+    local item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")-0.001
+    local item_end = item_pos + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")-0.001
+    local sel_take = reaper.GetActiveTake(item)
+    local item_pitch = reaper.GetMediaItemTakeInfo_Value(sel_take, "D_PITCH")
+    
      
-    
-    velo1=_G[velo1s]
-    velo2=_G[velo2s]
-    velo3=_G[velo3s]
-    velo4=_G[velo4s] 
-    velo5=_G[velo5s]
-    velo6=_G[velo6s]
-    velo7=_G[velo7s]
-    velo8=_G[velo8s]
-    
-   if velo1==nil then velo1=65 end
-   if velo2==nil then velo2=78 end
-   if velo3==nil then velo3=100 end
-   if velo4==nil then velo4=126 end
-   if velo5==nil then velo5=44 end
-   if velo6==nil then velo6=65 end
-   if velo7==nil then velo7=77 end
-   if velo8==nil then velo8=90 end
-    
-  ic = 0
-      
-  for i = 0, reg_item_count do -- set items loop start
-  
-      chord_item = reaper.GetTrackMediaItem(ctrack, region_num )
-             pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )+0.001
-          length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
-          rgnend = pos+length 
-
-
-      
-  pitch = 0
-
-      item0 =  reaper.GetSelectedMediaItem(0, ic )
-      if not item0 then break end
-      item_start = reaper.GetMediaItemInfo_Value( item0, "D_POSITION")+0.001
-      if item_start > rgnend then break end  
-      take0 = reaper.GetActiveTake(item0)
-      if take0 == nil then return end
-      source =  reaper.GetMediaItemTake_Source( take0)         
+    -- Loop through each item(chordSymbols) on the chordtrack
+    for j = 0, num_ctrack_items - 1 do
+      local citem = reaper.GetTrackMediaItem(ctrack, j)
+      local start_time = reaper.GetMediaItemInfo_Value(citem, "D_POSITION")
+      local end_time = start_time + reaper.GetMediaItemInfo_Value(citem, "D_LENGTH")
+      local _,citem_notes = reaper.GetSetMediaItemInfo_String(citem, "P_NOTES", "", false)
+      take = reaper.GetActiveTake(item)
+      if take == nil then return end
+      source = reaper.GetMediaItemTake_Source( take )
       _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
-      if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
-      elseif key == "C#" or key == "A#m"then transpo = -1
-      elseif key == "Db" or key == "Bbm"then transpo = -1
-      elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
-      elseif key == "Eb" or key == "Cm"then transpo = -3
-      elseif key == "E" or key == "e" or key == "C#m"then transpo = -4
-      elseif key == "F" or key == "f" or key == "Dm"then transpo = -5 
-      elseif key == "F#" or key == "D#m"then transpo = -6
-      elseif key == "Gb" or key == "Ebm"then transpo = -6
-      elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
-      elseif key == "G#" or key == "E#m"then transpo = -8 
-      elseif key == "Ab" or key == "Fm"then transpo = -8 
-      elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
-      elseif key == "Bb" or key == "Gm"then transpo = -10
-      elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
-      elseif key == "Cb" or key == "Abm"then transpo = -11
-    if not key then end
-      end 
-      if seq1==99 then 
-      reaper.SetMediaItemInfo_Value(item0, "B_MUTE",1)
-     else
            
-      reaper.SetMediaItemTakeInfo_Value(take0, 'D_PITCH',seq1+note_root+transpo)
-      reaper.MIDI_SetNote( take0,0, selectedIn, mutedIn, startppqposIn, endppqposIn, chanIn, pitchIn,velo1, noSortIn )
-      end
-     ic=ic+1
-      reaper.UpdateItemInProject(item0)
+        if key == "C" or key == "Am" or key == "" then transpo = 0
+               elseif key == "C#" or key == "A#m" then transpo = -1
+               elseif key == "Db" or key == "Bbm" then transpo = -1
+               elseif key == "D"  or key == "Bm"  then transpo = -2
+               elseif key == "Eb" or key == "Cm"  then transpo = -3
+               elseif key == "E"  or key == "C#m" then transpo = -4
+               elseif key == "F"  or key == "Dm"  then transpo = -5
+               elseif key == "F#" or key == "D#m" then transpo = -6
+               elseif key == "Gb" or key == "Ebm" then transpo = -6
+               elseif key == "G"  or key == "Em"  then transpo = -7 
+               elseif key == "G#" or key == "E#m" then transpo = -8
+               elseif key == "Ab" or key == "Fm"  then transpo = -8 
+               elseif key == "A"  or key == "F#m" then transpo = -9
+               elseif key == "Bb" or key == "Gm"  then transpo = -10
+               elseif key == "B"  or key == "G#m" then transpo = -11
+               elseif key == "Cb" or key == "Abm" then transpo = -11
+              if not key then end
+              end
+      get_chord_notes(citem)
+      sequence = {}
       
-      item1 = reaper.GetSelectedMediaItem(0, ic )
-      if not item1 then break end
-      item_start = reaper.GetMediaItemInfo_Value( item1, "D_POSITION")+0.001
-      if item_start > rgnend then break end          
-      take1 = reaper.GetActiveTake(item1)
-      source =  reaper.GetMediaItemTake_Source( take1)         
-      _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
-      if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
-      elseif key == "C#" or key == "A#m"then transpo = -1
-      elseif key == "Db" or key == "Bbm"then transpo = -1
-      elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
-      elseif key == "Eb" or key == "Cm"then transpo = -3
-      elseif key == "E" or key == "e" or key == "C#m"then transpo = -4
-      elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
-      elseif key == "F#" or key == "D#m"then transpo = -6
-      elseif key == "Gb" or key == "Ebm"then transpo = -6
-      elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
-      elseif key == "G#" or key == "E#m"then transpo = -8
-      elseif key == "Ab" or key == "Fm"then transpo = -8 
-      elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
-      elseif key == "Bb" or key == "Gm"then transpo = -10
-      elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
-      elseif key == "Cb" or key == "Abm"then transpo = -11
-    if not key then end 
-      end 
-      if seq2==99 then 
-            reaper.SetMediaItemInfo_Value(item1, "B_MUTE",1)
-           else
-      reaper.SetMediaItemTakeInfo_Value(take1, 'D_PITCH',seq2+note_root+transpo)
-      reaper.MIDI_SetNote( take1,0, selectedIn, mutedIn, startppqposIn, endppqposIn, chanIn, pitchIn,velo2, noSortIn )
+      for i = 1, string.len(seq) do
+        local variable_name = "note" .. string.sub(seq, i, i)
+        sequence[i] = _G[variable_name]
       end
-      ic=ic+1
-      reaper.UpdateItemInProject(item1)
-      
-      item2 =  reaper.GetSelectedMediaItem(0, ic )
-      if not item2 then break end
-      item_start = reaper.GetMediaItemInfo_Value( item2, "D_POSITION")+0.001
-      if item_start > rgnend then break end
-      take2 = reaper.GetActiveTake(item2)
-      source =  reaper.GetMediaItemTake_Source( take2)         
-      _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
-      if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
-      elseif key == "C#" or key == "A#m"then transpo = -1
-      elseif key == "Db" or key == "Bbm"then transpo = -1
-      elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
-      elseif key == "Eb" or key == "Cm"then transpo = -3
-      elseif key == "E" or key == "e" or key == "C#m"then transpo = -4
-      elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
-      elseif key == "F#" or key == "D#m"then transpo = -6
-      elseif key == "Gb" or key == "Ebm"then transpo = -6
-      elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
-      elseif key == "G#" or key == "E#m"then transpo = -8
-      elseif key == "Ab" or key == "Fm"then transpo = -8 
-      elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
-      elseif key == "Bb" or key == "Gm"then transpo = -10
-      elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
-      elseif key == "Cb" or key == "Abm"then transpo = -11
-    if not key then end
-      end
-      if seq3==99 then 
-            reaper.SetMediaItemInfo_Value(item2, "B_MUTE",1)
-           else
-   
-      reaper.SetMediaItemTakeInfo_Value(take2, 'D_PITCH',seq3+note_root+transpo)
-      reaper.MIDI_SetNote( take2,0, selectedIn, mutedIn, startppqposIn, endppqposIn, chanIn, pitchIn,velo3, noSortIn )
-      end
-      ic=ic+1
-      reaper.UpdateItemInProject(item2)
-      
-      item3 = reaper.GetSelectedMediaItem(0, ic )
-      if not item3 then break end
-      item_start = reaper.GetMediaItemInfo_Value( item3, "D_POSITION")+0.001
-      if item_start > rgnend then break end
-      take3 = reaper.GetActiveTake(item3)
-      source =  reaper.GetMediaItemTake_Source( take3)         
-      _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
-      if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
-      elseif key == "C#" or key == "A#m"then transpo = -1
-      elseif key == "Db" or key == "Bbm"then transpo = -1
-      elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
-      elseif key == "Eb" or key == "Cm"then transpo = -3
-      elseif key == "E" or key == "e" or key == "C#m"then transpo = -4
-      elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
-      elseif key == "F#" or key == "D#m"then transpo = -6
-      elseif key == "Gb" or key == "Ebm"then transpo = -6 
-      elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
-      elseif key == "G#" or key == "E#m"then transpo = -8
-      elseif key == "Ab" or key == "Fm"then transpo = -8 
-      elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
-      elseif key == "Bb" or key == "Gm"then transpo = -10
-      elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
-      elseif key == "Cb" or key == "Abm"then transpo = -11
-    if not key then end
-      end 
-      if seq4==99 then 
-            reaper.SetMediaItemInfo_Value(item3, "B_MUTE",1)
-           else
-      reaper.SetMediaItemTakeInfo_Value(take3, 'D_PITCH',seq4+note_root+transpo)
-      reaper.MIDI_SetNote( take3,0, selectedIn, mutedIn, startppqposIn, endppqposIn, chanIn, pitchIn,velo4, noSortIn )
-      end
-      ic=ic+1
-      reaper.UpdateItemInProject(item3)
-      
-      item4 =  reaper.GetSelectedMediaItem(0, ic )
-      if not item4 then break end
-      item_start = reaper.GetMediaItemInfo_Value( item4, "D_POSITION")+0.001
-      if item_start > rgnend then break end
-      take4 = reaper.GetActiveTake(item4)
-      source =  reaper.GetMediaItemTake_Source( take4)         
-      _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
-      if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
-      elseif key == "C#" or key == "A#m"then transpo = -1
-      elseif key == "Db" or key == "Bbm"then transpo = -1
-      elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
-      elseif key == "Eb" or key == "Cm"then transpo = -3
-      elseif key == "E" or key == "e" or key == "C#m"then transpo = -4
-      elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
-      elseif key == "F#" or key == "D#m"then transpo = -6
-      elseif key == "Gb" or key == "Ebm"then transpo = -6
-      elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
-      elseif key == "G#" or key == "E#m"then transpo = -8
-      elseif key == "Ab" or key == "Fm"then transpo = -8 
-      elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
-      elseif key == "Bb" or key == "Gm"then transpo = -10
-      elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
-      elseif key == "Cb" or key == "Abm"then transpo = -11
-    if not key then end
-      end 
-      if seq5==99 then 
-            reaper.SetMediaItemInfo_Value(item4, "B_MUTE",1)
-           else
-      reaper.SetMediaItemTakeInfo_Value(take4, 'D_PITCH',seq5+note_root+transpo)
-      reaper.MIDI_SetNote( take4,0, selectedIn, mutedIn, startppqposIn, endppqposIn, chanIn, pitchIn,velo5, noSortIn )
-      end
-      ic=ic+1
-      reaper.UpdateItemInProject(item4)
-      
-      item5 = reaper.GetSelectedMediaItem(0, ic )
-      if not item5 then break end
-      item_start = reaper.GetMediaItemInfo_Value( item5, "D_POSITION")+0.001
-      if item_start > rgnend then break end
-      take5 = reaper.GetActiveTake(item5)
-      source =  reaper.GetMediaItemTake_Source( take5)         
-      _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
-      if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
-      elseif key == "C#" or key == "A#m"then transpo = -1
-      elseif key == "Db" or key == "Bbm"then transpo = -1
-      elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
-      elseif key == "Eb" or key == "Cm"then transpo = -3
-      elseif key == "E" or key == "e" or key == "C#m"then transpo = -4
-      elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
-      elseif key == "F#" or key == "D#m"then transpo = -6
-      elseif key == "Gb" or key == "Ebm"then transpo = -6
-      elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
-      elseif key == "G#" or key == "E#m"then transpo = -8
-      elseif key == "Ab" or key == "Fm"then transpo = -8 
-      elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
-      elseif key == "Bb" or key == "Gm"then transpo = -10
-      elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
-      elseif key == "Cb" or key == "Abm"then transpo = -11
-    if not key then end
-      end
-      if seq6==99 then 
-            reaper.SetMediaItemInfo_Value(item5, "B_MUTE",1)
-           else
-      reaper.SetMediaItemTakeInfo_Value(take5, 'D_PITCH',seq6+note_root+transpo)
-      reaper.MIDI_SetNote( take5,0, selectedIn, mutedIn, startppqposIn, endppqposIn, chanIn, pitchIn,velo6, noSortIn )
-      end
-      ic=ic+1
-      reaper.UpdateItemInProject(item5)
-      
-      item6 =  reaper.GetSelectedMediaItem(0, ic )
-      if not item6 then break end
-      item_start = reaper.GetMediaItemInfo_Value( item6, "D_POSITION")+0.001
-      if item_start > rgnend then break end
-      take6 = reaper.GetActiveTake(item6)
-      source =  reaper.GetMediaItemTake_Source( take6)         
-      _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
-      if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
-      elseif key == "C#" or key == "A#m"then transpo = -1
-      elseif key == "Db" or key == "Bbm"then transpo = -1
-      elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
-      elseif key == "Eb" or key == "Cm"then transpo = -3
-      elseif key == "E" or key == "e" or key == "C#m"then transpo = -4
-      elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
-      elseif key == "F#" or key == "D#m"then transpo = -6
-      elseif key == "Gb" or key == "Ebm"then transpo = -6
-      elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
-      elseif key == "G#" or key == "E#m"then transpo = -8
-      elseif key == "Ab" or key == "Fm"then transpo = -8 
-      elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
-      elseif key == "Bb" or key == "Gm"then transpo = -10
-      elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
-      elseif key == "Cb" or key == "Abm"then transpo = -11 
-    if not key then end
-      end
-      if seq7==99 then 
-            reaper.SetMediaItemInfo_Value(item6, "B_MUTE",1)
-           else
-      reaper.SetMediaItemTakeInfo_Value(take6, 'D_PITCH',seq7+note_root+transpo)
-      reaper.MIDI_SetNote( take6,0, selectedIn, mutedIn, startppqposIn, endppqposIn, chanIn, pitchIn,velo7, noSortIn )
-      end
-      ic=ic+1
-      reaper.UpdateItemInProject(item6)
-    
-      item7 =  reaper.GetSelectedMediaItem(0, ic )
-      if not item7 then break end
-      item_start = reaper.GetMediaItemInfo_Value( item7, "D_POSITION")+0.001
-      if item_start > rgnend then break end
-      take7 = reaper.GetActiveTake(item7)
-      source =  reaper.GetMediaItemTake_Source( take7)         
-      _, key = reaper.GetMediaFileMetadata(source, "XMP:dm/key" ) -- consideration of the original key Metadata from wav file "Key" 
-      if key == "C" or key == "c" or key == "Am" or key == "" then transpo = 0
-      elseif key == "C#" or key == "A#m"then transpo = -1
-      elseif key == "Db" or key == "Bbm"then transpo = -1
-      elseif key == "D"  or key == "d"  or key == "Bm"then transpo = -2
-      elseif key == "Eb" or key == "Cm"then transpo = -3
-      elseif key == "E" or key == "e" or key == "C#m"then transpo = -4
-      elseif key == "F" or key == "f" or key == "Dm"then transpo = -5
-      elseif key == "F#" or key == "D#m"then transpo = -6
-      elseif key == "Gb" or key == "Ebm"then transpo = -6
-      elseif key == "G" or key == "g" or key == "Em"then transpo = -7 
-      elseif key == "G#" or key == "E#m"then transpo = -8 
-      elseif key == "Ab" or key == "Fm"then transpo = -8 
-      elseif key == "A" or key == "a" or key == "F#m"then transpo = -9
-      elseif key == "Bb" or key == "Gm"then transpo = -10
-      elseif key == "B" or key == "b" or key == "G#m"then transpo = -11
-      elseif key == "Cb" or key == "Abm"then transpo = -11 
-    if not key then end
-      end
-      if seq8==99 then 
-            reaper.SetMediaItemInfo_Value(item7, "B_MUTE",1)
-           else
-      reaper.SetMediaItemTakeInfo_Value(take7, 'D_PITCH',seq8+note_root+transpo)
-      reaper.MIDI_SetNote( take7,0, selectedIn, mutedIn, startppqposIn, endppqposIn, chanIn, pitchIn,velo8, noSortIn )
-      end
-      ic=ic+1
-      reaper.UpdateItemInProject(item7)      
-      
-  
-  end -- items loop end
-end     
-  
-    deselect_items()
-    
-::finish::  
-end  
+      if variable_name==nil then variable_name=noteq end
+     
+     local index = 1
+     local take, item, pitch
+     for i = 0, reaper.CountSelectedMediaItems(0) - 1 do
+       item = reaper.GetSelectedMediaItem(0, i)
+       if reaper.GetMediaItemInfo_Value(item, "D_POSITION") >= start_time and reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH") <= end_time then
+         take = reaper.GetActiveTake(item)
+         if take ~= nil then
+           pitch = reaper.GetMediaItemTakeInfo_Value(take, "D_PITCH")
+           reaper.SetMediaItemTakeInfo_Value(take, "D_PITCH",root_note + sequence[index])
+           index = index + 1
+           if index > #sequence then index = 1 end
+         end
+       end
+       end
+     end
+ end
+  reaper.UpdateArrange()
+end
 
-item_stop = 1
-count_items = 0
-  
-main() 
-
+reaper.defer(main)
 
 end
 --=================================================================================================================

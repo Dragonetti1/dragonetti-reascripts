@@ -1,10 +1,11 @@
--- @version 1.8.7
+-- @version 1.8.8
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + arpeggio inversion up and down
+--    + very long sequences possible (SCALE)
+--    + special length manipulation possible for several selected tracks
 
 
 ------------------------------
@@ -208,6 +209,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushItemWidth( ctx, 32 )
                local   old_b = b
                ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 0,(ICount))
+               ToolTip(tt, "divisor")
                if ret then
                  crazy_length(b,am) 
                end
@@ -218,6 +220,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine( ctx ,0,2)
                local   old_am = am
                   ret, am = reaper.ImGui_DragInt( ctx, "##am",0, 1, -4,4)
+                  ToolTip(tt, "how strong the effect")
                       if ret then
                      am = am - old_am
                         crazy_length(b,am) 
