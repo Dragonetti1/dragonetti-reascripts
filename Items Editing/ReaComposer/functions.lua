@@ -4406,7 +4406,7 @@ local function main()
     -- Loop through each item(chordSymbols) on the chordtrack
     for j = 0, num_ctrack_items - 1 do
       local citem = reaper.GetTrackMediaItem(ctrack, j)
-      local start_time = reaper.GetMediaItemInfo_Value(citem, "D_POSITION")
+      local start_time = reaper.GetMediaItemInfo_Value(citem, "D_POSITION")-0.001
       local end_time = start_time + reaper.GetMediaItemInfo_Value(citem, "D_LENGTH")
       local _,citem_notes = reaper.GetSetMediaItemInfo_String(citem, "P_NOTES", "", false)
       take = reaper.GetActiveTake(item)
@@ -4445,7 +4445,7 @@ local function main()
      local take, item, pitch
      for i = 0, reaper.CountSelectedMediaItems(0) - 1 do
        item = reaper.GetSelectedMediaItem(0, i)
-       if reaper.GetMediaItemInfo_Value(item, "D_POSITION") >= start_time and reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH") <= end_time then
+       if reaper.GetMediaItemInfo_Value(item, "D_POSITION") >= start_time and reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")-0.003 <= end_time then
          take = reaper.GetActiveTake(item)
          if take ~= nil then
            pitch = reaper.GetMediaItemTakeInfo_Value(take, "D_PITCH")

@@ -1,11 +1,11 @@
--- @version 1.8.8
+-- @version 1.8.9
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + very long sequences possible (SCALE)
---    + special length manipulation possible for several selected tracks
+--    + bug fixes
+
 
 
 ------------------------------
