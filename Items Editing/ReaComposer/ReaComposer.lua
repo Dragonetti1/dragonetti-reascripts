@@ -1,10 +1,10 @@
--- @version 1.8.9
+-- @version 1.9.0
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + bug fixes
+--    + new volume sequencer
 
 
 
@@ -408,9 +408,11 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                
                --VOLUME
                
-            if reaper.ImGui_Button(ctx, 'VOLUME',(btn_w*3)+(spacing_x*2),y) then reaper.Main_OnCommand(41923,0) reaper.SetCursorContext(1, nil)end
+            if reaper.ImGui_Button(ctx, 'VOLUME',66,y) then reaper.Main_OnCommand(41923,0) reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "reset Volume")  
-               
+               reaper.ImGui_SameLine( ctx)
+            if reaper.ImGui_Button(ctx, 'SEQ##7',32,y) then volume_sequence() reaper.SetCursorContext(1, nil)end
+               ToolTip(tt, "volume sequencer for \nselected items \n1=0db \n2=-0.2db \n3=-0.4db")    
             if divider == nil then divider = 10 end
             if phase== nil then phase = 1 end
             if amplitude== nil then amplitude = 1 end                   

@@ -8478,7 +8478,77 @@ reaper.UpdateArrange()
 reaper.Undo_EndBlock(script_name, 0)
 end
 
+--========================================================================================================
+--======================= Volume Sequence ================================================================
+--========================================================================================================
 
+
+function volume_sequence()
+local retval, input_str = reaper.GetUserInputs("item volume sequenz",1, "1=0db  2=-0.2db 3=-0.4db " , "12")
+if not retval then return end
+
+-- Extrahiere Längen und Akzente aus dem Benutzereingabestring 
+local length_str = input_str
+
+
+-- Konvertiere Längen- und Akzent-Strings in Tabellen
+local sequence = {}
+for i = 1, #length_str do
+  sequence[i] = tonumber(length_str:sub(i, i))
+end
+selected_tracks = {}
+num_selected_items = reaper.CountSelectedMediaItems(0)
+for i = 0, num_selected_items - 1 do
+    item = reaper.GetSelectedMediaItem(0, i)
+    track = reaper.GetMediaItem_Track(item)
+    selected_tracks[track] = true
+end
+
+-- Selektiere alle Tracks, die im Set enthalten sind
+num_tracks = reaper.CountTracks(0)
+for i = 0, num_tracks - 1 do
+    track = reaper.GetTrack(0, i)
+    if selected_tracks[track] then
+        reaper.SetTrackSelected(track, true)
+    else
+        reaper.SetTrackSelected(track, false)
+    end
+end
+
+selected_tracks = {}
+num_selected_items = reaper.CountSelectedMediaItems(0)
+for i = 0, num_selected_items - 1 do
+    item = reaper.GetSelectedMediaItem(0, i)
+    track = reaper.GetMediaItem_Track(item)
+    selected_tracks[track] = true
+end
+
+-- Define the sequence
+
+
+-- Process each selected track
+for track in pairs(selected_tracks) do
+    count = 0
+    for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+        item = reaper.GetTrackMediaItem(track, i)
+        if reaper.IsMediaItemSelected(item) then
+            count = count + 1
+            sequence_index = (count - 1) % #sequence + 1 -- Get the current sequence index
+            if sequence[sequence_index] == 3 then -- Reduce volume
+                new_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL") - 0.4
+                reaper.SetMediaItemInfo_Value(item, "D_VOL", new_vol)
+            elseif  sequence[sequence_index] == 2 then -- Reduce volume  
+                new_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL") - 0.2
+                reaper.SetMediaItemInfo_Value(item, "D_VOL", new_vol)
+            elseif sequence[sequence_index] == 1 then -- Do nothing
+                -- Do nothing
+            end
+        end
+    end
+end
+
+reaper.UpdateArrange()
+end
 --=================================================================================================================
 --====================== VOLUME ===========================================================================
 --=================================================================================================================
@@ -9558,401 +9628,86 @@ end
 --============================== MIDI_PATTERN 3===========================================================
 --===================================================================================================================
 function midi_creator()
-function midi_pattern()
-function Msg(variable)
- reaper.ShowConsoleMsg(tostring(variable).."\n")
+local function Msg(str)
+  reaper.ShowConsoleMsg(tostring(str) .. "\n")
 end
-
-
-
-reaper.Main_OnCommand(40289,0) -- unselect all items
-reaper.Main_OnCommand(40718,0) -- Item: Select all items on selected tracks in current time selection
-reaper.Main_OnCommand(40006,0) -- Item: Remove items
-
-cursor = reaper.GetCursorPosition() 
-start_time, end_time = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false) 
- 
-bpm = reaper.TimeMap2_GetDividedBpmAtTime(0, cursor )
-bar_length = 240/bpm
-_, grid, save_swing, save_swing_amt = reaper.GetSetProjectGrid(0, false)
-
-grid_length = bar_length*grid 
-note_quantity = 1/grid
-qn = note_quantity/4
-bar_ppq = 3840 
-grid_ppq = 3840/note_quantity
-accent = note_quantity/4  
-retval, rhy = reaper.GetUserInputs( "16 notes", 1,"seq(1-16)  1=1grid  2=2grid  etc.", "1111111111111111" )
+local retval, input_str = reaper.GetUserInputs("Create Midi Pattern", 2, "Length 1=1unit  2=2unit  0=mute,UNIT " , "3323324444,16")
 if not retval then return end
 
-Table_Rhy = {string.sub(rhy,1,1),string.sub(rhy,2,2),string.sub(rhy,3,3),string.sub(rhy,4,4),string.sub(rhy,5,5)
-,string.sub(rhy,6,6),string.sub(rhy,7,7),string.sub(rhy,8,8),string.sub(rhy,9,9),string.sub(rhy,10,10),string.sub(rhy,11,11)
-,string.sub(rhy,12,12),string.sub(rhy,13,13),string.sub(rhy,14,14),string.sub(rhy,15,15),string.sub(rhy,16,16)}
+-- Extrahiere Längen und Akzente aus dem Benutzereingabestring 
+local length_str = input_str:sub(1, input_str:find(",") - 1)
+local grid_division = input_str:sub(input_str:find(",") + 1)
 
 
-
-rhy1a ="rhy"..tostring(Table_Rhy[1])
-rhy2a ="rhy"..tostring(Table_Rhy[2])
-rhy3a ="rhy"..tostring(Table_Rhy[3])
-rhy4a ="rhy"..tostring(Table_Rhy[4])
-rhy5a ="rhy"..tostring(Table_Rhy[5])
-rhy6a ="rhy"..tostring(Table_Rhy[6])
-rhy7a ="rhy"..tostring(Table_Rhy[7])
-rhy8a ="rhy"..tostring(Table_Rhy[8])
-rhy9a ="rhy"..tostring(Table_Rhy[9])
-rhy10a ="rhy"..tostring(Table_Rhy[10])
-rhy11a ="rhy"..tostring(Table_Rhy[11])
-rhy12a ="rhy"..tostring(Table_Rhy[12])
-rhy13a ="rhy"..tostring(Table_Rhy[13])
-rhy14a ="rhy"..tostring(Table_Rhy[14])
-rhy15a ="rhy"..tostring(Table_Rhy[15])
-rhy16a ="rhy"..tostring(Table_Rhy[16])
-
-rhy0=2
-rhy9=grid_ppq*9
-rhy8=grid_ppq*8
-rhy7=grid_ppq*7
-rhy6=grid_ppq*6
-rhy5=grid_ppq*5
-rhy4=grid_ppq*4
-rhy3=grid_ppq*3
-rhy2=grid_ppq*2
-rhy1=grid_ppq*1
-
-rhy=99
-
-
-
-
-
-n1 = _G[rhy1a]
-n2 = _G[rhy2a]
-n3 = _G[rhy3a]
-n4 = _G[rhy4a]
-n5 = _G[rhy5a]
-n6 = _G[rhy6a]
-n7 = _G[rhy7a]
-n8 = _G[rhy8a]
-n9 = _G[rhy9a]
-n10 = _G[rhy10a]
-n11 = _G[rhy11a]
-n12 = _G[rhy12a]
-n13 = _G[rhy13a]
-n14 = _G[rhy14a]
-n15 = _G[rhy15a]
-n16 = _G[rhy16a]
-
-m1=false
-m2=false
-m3=false
-m4=false
-m5=false
-m6=false
-m7=false
-m8=false
-m9=false
-m10=false
-m11=false
-m12=false
-m13=false
-m14=false
-m15=false
-m16=false
-
-if n1==2 then  m1=true n1=grid_ppq end
-if n2==2 then  m2=true n2=grid_ppq end
-if n3==2 then  m3=true n3=grid_ppq end
-if n4==2 then  m4=true n4=grid_ppq end
-if n5==2 then  m5=true n5=grid_ppq end 
-if n6==2 then  m6=true n6=grid_ppq end
-if n7==2 then  m7=true n7=grid_ppq end
-if n8==2 then  m8=true n8=grid_ppq end
-if n9==2 then  m9=true n9=grid_ppq end
-if n10==2 then m10=true n10=grid_ppq end
-if n11==2 then m11=true n11=grid_ppq end
-if n12==2 then m12=true n12=grid_ppq end
-if n13==2 then m13=true n13=grid_ppq end
-if n14==2 then m14=true n14=grid_ppq end
-if n15==2 then m15=true n15=grid_ppq end
-if n16==2 then m16=true n16=grid_ppq end
-
-
-
-if n2==99 then  n2=n1 n3=n1 n4=n1 n5=n1 n6=n1 n7=n1 n8=n1  n9=n1 n10=n1  n11=n1 n12=n1 n13=n1  n14=n1 n15=n1  n16=n1 
-                m2=m1 m3=m1 m3=m1 m4=m1 m5=m1 m6=m1 m7=m1 m8=m1 m9=m1 m10=m1 m11=m1 m12=m1 m13=m1 m14=m1 m15=m1 m16=m1 end
-if n3==99 then  n3=n1 n4=n2 n5=n1 n6=n2 n7=n1 n8=n2 n9=n1 n10=n2  n11=n1 n12=n2 n13=n1  n14=n2 n15=n1  n16=n2 
-                m3=m1 m4=m2 m5=m1 m6=m2 m7=m1 m8=m2 m9=m1 m10=m2 m11=m1 m12=m2 m13=m1 m14=m2 m15=m1 m16=m2 end
-if n4==99 then  n4=n1 n5=n2 n6=n3 n7=n1 n8=n2 n9=n3 n10=n1 n11=n2 n12=n3 n13=n1 n14=n2 n15=n3  n16=n1 
-                m4=m1 m5=m2 m6=m3 m7=m1 m8=m2 m9=m3 m10=m1 m11=m2 m12=m3 m13=m1 m14=m2 m15=m3 m16=m1 end
-if n5==99 then  n5=n1 n6=n2 n7=n3 n8=n4 n9=n1 n10=n2 n11=n3 n12=n4 n13=n1 n14=n2 n15=n3 n16=n4 
-                m5=m1 m6=m2 m7=m3 m8=m4 m9=m1 m10=m2 m11=m3 m12=m4 m13=m1 m14=m2 m15=m3 m16=m4 end
-if n6==99 then  n6=n1 n7=n2 n8=n3 n9=n4 n10=n5 n11=n1 n12=n2 n13=n3 n14=n4 n15=n5 n16=n1 
-                m6=m1 m7=m2 m8=m3 m9=m4 m10=m5 m11=m1 m12=m2 m13=m3 m14=m4 m15=m5 m16=m1 end
-if n7==99 then  n7=n1 n8=n2 n9=n3 n10=n4 n11=n5 n12=n6 n13=n1 n14=n2 n15=n3 n16=n4 
-                m7=m1 m8=m2 m9=m3 m10=m4 m11=m5 m12=m6 m13=m1 m14=m2 m15=m3 m16=m4 end
-if n8==99 then  n8=n1 n9=n2 n10=n3 n11=n4 n12=n5 n13=n6 n14=n7 n15=n1 n16=n2 
-                m8=m1 m9=m2 m10=m3 m11=m4 m12=m5 m13=m6 m14=m7 m15=m1 m16=m2 end
-if n9==99 then  n9=n1 n10=n2 n11=n3 n12=n4 n13=n5 n14=n6 n15=n7 n16=n8 
-                m9=m1 m10=m2 m11=m3 m12=m4 m13=m5 m14=m6 m15=m7 m16=m8 end
-if n10==99 then n10=n1 n11=n2 n12=n3 n13=n4 n14=n5 n15=n6 n16=n7 
-                m10=m1 m11=m2 m12=m3 m13=m4 m14=m5 m15=m6 m16=m7 end
-if n11==99 then n11=n1 n12=n2 n13=n3 n14=n4 n15=n5 n16=n6 
-                m11=m1 m12=m2 m13=m3 m14=m4 m15=m5 m16=m6 end
-if n12==99 then n12=n1 n13=n2 n14=n3 n15=n4 n16=n5 
-                m12=m1 m13=m2 m14=m3 m15=m4 m16=m5 end
-if n13==99 then n13=n1 n14=n2 n15=n3 n16=n4 
-                m13=m1 m14=m2 m15=m3 m16=m4 end
-if n14==99 then n14=n1 n15=n2 n16=n3 
-                m14=m1 m15=m2 m16=m3 end
-if n15==99 then n15=n1 n16=n2 
-                m15=m1 m16=m2 end
-if n16==99 then n16=n1 
-                m16=m1 end
-
-
-s1 = n1/grid_ppq*grid_length
-s2 = n2/grid_ppq*grid_length
-s3 = n3/grid_ppq*grid_length
-s4 = n4/grid_ppq*grid_length
-s5 = n5/grid_ppq*grid_length
-s6 = n6/grid_ppq*grid_length
-s7 = n7/grid_ppq*grid_length
-s8 = n8/grid_ppq*grid_length
-s9 = n9/grid_ppq*grid_length
-s10 = n10/grid_ppq*grid_length
-s11 = n11/grid_ppq*grid_length
-s12 = n12/grid_ppq*grid_length
-s13 = n13/grid_ppq*grid_length
-s14 = n14/grid_ppq*grid_length
-s15 = n15/grid_ppq*grid_length
-s16 = n16/grid_ppq*grid_length
-
-velo = {80,90,110,120}
-
-v1 = velo[math.random(1,#velo)]
-v2 = velo[math.random(1,#velo)]
-v3 = velo[math.random(1,#velo)]
-v4 = velo[math.random(1,#velo)]
-v5 = velo[math.random(1,#velo)]
-v6 = velo[math.random(1,#velo)]
-v7 = velo[math.random(1,#velo)]
-v8 = velo[math.random(1,#velo)]
-v9 = velo[math.random(1,#velo)]
-v10 = velo[math.random(1,#velo)]
-v11 = velo[math.random(1,#velo)]
-v12 = velo[math.random(1,#velo)]
-v13 = velo[math.random(1,#velo)]
-v14 = velo[math.random(1,#velo)]
-v15 = velo[math.random(1,#velo)]
-v16 = velo[math.random(1,#velo)]
-
-velocity_values={126,126}
-velo = velocity_values[math.random(1,#velocity_values)] 
-
-for i=0, reaper.CountSelectedTracks(0) do   
-track =  reaper.GetSelectedTrack2( 0, i, 0 )  
-if track == nil then
-    return
-    end 
-
-midiItem1 = reaper.CreateNewMIDIItemInProj(track, start_time,1)
-reaper.SetMediaItemSelected(midiItem1, true)
-reaper.SetMediaItemInfo_Value(midiItem1, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem1, "D_LENGTH", s1 ) 
-midiTake1 = reaper.GetActiveTake(midiItem1)
-reaper.MIDI_InsertNote(midiTake1, true,m1, 0,n1, 1, 60, v1)
-reaper.SetMediaItemSelected(midiItem1, true)
-
-midiItem2 = reaper.CreateNewMIDIItemInProj(track,start_time+s1,1)
-reaper.SetMediaItemSelected(midiItem2, true)
-reaper.SetMediaItemInfo_Value(midiItem2, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem2, "D_LENGTH", s2 ) 
-midiTake2 = reaper.GetActiveTake(midiItem2)
-reaper.MIDI_InsertNote(midiTake2, true,m2, 0,n2, 1, 60, v2)
-reaper.SetMediaItemSelected(midiItem2, true)
-
-midiItem3 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2,1)
-reaper.SetMediaItemSelected(midiItem3, true)
-reaper.SetMediaItemInfo_Value(midiItem3, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem3, "D_LENGTH", s3 ) 
-midiTake3 = reaper.GetActiveTake(midiItem3)
-reaper.MIDI_InsertNote(midiTake3, true,m3, 0,n3, 1, 60, v3)
-reaper.SetMediaItemSelected(midiItem3, true)
-
-midiItem4 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3,1)
-reaper.SetMediaItemSelected(midiItem4, true)
-reaper.SetMediaItemInfo_Value(midiItem4, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem4, "D_LENGTH", s4 ) 
-midiTake4 = reaper.GetActiveTake(midiItem4)
-reaper.MIDI_InsertNote(midiTake4, true,m4, 0,n4, 1, 60, v4)
-reaper.SetMediaItemSelected(midiItem4, true)
-
-midiItem5 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4,1)
-reaper.SetMediaItemSelected(midiItem5, true)
-reaper.SetMediaItemInfo_Value(midiItem5, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem5, "D_LENGTH", s5 ) 
-midiTake5 = reaper.GetActiveTake(midiItem5)
-reaper.MIDI_InsertNote(midiTake5, true,m5, 0,n5, 1, 60, v5)
-reaper.SetMediaItemSelected(midiItem5, true)
-
-midiItem6 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5,1)
-reaper.SetMediaItemSelected(midiItem6, true)
-reaper.SetMediaItemInfo_Value(midiItem6, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem6, "D_LENGTH", s6 ) 
-midiTake6 = reaper.GetActiveTake(midiItem6)
-reaper.MIDI_InsertNote(midiTake6, true,m6, 0,n6, 1, 60, v6)
-reaper.SetMediaItemSelected(midiItem6, true)
-
-midiItem7 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6,1)
-reaper.SetMediaItemSelected(midiItem7, true)
-reaper.SetMediaItemInfo_Value(midiItem7, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem7, "D_LENGTH", s7 )  
-midiTake7 = reaper.GetActiveTake(midiItem7)
-reaper.MIDI_InsertNote(midiTake7, true,m7, 0,n7, 1, 60, v7)
-reaper.SetMediaItemSelected(midiItem7, true)
-
-midiItem8 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7,1)
-reaper.SetMediaItemSelected(midiItem8, true)
-reaper.SetMediaItemInfo_Value(midiItem8, "B_LOOPSRC",1) 
-reaper.SetMediaItemInfo_Value( midiItem8, "D_LENGTH", s8 ) 
-midiTake8 = reaper.GetActiveTake(midiItem8)
-midiTake8 = reaper.GetActiveTake(midiItem8)
-reaper.MIDI_InsertNote(midiTake8, true,m8, 0,n8, 1, 60, v8)
-reaper.SetMediaItemSelected(midiItem8, true)
-
-midiItem9 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7+s8,1)
-reaper.SetMediaItemSelected(midiItem9, true)
-reaper.SetMediaItemInfo_Value(midiItem9, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem9, "D_LENGTH", s9 ) 
-midiTake9 = reaper.GetActiveTake(midiItem9)
-reaper.MIDI_InsertNote(midiTake9, true,m9, 0,n9, 1, 60, v9)
-reaper.SetMediaItemSelected(midiItem9, true)
-
-midiItem10 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7+s8+s9,1)
-reaper.SetMediaItemSelected(midiItem10, true)
-reaper.SetMediaItemInfo_Value(midiItem10, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem10, "D_LENGTH", s10 ) 
-midiTake10 = reaper.GetActiveTake(midiItem10)
-reaper.MIDI_InsertNote(midiTake10, true,m10, 0,n10, 1, 60, v10)
-reaper.SetMediaItemSelected(midiItem10, true)
-
-midiItem11 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7+s8+s9+s10,1)
-reaper.SetMediaItemSelected(midiItem11, true)
-reaper.SetMediaItemInfo_Value(midiItem11, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem11, "D_LENGTH", s11 ) 
-midiTake11 = reaper.GetActiveTake(midiItem11)
-reaper.MIDI_InsertNote(midiTake11, true,m11, 0,n11, 1, 60, v11)
-reaper.SetMediaItemSelected(midiItem11, true)
-
-midiItem12 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11,1)
-reaper.SetMediaItemSelected(midiItem12, true)
-reaper.SetMediaItemInfo_Value(midiItem12, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem12, "D_LENGTH", s12 ) 
-midiTake12 = reaper.GetActiveTake(midiItem12)
-reaper.MIDI_InsertNote(midiTake12, true,m12, 0,n12, 1, 60, v12)
-reaper.SetMediaItemSelected(midiItem12, true)
-
-midiItem13 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12,1)
-reaper.SetMediaItemSelected(midiItem13, true)
-reaper.SetMediaItemInfo_Value(midiItem13, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem13, "D_LENGTH", s13 ) 
-midiTake13 = reaper.GetActiveTake(midiItem13)
-reaper.MIDI_InsertNote(midiTake13, true,m13, 0,n13, 1, 60, v13)
-reaper.SetMediaItemSelected(midiItem13, true)
-
-midiItem14 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12+s13,1)
-reaper.SetMediaItemSelected(midiItem14, true)
-reaper.SetMediaItemInfo_Value(midiItem14, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem14, "D_LENGTH", s14 ) 
-midiTake14 = reaper.GetActiveTake(midiItem14)
-reaper.MIDI_InsertNote(midiTake14, true,m14, 0,n14, 1, 60, v14)
-reaper.SetMediaItemSelected(midiItem14, true)
-
-midiItem15 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12+s13+s14,1)
-reaper.SetMediaItemSelected(midiItem15, true)
-reaper.SetMediaItemInfo_Value(midiItem15, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem15, "D_LENGTH", s15 ) 
-midiTake15 = reaper.GetActiveTake(midiItem15)
-reaper.MIDI_InsertNote(midiTake15, true,m15, 0,n15, 1, 60, v15)
-reaper.SetMediaItemSelected(midiItem15, true)
-
-
-midiItem16 = reaper.CreateNewMIDIItemInProj(track,start_time+s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12+s13+s14+s15,1)
-reaper.SetMediaItemSelected(midiItem16, true)
-reaper.SetMediaItemInfo_Value(midiItem16, "B_LOOPSRC",1)
-reaper.SetMediaItemInfo_Value( midiItem16, "D_LENGTH", s16 ) 
-midiTake16 = reaper.GetActiveTake(midiItem16)
-reaper.MIDI_InsertNote(midiTake16, true,m16, 0,n16, 1, 60, v16)
-reaper.SetMediaItemSelected(midiItem16, true)
-
-end
+-- Konvertiere Längen- und Akzent-Strings in Tabellen
+local sequence = {}
+for i = 1, #length_str do
+  sequence[i] = tonumber(length_str:sub(i, i))
 end
 
--- mpl Script: mpl_Duplicate items until end of time selection.lua
+local length_stellen = string.len(length_str)
 
-function fill_ST()    -- get source length
-      local items_t = {}
-      local bound_st, bound_end = math.huge, -math.huge
-      for selitem =1,  reaper.CountSelectedMediaItems( 0 )/reaper.CountSelectedTracks( 0 ) do
-        local itemx = reaper.GetSelectedMediaItem( 0, selitem-1 )
-        items_t[#items_t+1] = itemx
-        local posx = reaper.GetMediaItemInfo_Value( itemx, 'D_POSITION' )
-        local lenx = reaper.GetMediaItemInfo_Value( itemx, 'D_LENGTH' )
-        bound_st = math.min(bound_st, posx)
-        bound_end = math.max(bound_end, posx+lenx) 
-      end
-      local bound_len = bound_end - bound_st-10^-14
-      if bound_len > 10^15 then return end
-      
-    -- get duplicates count
-      local copies = (math.floor((end_time - bound_st) / bound_len)-1)+1
-     
-    if copies >= 0 then do
-    -- share duplicates
-      reaper.ApplyNudge( 0,--project, 
-                  0,--nudgeflag, 
-                  5,--nudgewhat, 
-                  21,--nudgeunits, 
-                  1,--value, 
-                  0,--reverse, 
-                  copies)--copies )) 
-                  
-end
-end     
-       
-end   
 
-    
-midi_pattern()
-fill_ST()
--- @description Unselect items not within time selection
--- @author Edgemeal
--- @version 1.0
--- @link Forum https://forum.cockos.com/showthread.php?t=223042
--- @about Only a part of an item needs to be within the time selection
-
-local s_time, e_time = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
-if s_time == e_time then return end
-
-function ItemInTime(item)
-  local s = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
-  local e = s + reaper.GetMediaItemInfo_Value(item, 'D_LENGTH')
-  if e > s_time and e < e_time then return false end
-  if s < e_time and e < e_time then return false end
-  return true
+local vols = {}
+for i = 1, length_stellen do
+  vols[i] = 1
 end
 
-reaper.Undo_BeginBlock(0)
-local item_count = reaper.CountSelectedMediaItems(0)
-for i = item_count-1, 0, -1 do
-  local item = reaper.GetSelectedMediaItem(0, i)
-  reaper.SetMediaItemSelected(item, ItemInTime(item))
-end
-reaper.Undo_EndBlock('Unselect items not within time selection', -1)
-reaper.UpdateArrange()
 
-reaper.Main_OnCommand(40006,0) -- remove items
-reaper.Main_OnCommand(40718,0) -- Item: Select all items on selected tracks in current time selection
+-- Überprüfe, ob die Anzahl der Längen und Akzente gleich ist
+if #sequence ~= #vols then
+  reaper.ShowMessageBox("The number of lengths and vol must be the same.", "Error", 0)
+  return
+end
+
+-- Berechne notwendige Variablen
+
+local cursor = reaper.GetCursorPosition()
+local bpm = reaper.TimeMap2_GetDividedBpmAtTime(0, cursor)
+local bar_length = 120 / bpm
+local grid_size = bar_length / grid_division 
+local grid_length = bar_length / grid_division
+local note_quantity = 1 / grid_division
+local qn = note_quantity / 4
+local bar_ppq = 3840
+local grid_ppq = 3840 / note_quantity
+local TIME_SEL_START, TIME_SEL_END = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
+
+-- Funktion zum Erstellen eines MIDI-Items
+local function create_midi_item(start_time, length, track, midi_length, vol, mute)
+
+  local midi_item = reaper.CreateNewMIDIItemInProj(track, start_time, start_time + length)
+  local take = reaper.GetActiveTake(midi_item)
+  
+ 
+  reaper.SetMediaItemSelected(midi_item, true)
+  reaper.SetMediaItemInfo_Value(midi_item, "B_MUTE",mute)
+  reaper.SetMediaItemInfo_Value(midi_item, "D_VOL",vol)
+  reaper.MIDI_InsertNote(take, true, false, 0, midi_length, 0, 60, 126, false)
+end
+
+-- Für jede ausgewählte Spur MIDI-Items erstellen
+for i=0, reaper.CountSelectedTracks()-1 do
+  local track = reaper.GetSelectedTrack(0, i)
+  local note_idx = 1
+  local start_time = TIME_SEL_START
+  local prev_item_end = start_time
+  while start_time < TIME_SEL_END do
+    local length = sequence[note_idx] == 0 and 1*grid_size or sequence[note_idx] * grid_size
+    local midi_length = sequence[note_idx] == 0 and grid_ppq or sequence[note_idx] * grid_ppq
+    local vol = 127
+    if vols[note_idx] then
+      if vols[note_idx] == 0 then vol = 0.7 else vol = 1 end
+    end
+    local mute = false
+        if sequence[note_idx] == 0 then mute = 1 else mute=0 end
+    local midi_item = create_midi_item(prev_item_end, length, track, midi_length, vol, mute)
+    prev_item_end = start_time + length
+    note_idx = note_idx % #sequence + 1
+    start_time = prev_item_end
+  end
+end
+
 end
 --============================================================================================================================
 --======================================= DETECT_MIDI_CHORDS =================================================================
