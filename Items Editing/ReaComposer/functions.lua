@@ -8870,10 +8870,8 @@ end
 --======================== mute_exact ==========================================================
 --============================================================================================
 
-function mute_exact()
+function mute_exact() 
 
---if sub==16 then a=118 
---else a=117 end
 
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
@@ -8916,11 +8914,16 @@ if teiler > xx then teiler = 1 end
 res = string.rep("v",math.ceil(math.floor(xx/teiler)))
 str = string.gsub(res, "v", "u", dinger)
 um = string.rep(str,teiler)
---str = string.gsub(res, "u", "v", dinger)
---xstr = string.rep(str,teiler*2)
+
+
+-- Get the number of characters to copy
 if sub > xx-1 then sub=1 end
 
-astr = string.sub(um, sub)
+-- Get the characters to copy
+local first = string.sub(um, 1, sub)
+
+-- Copy the characters to the end of the string
+ astr = string.sub(um, sub+1) .. first
 
 
  end
@@ -9343,6 +9346,135 @@ function sort_items_by_length()
 end
 
 sort_items_by_length()
+end
+--======================================================================================================
+--====================================== Midi_Pattern ==================================================
+--=====================================================================================================
+function midi_pattern(index)
+local function Msg(str)
+  reaper.ShowConsoleMsg(tostring(str) .. "\n")
+end
+-- Initialisiere eine leere Tabelle 
+sequence = {}
+
+-- Fülle die Tabelle mit Werten für jeden Index
+ sequence[1]  = {pattern = {4,4,7,1,2,2,2,1,9},      vol = {1},unit = {16}} 
+ sequence[2]  = {pattern = {1,1,1,1,0,0,3,1,0,0,1,1,0,0,3,1,0,2,0,2,0,0,1,1,0,0},        
+                     vol = {1,2,1,3,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1},unit = {16}} -- funky guitar 1
+ sequence[3]  = {pattern = {3,1,0,0,0,1,0,2,1,1,1,0,0,3,1,0,0,0,1,0,2,1,1,1,0,0},    
+                     vol = {1,3,1,1,1,1,1,1,2,1,1,1,1,1,2,1,1,1,1,1,1,2,1,2,1,1},unit = {16}} -- funky guitar 2 
+ sequence[4]  = {pattern = {0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1},      
+                     vol = {1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,2},unit = {16}} -- funky guitar 3 
+ sequence[5]  = {pattern = {0,0,0,0,4,3,3,2},        
+                     vol = {1,1,1,1,1,2,2,1},unit = {16}} -- funky guitar 4
+ sequence[6]  = {pattern = {1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0},    
+                     vol = {1,2,1,1,1,1,1,2,1,1,1,1,1,1,1,1},unit = {16}} -- funky guitar 5
+ sequence[7]  = {pattern = {3,1,0,0,3,1,0,0,4},    
+                     vol = {2,1,1,1,2,1,1,1,2},unit = {16}} -- funky guitar 6
+ sequence[8]  = {pattern = {2,0,0,2,0,0,3,1,0,0,0,0},    
+                     vol = {2,1,1,2,1,1,1,2,1,1,1,1,1},unit = {16}}-- funky guitar 7 
+ sequence[9]  = {pattern = {2,0,0,0,0,0,0,0,0,1,2,1,0,0},    
+                     vol = {2,1,1,1,1,1,1,1,1,2,1,2,1,1},unit = {16}}-- funky guitar 8 
+ sequence[10] = {pattern = {3,1,0,1,0,0,2,0,0,0,0,0,0},    
+                     vol = {2,1,1,2,1,1,2,1,1,1,1,1,1},unit = {16}}-- funky guitar 9 
+ sequence[11] = {pattern = {3,1,0,0,0,0},    
+                     vol = {2,1,1,1,1,1},unit = {16}}-- funky guitar 10 
+ sequence[12] = {pattern = {1,1,0,0,2,2,0,0,0,0,2,2,1,1,0,0,2,2,0,0,0,1,4},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} --"Let the Music Take Your Mind"
+ sequence[13] = {pattern = {0,0,0,0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},    
+                     vol = {1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} --Housequake 
+ sequence[14] = {pattern = {4,4,0,0,0,0,0,0,0,0,4,2,2,4,0,0,0,0},    
+                     vol = {2,1,1,1,1,1,1,1,1,1,2,1,2,2,1,1,1,1},unit = {16}} --Fishnet 
+ sequence[15] = {pattern = {3,2,1,1,1,0,0,0,2,1,1,1,0,0,0,2,1,1,1,0,0,0,2,1,1,1,0,0,0,2,1,1,1,0,0,0,2,1,1,1,0,0,0,2,1,1,1,1,1,1,1,0,1,1,1},    
+                     vol = {2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,1,1,2,2,2,1,2,2},unit = {16}} --bass my feet keep dancing
+ sequence[16] = {pattern = {1,1,2,0,1,2,2,0,1,0,1,2,2,2,0,1,2,2,0,0,0,1,2},    
+                     vol = {1,2,2,1,2,1,1,1,2,1,2,1,1,1,1,2,1,1,1,1,1,2,1},unit = {16}} --bass Give Up the Funk
+ sequence[17] = {pattern = {2,2,0,0,0,0,3,5},    
+                     vol = {1,1,1,1,1,1,1,1},unit = {16}} -- bass Think 
+ sequence[18] = {pattern = {4,3,1,0,1,2,2,2,4,4,2,2,2,2},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- bass Super Bad 
+ sequence[19] = {pattern = {2,0,1,0,0,2,2,2,4,2,0,1,0,0,2,2,6},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- bass Get Up Offa That Thing
+ sequence[20] = {pattern = {2,2,1,1,0,0,0,1,2,1,1,2},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- bass Sex Machine
+ sequence[21] = {pattern = {4,0,0,0,1,0,1,0,0,0,0,0,0,4,0,0,0,1,2,0,0,0,0,0,0},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- Bass The Bird  
+ sequence[22] = {pattern = {1,1,0,0,0,0,1,1,0,0,0,0,1,1,2,1,1,0,0,0,0,1,1,0,0,2,2,2},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} 
+ sequence[23] = {pattern = {4,3,1,2,0,0,1,1,2},    
+                     vol = {1,1,1,1,1,1,1,1,1},unit = {16}} -- Bass Power   
+ sequence[24] = {pattern = {2,0,0,0,0,0,0,1,1,2,2,2},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- Bass More Bounce...
+ sequence[25] = {pattern = {1,1,0,0,0,0,1,1,0,0,1,1,2,2,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}}
+ sequence[26] = {pattern = {4,2,2,4,0,0,0,1,0,0,0,0,2,2,4,3,1,0,0,0,0,2,2,2,0,0,0,0,0,1,0,1,2,2,2,2,0,0,0,2,1},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} --Bass Square Biz
+ sequence[27] = {pattern = {3,1,0,0,2,0,0,2,2,2,3,1,0,0,2,0,0,0,0,0,0,0,0},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} --Bass It`s Gonna Be a Beautiful Night
+ sequence[28] = {pattern = {2,2,2,2,1,1,2,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,1,1,2,3,3,2,0,0,0,0,0,0,0,0,0,0},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} --Bass Housequake
+ sequence[29] = {pattern = {2,2,2,2,2,0,1,0,0,2,2,2,2,2,2,0,1,0,0,2},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- Bass What Have You Done...
+ sequence[30] = {pattern = {1,1,2,0,0,0,0,3,1,0,0,0,0,1,1,2,3,1,0,0,0,0,0,0,0,0},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}}
+ sequence[31] = {pattern = {1,2,3},    vol = {1},unit = {4}}
+ sequence[32] = {pattern = {1,2,3},    vol = {1},unit = {16}}
+  
+
+local vols = {}
+
+-- Berechne notwendige Variablen
+
+local cursor = reaper.GetCursorPosition()
+local bpm = reaper.TimeMap2_GetDividedBpmAtTime(0, cursor)
+local bar_length = 240 / bpm 
+local grid_size = bar_length / sequence[index].unit[1] 
+local grid_length = bar_length / sequence[index].unit[1]
+local note_quantity = 1 / sequence[index].unit[1]
+local qn = note_quantity / 4
+local bar_ppq = 3840
+local grid_ppq = 3840 / note_quantity
+local TIME_SEL_START, TIME_SEL_END = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
+
+-- Funktion zum Erstellen eines MIDI-Items
+local function create_midi_item(start_time, length, track, midi_length, vol, mute)
+
+  local midi_item = reaper.CreateNewMIDIItemInProj(track, start_time, start_time + length)
+  local take = reaper.GetActiveTake(midi_item)
+  
+ 
+  reaper.SetMediaItemSelected(midi_item, true)
+  reaper.SetMediaItemInfo_Value(midi_item, "B_MUTE",mute)
+  reaper.SetMediaItemInfo_Value(midi_item, "D_VOL",vol)
+  reaper.MIDI_InsertNote(take, true, false, 0, midi_length, 0, 60, 126, false)
+end 
+
+-- Für jede ausgewählte Spur MIDI-Items erstellen
+for i=0, reaper.CountSelectedTracks()-1 do
+  local track = reaper.GetSelectedTrack(0, i) 
+  local note_idx = 1
+  local start_time = TIME_SEL_START
+  local prev_item_end = start_time
+  while start_time < TIME_SEL_END do
+    local length = sequence[index].pattern[note_idx] == 0 and 1*grid_size or sequence[index].pattern[note_idx] * grid_size
+    local midi_length = sequence[index].pattern[note_idx] == 0 and grid_ppq or sequence[index].pattern[note_idx] * grid_ppq
+    local vol = 127
+    if sequence[index].vol[note_idx] == 3 then vol = 0.7
+                    
+                elseif  sequence[index].vol[note_idx] == 2 then vol=0.8
+                   
+                elseif sequence[index].vol[note_idx] == 1 then vol=1
+                    -- Do nothing
+                end
+    local mute = false
+        if sequence[index].pattern[note_idx] == 0 then mute = 1 else mute=0 end
+    local midi_item = create_midi_item(prev_item_end, length, track, midi_length, vol, mute)
+    prev_item_end = start_time + length
+    note_idx = note_idx % #sequence[index].pattern + 1
+    start_time = prev_item_end
+  end
+end
+
 end
 --==================================================================================================================
 --============================== MIDI_RAND ===========================================================
@@ -9856,43 +9988,72 @@ end
 
 function reverse_items()
 
-reverse_item = reaper.NamedCommandLookup("_XENAKIOS_REVORDSELITEMS")
-
-reaper.Main_OnCommand(reverse_item,0)  -- reverse item
-
--- Xenakios/SWS: Reposition selected items.
--- Convert to Lua from SWS C++
-
-
-function GetSelectedMediaItemsOnTrack(tr)
-  items = {}
-  for j = 0, reaper.GetTrackNumMediaItems(tr)-1 do
-    local item = reaper.GetTrackMediaItem(tr, j)
-    if reaper.GetMediaItemInfo_Value(item, "B_UISEL") == 1 then items[#items+1] = item end
-  end
-  return items
-end
-
-function main()
-
-
-  bEnd = true   -- Start = false, End = true
-
-  for i = 0, reaper.CountTracks(0)-1 do
-    track = reaper.CSurf_TrackFromID(i + 1, false)
-    items = GetSelectedMediaItemsOnTrack(track)
-    for j = 2, #items do
-      dPrevItemStart = reaper.GetMediaItemInfo_Value(items[j-1], "D_POSITION")
-      dNewPos = dPrevItemStart 
-      if (bEnd) then
-        dNewPos = dNewPos + reaper.GetMediaItemInfo_Value(items[j-1], "D_LENGTH")
-      end
-      reaper.SetMediaItemInfo_Value(items[j], "D_POSITION", dNewPos)
+reaper.Main_OnCommand(40297, 0) -- Deselect all tracks
+-- Function to get tracks that have selected items
+function GetTracksWithSelectedItems()
+    local tracks = {}
+    local track_count = reaper.CountTracks(0)
+    for i = 0, track_count - 1 do
+        local track = reaper.GetTrack(0, i)
+        local track_items = {}
+        local item_count = reaper.CountTrackMediaItems(track)
+        for j = 0, item_count - 1 do
+            local item = reaper.GetTrackMediaItem(track, j)
+            if reaper.IsMediaItemSelected(item) then
+                track_items[#track_items + 1] = item
+            end
+        end
+        if #track_items > 0 then
+            tracks[#tracks + 1] = {track = track, items = track_items}
+        end
     end
-  end
+    return tracks
 end
 
-main()
+--  to select tracks with selected items
+
+local tracks = GetTracksWithSelectedItems()
+    for i, track_info in ipairs(tracks) do
+        reaper.SetTrackSelected(track_info.track, true)
+    end
+
+-- get selected items for all selected tracks
+local tracks = {}
+for i = 0, reaper.CountSelectedTracks(0) - 1 do
+    local track = reaper.GetSelectedTrack(0, i)
+    table.insert(tracks, track)
+end
+
+for _, track in ipairs(tracks) do
+    local items = {}
+    local item_lengths = {}
+    for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+        local item = reaper.GetTrackMediaItem(track, i)
+        if reaper.IsMediaItemSelected(item) then
+            table.insert(items, item)
+            local item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+            table.insert(item_lengths, item_len)
+        end
+    end
+
+    local start_position = reaper.GetMediaItemInfo_Value(reaper.GetSelectedMediaItem(0, 0),"D_POSITION")
+
+    -- reverse table length
+    local reversed_lengths = {}
+    for i = #item_lengths, 1, -1 do
+        table.insert(reversed_lengths, item_lengths[i])
+    end
+
+    for i = 1, #items do
+        local sum = 0
+        for j = 1, #reversed_lengths-(i) do
+            sum = sum + reversed_lengths[j]
+        end
+        local new_position = start_position + sum
+        reaper.SetMediaItemInfo_Value(items[i], "D_POSITION", new_position)
+    end
+end
+
 
 end
 

@@ -1,10 +1,10 @@
--- @version 1.9.0
+-- @version 1.9.1
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + new volume sequencer
+--    + reverse and midi pattern 
 
 
 
@@ -21,9 +21,9 @@ r=reaper
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
-dinger = 4 
-teiler = 1
-sub = 1
+dinger = 1 
+teiler = 4
+sub = 0
 x=1
 s1=s1
 tt=true
@@ -461,13 +461,13 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
              
                reaper.ImGui_PushItemWidth( ctx, (btn_w*1) )
          
-               ret, teiler = reaper.ImGui_DragInt( ctx, "##1", teiler, 0.1, 1,24)
+               ret, teiler = reaper.ImGui_DragInt( ctx, "##1", teiler, 0.1, 1,32)
                 if ret then 
                mute_exact(teiler,dinger) end
                if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "how many unmuted groups")
                reaper.ImGui_SameLine(ctx)
-               ret, sub = reaper.ImGui_DragInt( ctx, "##3", sub, 0.1, 1,16)
+               ret, sub = reaper.ImGui_DragInt( ctx, "##3", sub, 0.1, 0,16)
                 if ret then 
                mute_exact(sub) end
                if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
@@ -491,8 +491,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
            if reaper.ImGui_Button(ctx, 'rate', btn_w,y) then order_rate() reaper.SetCursorContext(1, nil)end
               reaper.ImGui_SameLine( ctx )
            if reaper.ImGui_Button(ctx, 'pitch', 32,y) then order_pitch() reaper.SetCursorContext(1, nil)end               
-           if reaper.ImGui_Button(ctx, 'reverse', (btn_w*2)+(spacing_x*1),y) then reverse = reaper.NamedCommandLookup("_XENAKIOS_REVORDSELITEMS")
-              reaper.Main_OnCommand(reverse,0) end 
+           if reaper.ImGui_Button(ctx, 'reverse', (btn_w*2)+(spacing_x*1),y) then reverse_items()reaper.SetCursorContext(1, nil)end
+              
            if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then shuffle_order() reaper.SetCursorContext(1, nil)end
               reaper.ImGui_EndGroup(ctx) 
         
@@ -501,16 +501,26 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
               reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx)   
              
-             
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0x34D632AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x1A6E19AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x34D632AA)
             if reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y) then midi_creator() reaper.SetCursorContext(1, nil)end
-               reaper.ImGui_PopStyleColor(ctx, 3) 
+               reaper.ImGui_PopStyleColor(ctx, 3)
+               pattern={"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32"}
+               reaper.ImGui_PushItemWidth( ctx, 66 )
+            if reaper.ImGui_BeginCombo(ctx, '##pattern', "    pattern",  reaper.ImGui_ComboFlags_NoArrowButton()) then
+               for i, pat in ipairs(pattern) do
+                 i = i
+            if reaper.ImGui_Selectable(ctx, pat, index == i) then midi_pattern(i) end
+            if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
+               end
+               reaper.ImGui_EndCombo(ctx)
+               end           
             if reaper.ImGui_Button(ctx, 'SEQ', (btn_w*2)+(spacing_x*1),y) then midi_creator() reaper.SetCursorContext(1, nil)end 
                ToolTip(tt, "Generates midi notes in time selection\n1 for one grid\n2 for two grids\netc. \nfor selected tracks")
             if reaper.ImGui_Button(ctx, 'pattern', (btn_w*2)+(spacing_x*1),y) then midi_rand() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Creates a random midi pattern depending on grid for selected tracks")
+             
                reaper.ImGui_EndGroup(ctx) 
                 
                
