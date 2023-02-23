@@ -1,10 +1,10 @@
--- @version 1.9.1
+-- @version 1.9.2
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + reverse and midi pattern 
+--    +  midi pattern names
 
 
 
@@ -506,7 +506,40 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x34D632AA)
             if reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y) then midi_creator() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopStyleColor(ctx, 3)
-               pattern={"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32"}
+local pattern ={
+"1 -- guitar - Mothership Connection",
+"2  -- guitar  funky1",
+"3 -- guitar funky 2",
+"4 -- guitar funky 3",
+"5  -- guitar Think  ",
+"6  -- guitar super bad ",
+"7  -- guitar Get up uffa that thing ",
+"8  -- guitar sex machine ",
+"9 - - guitar The Bird", 
+"10 -- guitar Africano/Power live ",
+"11 -- guitar More Bounce to the Ounce ",
+"12 -- guitar Let the Music Take Your Mind",
+"13 -- guitar Housequake",
+"14  --guitar Fishnet", 
+"15 -- bass  my feet keep dancing",
+"16 -- bass  Give Up the Funk",
+"17 -- bass  Think", 
+"18 -- bass  Super Bad", 
+"19 -- bass  Get Up Offa That Thing",
+"20 -- bass  Sex Machine",
+"21 -- Bass  The Bird " ,
+"22 -- bass  Mothership Connection ",
+"23 -- Bass  Power   ",
+"24 -- Bass  More Bounce...",
+"25 -- bass  Let the Music Take Your Mind" ,
+"26 -- Bass  Square Biz",
+"27 -- Bass  It`s Gonna Be a Beautiful Night",
+"28 -- Bass  Housequake",
+"29 -- Bass  What Have You Done...",
+"30 -- bass  Fishnet" ,
+"31 -- HiHat Get Up",
+"32 -- Snare Get Up",
+"33 -- Kick Get Up"}
                reaper.ImGui_PushItemWidth( ctx, 66 )
             if reaper.ImGui_BeginCombo(ctx, '##pattern', "    pattern",  reaper.ImGui_ComboFlags_NoArrowButton()) then
                for i, pat in ipairs(pattern) do

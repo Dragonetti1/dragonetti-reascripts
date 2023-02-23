@@ -9354,11 +9354,14 @@ function midi_pattern(index)
 local function Msg(str)
   reaper.ShowConsoleMsg(tostring(str) .. "\n")
 end
+
+reaper.Main_OnCommand(40006,0)
 -- Initialisiere eine leere Tabelle 
 sequence = {}
 
 -- Fülle die Tabelle mit Werten für jeden Index
- sequence[1]  = {pattern = {4,4,7,1,2,2,2,1,9},      vol = {1},unit = {16}} 
+ sequence[1]  = {pattern = {0,1,0,0,2,1,3,1,2,1,0,0,0,0,1,1,0,3,1,1,1,1,0,1,0,0},      
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- guitar Mothership Connection
  sequence[2]  = {pattern = {1,1,1,1,0,0,3,1,0,0,1,1,0,0,3,1,0,2,0,2,0,0,1,1,0,0},        
                      vol = {1,2,1,3,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1,1,2,1,1},unit = {16}} -- funky guitar 1
  sequence[3]  = {pattern = {3,1,0,0,0,1,0,2,1,1,1,0,0,3,1,0,0,0,1,0,2,1,1,1,0,0},    
@@ -9395,8 +9398,8 @@ sequence = {}
                      vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- bass Super Bad 
  sequence[19] = {pattern = {2,0,1,0,0,2,2,2,4,2,0,1,0,0,2,2,6},    
                      vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- bass Get Up Offa That Thing
- sequence[20] = {pattern = {2,2,1,1,0,0,0,1,2,1,1,2},    
-                     vol = {1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- bass Sex Machine
+ sequence[20] = {pattern = {1,1,0,0,1,1,0,0,0,0,1,0,2,2},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- bass Sex Machine
  sequence[21] = {pattern = {4,0,0,0,1,0,1,0,0,0,0,0,0,4,0,0,0,1,2,0,0,0,0,0,0},    
                      vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- Bass The Bird  
  sequence[22] = {pattern = {1,1,0,0,0,0,1,1,0,0,0,0,1,1,2,1,1,0,0,0,0,1,1,0,0,2,2,2},    
@@ -9417,8 +9420,12 @@ sequence = {}
                      vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- Bass What Have You Done...
  sequence[30] = {pattern = {1,1,2,0,0,0,0,3,1,0,0,0,0,1,1,2,3,1,0,0,0,0,0,0,0,0},    
                      vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}}
- sequence[31] = {pattern = {1,2,3},    vol = {1},unit = {4}}
- sequence[32] = {pattern = {1,2,3},    vol = {1},unit = {16}}
+ sequence[31] = {pattern = {2,2,2,1,1,1,1,2,2,2},    
+                     vol = {1,1,1,2,2,1,1,1,2},unit = {16}}  -- HiHat get Up
+ sequence[32] = {pattern = {0,0,0,0,2,0,1,0,1,0,0,2,0,0},    
+                     vol = {1,1,1,1,1,1,2,1,2,1,1,1,1,1},unit = {16}}  -- Snare get Up                    
+ sequence[33] = {pattern = {1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0},    
+                     vol = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},unit = {16}} -- Kick  Get Up 
   
 
 local vols = {}
@@ -9433,7 +9440,7 @@ local grid_length = bar_length / sequence[index].unit[1]
 local note_quantity = 1 / sequence[index].unit[1]
 local qn = note_quantity / 4
 local bar_ppq = 3840
-local grid_ppq = 3840 / note_quantity
+local grid_ppq = 3840 * note_quantity
 local TIME_SEL_START, TIME_SEL_END = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 
 -- Funktion zum Erstellen eines MIDI-Items
@@ -9771,6 +9778,7 @@ local length_str = input_str:sub(1, input_str:find(",") - 1)
 local grid_division = input_str:sub(input_str:find(",") + 1)
 
 
+
 -- Konvertiere Längen- und Akzent-Strings in Tabellen
 local sequence = {}
 for i = 1, #length_str do
@@ -9796,13 +9804,13 @@ end
 
 local cursor = reaper.GetCursorPosition()
 local bpm = reaper.TimeMap2_GetDividedBpmAtTime(0, cursor)
-local bar_length = 120 / bpm
+local bar_length = 240 / bpm
 local grid_size = bar_length / grid_division 
 local grid_length = bar_length / grid_division
 local note_quantity = 1 / grid_division
 local qn = note_quantity / 4
 local bar_ppq = 3840
-local grid_ppq = 3840 / note_quantity
+local grid_ppq = 3840 * note_quantity
 local TIME_SEL_START, TIME_SEL_END = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
 
 -- Funktion zum Erstellen eines MIDI-Items
@@ -9826,6 +9834,7 @@ for i=0, reaper.CountSelectedTracks()-1 do
   local prev_item_end = start_time
   while start_time < TIME_SEL_END do
     local length = sequence[note_idx] == 0 and 1*grid_size or sequence[note_idx] * grid_size
+  
     local midi_length = sequence[note_idx] == 0 and grid_ppq or sequence[note_idx] * grid_ppq
     local vol = 127
     if vols[note_idx] then
@@ -13275,6 +13284,8 @@ end
 --==========================================================================================================
 
 function chord_progression(ca)
+
+
 
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
