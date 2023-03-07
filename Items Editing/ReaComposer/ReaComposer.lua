@@ -189,9 +189,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'x0.5', 32,y) then length_half() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() reaper.SetCursorContext(1, nil)end
-               
-           
-            if reaper.ImGui_Button(ctx, 'split at grid', 48,32)then reaper.Main_OnCommand(40932,0)end
+            if reaper.ImGui_Button(ctx, 'split', 48,32)then reaper.Main_OnCommand(40932,0)end
+               ToolTip(tt, "split at grid")
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'SEQ##2', 50,32)then length_input() end
                ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
@@ -199,13 +198,15 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                ret, cu = r.ImGui_DragInt(ctx, "##curve",cu, 0.05, 0, 18)
             if ret then
                crazy_length(cu,am) 
-               end 
+               end
+               ToolTip(tt, "length presets")
                 reaper.ImGui_SameLine(ctx)
                local   old_am = am
                ret, am = reaper.ImGui_DragInt( ctx, "##ampli",0, 1, -4,4)
             if ret then
                am = am - old_am
                crazy_length(b,am) end
+               ToolTip(tt, "depth")
                reaper.ImGui_SameLine(ctx)
             if reaper.ImGui_Button(ctx, '-1', 24,32) then am=-1 crazy_length(cu,am) reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine(ctx)
