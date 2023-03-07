@@ -1,10 +1,10 @@
--- @version 1.9.2
+-- @version 1.9.3
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    +  midi pattern names
+--    + crazy length 
 
 
 
@@ -190,42 +190,27 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() reaper.SetCursorContext(1, nil)end
                
-            if reaper.ImGui_Button(ctx, 'a##b1', 15,y) then  b = math.floor(ICount/2) crazy_length(b,am) reaper.SetCursorContext(1, nil)end
+           
+            if reaper.ImGui_Button(ctx, 'split at grid', 48,32)then reaper.Main_OnCommand(40932,0)end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'b##b2', 15,y) then  b = math.floor(ICount/4) crazy_length(b,am) reaper.SetCursorContext(1, nil)end
-               reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'split at grid', 32,32)then reaper.Main_OnCommand(40932,0)end
-               reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, 'SEQ##2', 32,32)then length_input() end
+            if reaper.ImGui_Button(ctx, 'SEQ##2', 50,32)then length_input() end
                ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
-              
-       
-            if xpi == nil then xpi = 1 end
-            if ICount== nil then ICount = 2 end
-                     
-         
-               reaper.ImGui_NewLine(ctx)
-               reaper.ImGui_SameLine( ctx ,0,0)
-               reaper.ImGui_PushItemWidth( ctx, 32 )
-               local   old_b = b
-               ret, b = reaper.ImGui_DragInt( ctx, "##Drag",b, 0.1, 0,(ICount))
-               ToolTip(tt, "divisor")
-               if ret then
-                 crazy_length(b,am) 
-               end
-          
-               reaper.ImGui_SameLine( ctx ,0,2)
-               ret, xpi = reaper.ImGui_DragInt( ctx, "##xpi",xpi, 0.1, 1,32)
-          
-               reaper.ImGui_SameLine( ctx ,0,2)
+               reaper.ImGui_PushItemWidth( ctx,23) 
+               ret, cu = r.ImGui_DragInt(ctx, "##curve",cu, 0.05, 0, 18)
+            if ret then
+               crazy_length(cu,am) 
+               end 
+                reaper.ImGui_SameLine(ctx)
                local   old_am = am
-                  ret, am = reaper.ImGui_DragInt( ctx, "##am",0, 1, -4,4)
-                  ToolTip(tt, "how strong the effect")
-                      if ret then
-                     am = am - old_am
-                        crazy_length(b,am) 
-                                                                                 end
-              if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
+               ret, am = reaper.ImGui_DragInt( ctx, "##ampli",0, 1, -4,4)
+            if ret then
+               am = am - old_am
+               crazy_length(b,am) end
+               reaper.ImGui_SameLine(ctx)
+            if reaper.ImGui_Button(ctx, '-1', 24,32) then am=-1 crazy_length(cu,am) reaper.SetCursorContext(1, nil)end
+               reaper.ImGui_SameLine(ctx)
+            if reaper.ImGui_Button(ctx, '+1', 24,32) then am=1 crazy_length(cu,am) reaper.SetCursorContext(1, nil)end
+            if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                reaper.ImGui_EndGroup(ctx)
            
 --========================= RATE ============================================================================    
