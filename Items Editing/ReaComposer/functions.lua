@@ -234,7 +234,7 @@ function calculate_items(item_tbl, idx,cu,am)
 --   local curve = math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(ratio/b))- math.pi / c*2)
 
    local curve1 = -1*math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(ratio*4))- 0.5*1*math.pi)
-   local curve2 =ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*1*math.pi)
+   local curve2 =-1*math.cos((2* math.pi*  ((idx-1)-(ratio-0.5))/(ratio*1))- math.pi)
    local curve3 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
    local curve4 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
    local curve5 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)*math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
@@ -281,11 +281,17 @@ function calculate_items(item_tbl, idx,cu,am)
            normalized_idx = ((idx-1 ) % seq_len) +1
            return seq[normalized_idx]
           end   
-   if cu == 15 then seq = {-1,-1.25,-1.5,-1.75,-2,4,3.5,0} curve15 = 0.1*twoandtwo(seq,idx) end
-   if cu == 16 then seq = {0,1,1,-2} curve16 = 0.1*twoandtwo(seq,idx) end
-   if cu == 17 then seq = {0,1,0,-1} curve17 = 0.1*twoandtwo(seq,idx) end
-   if cu == 18 then seq = {-1,-1,-1,-1,4,0,0,0} curve18 = 0.1*twoandtwo(seq,idx) end
-   
+   if cu == 15 then seq = {-1,-1.25,-1.5,-1.75,-2,4,3.5,0} curve15 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 16 then seq = {0,1,1,-2} curve16 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 17 then seq = {0,1,0,-1} curve17 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 18 then seq = {-1,-1,-1,-1,4,0,0,0} curve18 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 19 then seq = {0,0,5,-1,-1,-1,-1,-1} curve19 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 20 then seq = {0,0,0,0,0,0,2,-2} curve20 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 21 then seq = {-1,-1,-1,-1,-1,-1,-1,7} curve21 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 22 then seq = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15} curve22 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 23 then seq = {-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,120} curve23 = 1/256*ratio*twoandtwo(seq,idx) end
+   if cu == 24 then seq = {20,-2,-3,-4,-4,-4,-2,-1} curve24 = 0.025*ratio*twoandtwo(seq,idx) end
+     
  --  local  curve15 = 0.1*twoandtwo(seq,idx)
   
    if cu==nil  then cu=1 end
@@ -308,6 +314,12 @@ function calculate_items(item_tbl, idx,cu,am)
    if cu==16 then curve = curve16*2 end
    if cu==17 then curve = curve17*2 end
    if cu==18 then curve = curve18*2 end
+   if cu==19 then curve = curve19*2 end
+   if cu==20 then curve = curve20*2 end
+   if cu==21 then curve = curve21*2 end
+   if cu==22 then curve = curve22*2 end
+   if cu==23 then curve = curve23 end
+   if cu==24 then curve = curve24*2 end
   if am==nil then am=1 end
   -- Calculate the amount by which to increase the item length, based on its position in the list of items
   local addition = am *2*1/ICount*20* curve * particle * 480 / bpm * 0.2
@@ -10269,47 +10281,73 @@ end
 end
 
 --================================================================================================================================
---======================================== CREATE_REGION =========================================================================
+--======================================== SPLIT_ITEM_AT_NOTE =========================================================================
 --================================================================================================================================
--- @description Rename region at edit cursor after the first selected item
--- @author amagalma
--- @version 1.00
--- @link https://forum.cockos.com/showpost.php?p=2358410&postcount=20
--- @donation https://www.paypal.me/amagalma
-function create_region()
-reaper.Main_OnCommand(40348,0)
-reaper.Main_OnCommand(40318,0)
 
 
-local msg = "Please, select an item "
+-- @description Quantize MIDI note positions to project grid
+-- @version 1.0
+-- @author me2beats
+-- @changelog
+--  + init
+function split_item_at_note()
+local r = reaper
 
-local item = reaper.GetSelectedMediaItem( 0, 0 )
-if not item then
-  reaper.MB( msg, "No item selected!", 0 )
-  return
+function GetAndDelNotes(take)
+
+  local t = {}
+
+  for i = 0, 1000 do
+    local ret, sel, mute, start_note, end_note, chan, pitch, vel = r.MIDI_GetNote(take, 0)
+    if not ret then  break end
+    t[#t+1] = {sel, mute, start_note, end_note, chan, pitch, vel}
+    r.MIDI_DeleteNote(take, 0)
+  end
+  return t
 end
 
-local _, rg_idx = reaper.GetLastMarkerAndCurRegion( 0,  reaper.GetCursorPositionEx( 0 ) )
-if rg_idx == -1 then
-  reaper.MB( msg, "Edit cursor not inside a region!", 0 )
-  return
+local items = r.CountSelectedMediaItems()
+if items == 0 then return end
+
+for i = 0, items-1 do
+  local it = r.GetSelectedMediaItem(0,i)
+
+  local take = r.GetActiveTake(it)
+  if take and r.TakeIsMIDI(take) then
+
+    local _, notes = r.MIDI_CountEvts(take)
+    if notes > 0 then
+
+      r.Undo_BeginBlock()
+      r.PreventUIRefresh(1)
+
+      local t_all = GetAndDelNotes(take)
+
+      for i = 1,#t_all do
+        local sel, mute, start_note_ppq, end_note_ppq, chan, pitch, vel = table.unpack(t_all[i])
+        local start_note = r.MIDI_GetProjTimeFromPPQPos(take, start_note_ppq)
+        local closest_gr = r.SnapToGrid(0, start_note)
+        local closest_gr_ppq = r.MIDI_GetPPQPosFromProjTime(take, closest_gr)
+        if closest_gr_ppq ~= start_note_ppq then
+          r.MIDI_InsertNote(take, sel, mute, closest_gr_ppq, closest_gr_ppq+end_note_ppq-start_note_ppq, chan, pitch, vel, 0)
+        else
+          r.MIDI_InsertNote(take, sel, mute, start_note_ppq, end_note_ppq, chan, pitch, vel, 0)
+        end
+      end
+
+      r.UpdateItemInProject(it)
+ 
+      r.PreventUIRefresh(-1)
+      r.Undo_EndBlock('Quantize notes to project grid', -1)
+    end
+  end
 end
 
-local it_name
-local take = reaper.GetActiveTake( item )
-if take then
-  it_name = reaper.GetTakeName( take )
-else
-  it_name = ({reaper.GetSetMediaItemInfo_String( item, "P_NOTES", "", false )})[2]
-end
-local _, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, rg_idx )
---if name == it_name then return end
-col_blu = reaper.ColorToNative(55,55, 55)|0x1000000
-local ok = reaper.SetProjectMarker4( 0, markrgnindexnumber, isrgn, pos, rgnend, "",col_blu, 0)
-if ok then
-  reaper.Undo_OnStateChangeEx2( 0, "Name region after selected item", 8, -1 )
-end
-reaper.Main_OnCommand(40616,0)
+set_marker = reaper.NamedCommandLookup("_BR_MIDI_NOTES_TO_MARKERS") -- set marker to note start
+reaper.Main_OnCommand(set_marker,0)
+reaper.Main_OnCommand(40931,0) -- split at marker
+reaper.Main_OnCommand(40420,0) -- delete marker 
+
 end
 
 --========================================================================================================================

@@ -1,11 +1,10 @@
--- @version 1.9.4
+-- @version 1.9.7
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + crazy length 
-
+--    + split item at note
 
 
 ------------------------------
@@ -177,7 +176,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_EndGroup(ctx)
 
               
-               
+             
 --========================= LENGTH ============================================================================
 
                reaper.ImGui_SameLine(ctx, nil, 10)
@@ -189,16 +188,18 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'x0.5', 32,y) then length_half() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() reaper.SetCursorContext(1, nil)end
+               
+           
             if reaper.ImGui_Button(ctx, 'split', 48,32)then reaper.Main_OnCommand(40932,0)end
                ToolTip(tt, "split at grid")
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'SEQ##2', 50,32)then length_input() end
                ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
                reaper.ImGui_PushItemWidth( ctx,23) 
-               ret, cu = r.ImGui_DragInt(ctx, "##curve",cu, 0.05, 0, 18)
+               ret, cu = r.ImGui_DragInt(ctx, "##curve",cu, 0.05, 0, 24)
             if ret then
                crazy_length(cu,am) 
-               end
+               end 
                ToolTip(tt, "length presets")
                 reaper.ImGui_SameLine(ctx)
                local   old_am = am
@@ -355,18 +356,18 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
               reaper.ImGui_SameLine(ctx, nil, 10)
               reaper.ImGui_BeginGroup(ctx) 
       
-            if reaper.ImGui_Button(ctx, 'PITCH',(btn_w*3)+(spacing_x*2),y)then reaper.Main_OnCommand(40653,0) end
+            if reaper.ImGui_Button(ctx, 'PITCH',(btn_w*3)+(spacing_x*2),y)then reaper.Main_OnCommand(40653,0) reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "reset pitch")
-            if reaper.ImGui_Button(ctx, '+1',32,y) then reaper.Main_OnCommand(40204,0) end
+            if reaper.ImGui_Button(ctx, '+1##pitch',32,y) then reaper.Main_OnCommand(40204,0) reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, '+7',32,y) then pitch_plus_7() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, '+12',32,y) then reaper.Main_OnCommand(40515,0) end
-            if reaper.ImGui_Button(ctx, '-1',32,y) then reaper.Main_OnCommand(40205,0) end
+            if reaper.ImGui_Button(ctx, '+12',32,y) then reaper.Main_OnCommand(40515,0) reaper.SetCursorContext(1, nil)end
+            if reaper.ImGui_Button(ctx, '-1##pitch',32,y) then reaper.Main_OnCommand(40205,0) reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, '-7',32,y) then pitch_minus_7() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
-            if reaper.ImGui_Button(ctx, '-12',32,y) then reaper.Main_OnCommand(40516,0) end
+            if reaper.ImGui_Button(ctx, '-12',32,y) then reaper.Main_OnCommand(40516,0) reaper.SetCursorContext(1, nil)end
             if reaper.ImGui_Button(ctx, 'com.',32,y) then  pitch_comp() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "compress pitch \npitch above +12 is octaved down \npitch below -12 is octaved up")
                reaper.ImGui_SameLine( ctx)
@@ -537,8 +538,11 @@ local pattern ={
                end           
             if reaper.ImGui_Button(ctx, 'SEQ', (btn_w*2)+(spacing_x*1),y) then midi_creator() reaper.SetCursorContext(1, nil)end 
                ToolTip(tt, "Generates midi notes in time selection\n1 for one grid\n2 for two grids\netc. \nfor selected tracks")
-            if reaper.ImGui_Button(ctx, 'pattern', (btn_w*2)+(spacing_x*1),y) then midi_rand() reaper.SetCursorContext(1, nil)end
+            if reaper.ImGui_Button(ctx, 'pat.',  btn_w,y) then midi_rand() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Creates a random midi pattern depending on grid for selected tracks")
+               reaper.ImGui_SameLine(ctx)
+               if reaper.ImGui_Button(ctx, 'split##1',  btn_w,y) then split_item_at_note() reaper.SetCursorContext(1, nil)end
+                  ToolTip(tt, "splits item at note within time selection")
              
                reaper.ImGui_EndGroup(ctx) 
                 
