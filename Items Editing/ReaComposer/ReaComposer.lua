@@ -1,10 +1,10 @@
--- @version 1.9.7
+-- @version 1.9.8
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + split item at note
+--    + Randomizer
 
 
 ------------------------------
@@ -665,14 +665,17 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
          
              reaper.ImGui_Button(ctx, 'OTHER',(btn_w*2)+(spacing_x*1),y)
            
-             if reaper.ImGui_Button(ctx, 'XML', (btn_w*2)+(spacing_x*1),y) then import_xml() reaper.SetCursorContext(1, nil)end
+             if reaper.ImGui_Button(ctx, 'XML', (btn_w),y) then import_xml() reaper.SetCursorContext(1, nil)end
                         ToolTip(tt, "loads the appropriate xml file for the audio file.(if available)\nselect track and don't allow import midi tempo..")
-             if reaper.ImGui_Button(ctx, 'Color', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end 
+                        reaper.ImGui_SameLine(ctx)
+             if reaper.ImGui_Button(ctx, 'Col',(btn_w),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end 
              if reaper.ImGui_Button(ctx, 'Ren.', (btn_w),y) then create_render_region() end 
              ToolTip(tt, "create a render region")
              reaper.ImGui_SameLine(ctx)
              if reaper.ImGui_Button(ctx, 'Rig.', (btn_w),y) then metadata_entries_2_region() reaper.SetCursorContext(1, nil)end 
              ToolTip(tt, "additional metadata \nfor the rendered song(mp3,wav..) \nyou need a render region")
+             if reaper.ImGui_Button(ctx, 'RANDOMI', (btn_w*2)+(spacing_x*1),y) then randomizer() reaper.SetCursorContext(1, nil)end 
+             ToolTip(tt, "Start with the randomizer \nif you need a little inspiration")
              reaper.ImGui_EndGroup(ctx)    
              
 --=============================================================================================================================
