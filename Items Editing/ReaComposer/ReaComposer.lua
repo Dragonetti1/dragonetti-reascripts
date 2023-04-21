@@ -1,4 +1,4 @@
--- @version 1.9.8
+-- @version 1.9.9
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
@@ -480,7 +480,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
            if reaper.ImGui_Button(ctx, 'pitch', 32,y) then order_pitch() reaper.SetCursorContext(1, nil)end               
            if reaper.ImGui_Button(ctx, 'reverse', (btn_w*2)+(spacing_x*1),y) then reverse_items()reaper.SetCursorContext(1, nil)end
               
-           if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then shuffle_order() reaper.SetCursorContext(1, nil)end
+           if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then order_shuffle_chords() reaper.SetCursorContext(1, nil)end
               reaper.ImGui_EndGroup(ctx) 
         
 --========================= MIDI  ============================================================================  

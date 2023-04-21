@@ -9486,6 +9486,75 @@ end
 sort_items_by_length()
 
 end
+--======================================================================================
+--==================================== order shuffle depends on chorditem =====================
+--=========================================================================================
+function order_shuffle_chords()
+function getTrackByName(name)  
+    for trackIndex = 0, reaper.CountTracks(0) - 1 do  
+        local track = reaper.GetTrack(0, trackIndex)
+        local ok, trackName = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false) 
+
+        if ok and trackName == name then
+            return track -- found it! stopping the search here
+        end 
+    end
+end
+
+
+function shuffle_order(selected_items)
+    local start_pos = selected_items[1].pos
+
+    math.randomseed(os.time())
+    for i = #selected_items, 2, -1 do
+        local j = math.random(i)
+        selected_items[i], selected_items[j] = selected_items[j], selected_items[i]
+    end
+
+    local pos = start_pos
+    for i, item_info in ipairs(selected_items) do
+        reaper.SetMediaItemInfo_Value(item_info.item, "D_POSITION", pos)
+        pos = pos + item_info.length
+    end
+end
+
+local track = getTrackByName("chordtrack")
+
+local chord_items = {}
+
+for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+    local item = reaper.GetTrackMediaItem(track, i)
+    local start_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+    local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+    local end_pos = start_pos + length
+
+    table.insert(chord_items, {start_pos = start_pos, end_pos = end_pos})
+end
+
+for j, chord_item in ipairs(chord_items) do
+    local selected_items_by_track = {}
+
+    for i = 0, reaper.CountSelectedMediaItems(0) - 1 do
+        local item = reaper.GetSelectedMediaItem(0, i)
+        local item_track = reaper.GetMediaItem_Track(item)
+        local item_start_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        local item_end_pos = item_start_pos + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+
+        -- check if the selected item is within the boundaries of the chord item
+        if item_start_pos >= chord_item.start_pos and item_end_pos < chord_item.end_pos then
+            -- add item information to the table of selected items within the boundaries of the chord item
+            if not selected_items_by_track[item_track] then
+                selected_items_by_track[item_track] = {}
+            end
+            table.insert(selected_items_by_track[item_track], {item = item, pos = item_start_pos, length = item_end_pos - item_start_pos})
+        end
+    end
+
+    for track, selected_items in pairs(selected_items_by_track) do
+        shuffle_order(selected_items)
+    end
+end
+end
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------ORDER_RATE---------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
