@@ -481,6 +481,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
            if reaper.ImGui_Button(ctx, 'reverse', (btn_w*2)+(spacing_x*1),y) then reverse_items()reaper.SetCursorContext(1, nil)end
               
            if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then order_shuffle_chords() reaper.SetCursorContext(1, nil)end
+               ToolTip(tt, "items are shuffled if chords are present within them")
               reaper.ImGui_EndGroup(ctx) 
         
 --========================= MIDI  ============================================================================  
