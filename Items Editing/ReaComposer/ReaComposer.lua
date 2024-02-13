@@ -1,10 +1,10 @@
--- @version 1.9.9.1
+-- @version 1.9.9.2
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + bug fixes
+--    + if chords exist shuffle order within the chords
 
 
 ------------------------------
