@@ -13457,7 +13457,11 @@ end
 --========================== chord_progression ===========================================================
 --==========================================================================================================
 
-function chord_progression(ca)
+
+function chord_progression_new(ca)
+
+function chord_progression()
+
 
 
 
@@ -13669,6 +13673,7 @@ end
 end
 end
 end
+end
 reaper.Main_OnCommand(40718,0)
 
 commandID2 = reaper.NamedCommandLookup("_SWSMARKERLIST13")
@@ -13676,7 +13681,45 @@ commandID2 = reaper.NamedCommandLookup("_SWSMARKERLIST13")
 reaper.Undo_EndBlock2(0, "Chords from midi item", -1)
 reaper.MIDIEditor_OnCommand( hwnd, 2 ) --File: Close window
 
+
+
+function getTrackByName(name)
+  for trackIndex = 0, reaper.CountTracks(0) - 1 do
+    local track = reaper.GetTrack(0, trackIndex)
+    local ok, trackName = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+
+    if ok and trackName == name then
+      return track -- found it! stopping the search here
+    end
+  end
 end
+
+local track = getTrackByName("chordtrack")
+
+if track == nil then do 
+--if ctrack == nil then
+reaper.Main_OnCommand(reaper.NamedCommandLookup("_SWS_CREATETRK1"),0)-- insert track at top
+ctrack=reaper.GetSelectedTrack( 0, 0 )
+reaper.GetSetMediaTrackInfo_String(ctrack, "P_NAME", "chordtrack", true)
+reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
+if ctrack then 
+reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
+reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
+reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
+
+  color = reaper.ColorToNative(95,175,178)
+  reaper.SetTrackColor(ctrack, color)
+  end
+
+chord_progression(ca)
+end
+else
+
+chord_progression(ca)
+end
+end
+
 --==============================================================================================
 --================================== metadata entries in render region =========================
 --==============================================================================================

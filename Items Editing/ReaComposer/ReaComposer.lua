@@ -1,10 +1,10 @@
--- @version 1.9.9.2
+-- @version 1.9.9.3
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + if chords exist shuffle order within the chords
+--    + chordtrack is automatically generated when a progression is selected
 
 
 ------------------------------
@@ -481,7 +481,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
            if reaper.ImGui_Button(ctx, 'reverse', (btn_w*2)+(spacing_x*1),y) then reverse_items()reaper.SetCursorContext(1, nil)end
               
            if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then order_shuffle_chords() reaper.SetCursorContext(1, nil)end
-               ToolTip(tt, "items are shuffled if chords are present within them")
+              ToolTip(tt, "shuffle within the chords (if available)")
               reaper.ImGui_EndGroup(ctx) 
         
 --========================= MIDI  ============================================================================  
@@ -604,7 +604,7 @@ local chords = {
                   for i, chord in ipairs(chords) do
                      i = i
                   if reaper.ImGui_Selectable(ctx, chord, ca == i) then
-                  chord_progression(i)
+                  chord_progression_new(i)
                    end
                    if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                   end
