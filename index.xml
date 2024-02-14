@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="ae9c48d9fecd773da49ea9c032065be3da316d5a">
+<index version="1" name="dragonetti-reascripts" commit="dbe89229f3d58f88e8f10d86d15e34f5d8a2ce08">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -278,6 +278,12 @@
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/ae9c48d9fecd773da49ea9c032065be3da316d5a/Items%20Editing/ReaComposer/ReaComposer.lua</source>
         <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/ae9c48d9fecd773da49ea9c032065be3da316d5a/Items%20Editing/ReaComposer/functions.lua</source>
         <source file="Fonts/Symbols.ttf">https://github.com/Dragonetti1/dragonetti-reascripts/raw/ae9c48d9fecd773da49ea9c032065be3da316d5a/Items%20Editing/ReaComposer/Fonts/Symbols.ttf</source>
+      </version>
+      <version name="1.9.9.3" author="Dragonetti" time="2024-02-14T12:54:05Z">
+        <changelog><![CDATA[+ chordtrack is automatically generated when a progression is selected]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/dbe89229f3d58f88e8f10d86d15e34f5d8a2ce08/Items%20Editing/ReaComposer/ReaComposer.lua</source>
+        <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/dbe89229f3d58f88e8f10d86d15e34f5d8a2ce08/Items%20Editing/ReaComposer/functions.lua</source>
+        <source file="Fonts/Symbols.ttf">https://github.com/Dragonetti1/dragonetti-reascripts/raw/dbe89229f3d58f88e8f10d86d15e34f5d8a2ce08/Items%20Editing/ReaComposer/Fonts/Symbols.ttf</source>
       </version>
     </reapack>
   </category>
