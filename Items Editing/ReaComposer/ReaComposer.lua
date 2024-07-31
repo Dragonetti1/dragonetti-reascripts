@@ -222,7 +222,9 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
               
             if reaper.ImGui_Button(ctx, 'RATE', (btn_w*2)+(spacing_x*1),y) then rate_reset() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "reset item rate")
-            if reaper.ImGui_Button(ctx, 'triplet',(btn_w*2)+(spacing_x*1),y) then rate_triplet() reaper.SetCursorContext(1, nil)end
+            if reaper.ImGui_Button(ctx, "trio.##5", 32,y) then rate_triplet() reaper.SetCursorContext(1, nil)end
+            reaper.ImGui_SameLine( ctx)
+            if reaper.ImGui_Button(ctx, "quar.##5", 32,y) then rate_quart() reaper.SetCursorContext(1, nil)end
             if reaper.ImGui_Button( ctx, "0.5x##5", 32,y ) then rate_half() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button( ctx, "2x##5", 32,y ) then rate_double() reaper.SetCursorContext(1, nil) end

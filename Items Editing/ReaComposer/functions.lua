@@ -1690,7 +1690,118 @@ end
 
 end   
 
+--========================================================================================================================
+--=================================== RATE_Quart    ====================================================================
+--========================================================================================================================
+function rate_quart()
 
+--function rate_random()
+ItemsSelCount = reaper.CountSelectedMediaItems(0)
+if ItemsSelCount ==0 then return
+end
+reaper.PreventUIRefresh(1)   
+
+for a=1,1 do
+ItemsSel = {}  
+Idx = 1  
+ 
+otherItems = {} 
+counter = 1
+
+loop_start, loop_end = reaper.GetSet_LoopTimeRange(false,true,0,0,false  )
+
+mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
+  
+ItemsSelCount = reaper.CountSelectedMediaItems(0)
+for i = 0, ItemsSelCount - 1 do
+    item = reaper.GetSelectedMediaItem(0, i)
+    take = reaper.GetActiveTake(item)
+    if take == nil then return end
+  source =  reaper.GetMediaItemTake_Source( take )
+     bpm = tonumber(({reaper.CF_GetMediaSourceMetadata( source, "BPM", "" )})[2]) or
+   tonumber(({reaper.CF_GetMediaSourceMetadata( src, "bpm", "" )})[2])
+  _, comment = reaper.GetMediaFileMetadata(source, "XMP:dm/logComment" )       
+ 
+  local thisTrack = reaper.GetMediaItem_Track(item)
+ --if comment ~= "phrase" then break end
+  if thisTrack == mainTrack then
+     
+    
+    ItemsSel[Idx] = {} 
+    ItemsSel[Idx].thisItem = item
+    ItemsSel[Idx].oldPosition =  reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
+    ItemsSel[Idx].old_rate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
+    ItemsSel[Idx].source_length = reaper.GetMediaSourceLength( source )
+    
+    start = ItemsSel[1].oldPosition  
+   
+   rates = {"1.333333333333"}
+   Rand = rates[math.random(1,#rates)]    
+   number = tonumber(Rand) 
+  
+   source = reaper.GetMediaItemTake_Source( take ) reaper.GetMediaItemTake_Source( take ) 
+   source_length, lengthIsQN = reaper.GetMediaSourceLength( source )
+  
+  _,bpm1 = reaper.GetMediaFileMetadata(source,"Generic:BPM")
+     _, _, tempo = reaper.TimeMap_GetTimeSigAtTime( 0, start )
+     
+     if bpm1 == "" then
+       bpm1 = 120
+       end
+   playrate_factor = tempo/bpm1
+    old_length = ItemsSel[Idx].oldLength
+  playrate = ItemsSel[Idx].old_rate
+  new_rate = playrate * number
+   ItemsSel[Idx].newRate = new_rate
+
+    reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", new_rate)
+
+    Idx = Idx + 1 -- 1-based table in Lua 
+
+  else
+    otherItems[counter] = {
+  item = item,
+  take = take,
+  track = thisTrack,
+    } 
+
+    counter = counter + 1
+  end 
+end
+ 
+for i = 2, Idx - 1 do 
+
+  --grabs items
+  local prevItem = ItemsSel[i-1].thisItem
+  local thisItem = ItemsSel[i].thisItem
+
+  --grabs previous item's info
+  local prevStart = reaper.GetMediaItemInfo_Value(prevItem, "D_POSITION")
+
+  ItemsSel[i].newStart = prevEnd
+
+end
+
+--if comment ~= "phrase" then break end
+
+local index = 1
+for i = 1, counter - 1 do
+  if index > Idx - 1 then index = 1 end
+
+  reaper.SetMediaItemInfo_Value(otherItems[i].item, "D_POSITION", ItemsSel[index].newStart or ItemsSel[index].oldPosition) 
+  reaper.SetMediaItemTakeInfo_Value(otherItems[i].take, "D_PLAYRATE", ItemsSel[index].newRate)
+
+  index = index + 1  
+end
+
+reaper.PreventUIRefresh(-1) 
+reaper.UpdateArrange()
+reaper.Undo_EndBlock("Item Random Position", -1)
+
+if endposi == loop_end then break end
+end
+
+end 
 --========================================================================================================================
 --=================================== RATE_HALF       ====================================================================
 --========================================================================================================================
