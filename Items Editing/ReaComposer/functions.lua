@@ -1616,13 +1616,13 @@ for i = 0, ItemsSelCount - 1 do
     
     ItemsSel[Idx] = {} 
     ItemsSel[Idx].thisItem = item
-    ItemsSel[Idx].oldPosition =  reaper.GetMediaItemInfo_Value( item, "D_POSITION" )+0.005
+    ItemsSel[Idx].oldPosition =  reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
     ItemsSel[Idx].old_rate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
     ItemsSel[Idx].source_length = reaper.GetMediaSourceLength( source )
     
     start = ItemsSel[1].oldPosition  
    
-   rates = {"0.750"}
+   rates = {"0.75"}
    Rand = rates[math.random(1,#rates)]    
    number = tonumber(Rand) 
   
@@ -1633,16 +1633,12 @@ for i = 0, ItemsSelCount - 1 do
      _, _, tempo = reaper.TimeMap_GetTimeSigAtTime( 0, start )
      
      if bpm1 == "" then
-     marker=reaper.FindTempoTimeSigMarker(0, start )
-     retval, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = reaper.GetTempoTimeSigMarker( 0, marker )
-     bpm1 = bpm
-       
+       bpm1 = 120
        end
-     
    playrate_factor = tempo/bpm1
     old_length = ItemsSel[Idx].oldLength
   playrate = ItemsSel[Idx].old_rate
-  new_rate = playrate_factor * number
+  new_rate = playrate * number
    ItemsSel[Idx].newRate = new_rate
 
     reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", new_rate)
@@ -1692,7 +1688,7 @@ reaper.Undo_EndBlock("Item Random Position", -1)
 if endposi == loop_end then break end
 end
 
-end    
+end   
 
 
 --========================================================================================================================
@@ -2818,9 +2814,9 @@ function get_chord_notes(r)
   elseif root == "Eb" then note1 = 3
   elseif root == "E" then note1 = 4
   elseif root == "F" then note1 = 5
-  elseif root == "F#" then note1 = 6
-  elseif root == "Gb" then note1 = 6
-  elseif root == "G" then note1 = 7 
+  elseif root == "F#" then note1 = -6
+  elseif root == "Gb" then note1 = -6
+  elseif root == "G" then note1 = -5 
   elseif root == "G#" then note1 = -4
   elseif root == "Ab" then note1 = -4
   elseif root == "A" then note1 = -3
@@ -2829,7 +2825,7 @@ function get_chord_notes(r)
   elseif root == "B" then note1 = -1
   if not root then end
   end
-  
+   
 
   note2 = 0
   
@@ -2838,7 +2834,7 @@ function get_chord_notes(r)
   if string.find(",m7,min7,-7,min6", ","..chord..",", 1, true)  then note2=-2 end  -- dorian 
   if string.find(",m7b9,", ","..chord..",", 1, true)            then note2=-4 end  -- phrygian
   if string.find(",Maj7#11,maj7#11,", ","..chord..",", 1, true) then note2=-4 end  -- lydian
-  if string.find(",7,dom,", ","..chord..",", 1, true)           then note2=-7 end  -- mixolydian  
+  if string.find(",7,dom,", ","..chord..",", 1, true)           then note2=5 end  -- mixolydian  
   if string.find(",m,", ","..chord..",", 1, true)               then note2=3  end  -- aeloian  
   if string.find(",m7b5,m7-5,", ","..chord..",", 1, true)       then note2=1  end  -- lokrian 
   
@@ -2871,7 +2867,7 @@ function main()
     for r = 0, num_chords -1 do -- regions loop start    
     
            chord_item = reaper.GetTrackMediaItem(ctrack, r )
-                  pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )
+                  pos = reaper.GetMediaItemInfo_Value( chord_item, "D_POSITION" )-0.1
                length = reaper.GetMediaItemInfo_Value( chord_item, "D_LENGTH" )
                rgnend = pos+length  
   
@@ -9239,7 +9235,169 @@ function invert_selection()
     
     reaper.UpdateArrange();
 end
+--======================================================================================================================================
+--============================================ SHUFFLE_ORDER =============================================================================
+--==========================================================================================================================================
+--[[
+ * ReaScript Name: Shuffle order of selected items columns keeping snap offset positions and parent tracks
+ * About: This works nicely only if there is as many items selected on each track, as it works on item selected ID on track and not "visual" columns
+ * Author: X-Raym
+ * Author URI: https://www.extremraym.com
+ * Repository: GitHub > X-Raym > REAPER-ReaScripts
+ * Repository URI: https://github.com/X-Raym/REAPER-ReaScripts
+ * Licence: GPL v3
+ * Forum Thread: Script (Lua): Shuffle Items
+ * Forum Thread URI: http://forum.cockos.com/showthread.php?t=159961
+ * REAPER: 5.0
+ * Version: 2.0
+--]]
 
+--[[
+ * Changelog:
+ * v2.0 (2021-01-07)
+  + new core
+  # remove group support
+ * v1.1 (2016-01-07)
+  + Preserve grouping if groups active. Treat first selected item (in position) in each group as group leader (other are ignored during the alignement).
+ * v1.0 (2015-06-09)
+  + Initial Release
+--]]
+
+-------------------------------------------------------------
+function shuffle_order()
+function Msg(variable)
+  reaper.ShowConsoleMsg(tostring(variable).."\n")
+end
+
+-------------------------------------------------------------
+
+-- SHUFFLE TABLE FUNCTION
+-- https://gist.github.com/Uradamus/10323382
+function shuffle(t)
+  local tbl = {}
+  for i = 1, #t do
+    tbl[i] = t[i]
+  end
+  for i = #tbl, 2, -1 do
+    local j = math.random(i)
+    tbl[i], tbl[j] = tbl[j], tbl[i]
+  end
+  if do_tables_match( t, tbl ) then -- MOD: be sure tables are different
+    --tbl = shuffle(t)
+  end
+  return tbl
+end
+
+function do_tables_match( a, b )
+  return table.concat(a) == table.concat(b)
+end
+
+
+-------------------------------------------------------------
+function Main()
+
+  -- Get Columns of Selected Items
+  columns = {} -- Original minimum positions and list of items for each columns
+  positions = {} -- Minimum positions of items snap for each columns
+  local column = 0
+
+  for i = 0, count_sel_items - 1 do
+
+    local item = reaper.GetSelectedMediaItem(0,i)
+    local track = reaper.GetMediaItemTrack( item )
+    local track_id = reaper.GetMediaTrackInfo_Value( track, "IP_TRACKNUMBER")
+
+    if track_id ~= last_track_id then column = 0 end -- reset column counter
+    column = column + 1 -- increment column
+
+    local item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+    local item_snap = reaper.GetMediaItemInfo_Value(item, "D_SNAPOFFSET")
+    local item_possnap = item_pos + item_snap
+
+    if not columns[column] then
+      columns[column] = {min_possnap = item_possnap, items = {} }
+    else
+      columns[column].min_possnap = math.min( columns[column].min_possnap, item_possnap )
+    end
+    positions[column] = columns[column].min_possnap
+    table.insert(columns[column].items, item)
+
+    last_track_id = track_id
+
+  end
+
+  if #columns > 1 then --  No need if there is only one column
+    positions = shuffle( positions )
+
+    for i, column in ipairs( columns ) do
+      offset = positions[i] - column.min_possnap
+      for j, item in ipairs( column.items ) do
+        local item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+        reaper.SetMediaItemInfo_Value(item, "D_POSITION", item_pos + offset)
+      end
+    end
+
+  end
+
+end
+
+-- INIT -----------------------------------------------------
+
+count_sel_items = reaper.CountSelectedMediaItems(0)
+
+if count_sel_items > 1 then
+
+  reaper.PreventUIRefresh(1)
+
+  reaper.Undo_BeginBlock()
+
+  Main()
+
+  reaper.Undo_EndBlock("Shuffle order of selected items columns keeping snap offset positions and parent tracks", -1)
+
+  reaper.PreventUIRefresh(-1)
+
+  reaper.UpdateArrange()
+
+end
+
+
+-- Xenakios/SWS: Reposition selected items.
+-- Convert to Lua from SWS C++
+
+
+
+function GetSelectedMediaItemsOnTrack(tr)
+  items = {}
+  for j = 0, reaper.GetTrackNumMediaItems(tr)-1 do
+    local item = reaper.GetTrackMediaItem(tr, j)
+    if reaper.GetMediaItemInfo_Value(item, "B_UISEL") == 1 then items[#items+1] = item end
+  end
+  return items
+end
+
+function hallo()
+
+
+  bEnd = true   -- Start = false, End = true
+
+  for i = 0, reaper.CountTracks(0)-1 do
+    track = reaper.CSurf_TrackFromID(i + 1, false)
+    items = GetSelectedMediaItemsOnTrack(track)
+    for j = 2, #items do
+      dPrevItemStart = reaper.GetMediaItemInfo_Value(items[j-1], "D_POSITION")
+      dNewPos = dPrevItemStart 
+      if (bEnd) then
+        dNewPos = dNewPos + reaper.GetMediaItemInfo_Value(items[j-1], "D_LENGTH")
+      end
+      reaper.SetMediaItemInfo_Value(items[j], "D_POSITION", dNewPos)
+    end
+  end
+end
+
+hallo()
+
+end
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------ORDER_PITCH---------------------------------------------------------------------------------------------------------------------------
@@ -9337,8 +9495,8 @@ function getTrackByName(name)
             return track -- found it! stopping the search here
         end 
     end
-    return nil -- track not found
 end
+
 
 function shuffle_order(selected_items)
     local start_pos = selected_items[1].pos
@@ -9356,43 +9514,17 @@ function shuffle_order(selected_items)
     end
 end
 
-local chord_track = getTrackByName("chordtrack")
+local track = getTrackByName("chordtrack")
 
 local chord_items = {}
 
-if chord_track then
-    for i = 0, reaper.CountTrackMediaItems(chord_track) - 1 do
-        local item = reaper.GetTrackMediaItem(chord_track, i)
-        local start_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-        local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-        local end_pos = start_pos + length + 0.01
+for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+    local item = reaper.GetTrackMediaItem(track, i)
+    local start_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+    local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+    local end_pos = start_pos + length
 
-        table.insert(chord_items, {start_pos = start_pos, end_pos = end_pos})
-    end
-end
-
-if #chord_items == 0 then
-    -- If no chord items found, create one based on selected items
-    local selected_items = {}
-
-    for i = 0, reaper.CountSelectedMediaItems(0) - 1 do
-        local item = reaper.GetSelectedMediaItem(0, i)
-        local start_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-        local end_pos = start_pos + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")+0.01
-
-        table.insert(selected_items, {start_pos = start_pos, end_pos = end_pos})
-    end
-
-    if #selected_items > 0 then
-        -- Sort selected items based on position
-        table.sort(selected_items, function(a, b) return a.start_pos < b.start_pos end)
-
-        -- Create a chord item based on the first and last selected item
-        local start_pos = selected_items[1].start_pos
-        local end_pos = selected_items[#selected_items].end_pos
-
-        table.insert(chord_items, {start_pos = start_pos, end_pos = end_pos})
-    end
+    table.insert(chord_items, {start_pos = start_pos, end_pos = end_pos})
 end
 
 for j, chord_item in ipairs(chord_items) do
@@ -9418,7 +9550,6 @@ for j, chord_item in ipairs(chord_items) do
         shuffle_order(selected_items)
     end
 end
-
 end
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------ORDER_RATE---------------------------------------------------------------------------------------------------------------------------
@@ -13457,11 +13588,7 @@ end
 --========================== chord_progression ===========================================================
 --==========================================================================================================
 
-
-function chord_progression_new(ca)
-
-function chord_progression()
-
+function chord_progression(ca)
 
 
 
@@ -13525,33 +13652,33 @@ one_bar = tonumber((reaper.GetCursorPosition()-start_time))
 bar = math.floor(one_bar*10000000000)/10000000000
 
 
-     c = {[1]={"C",1,"G",1,"Am",1,"Em",1,"F",1,"C",1,"F",1,"G",1}, -- Pachelbel`s Canon progression 
-          [2]={"C",1,"Am",1,"F",1,"G",1}, -- 50s progression - I-vi-IV-V
-          [3]={"Dm",1,"G",1,"C",1,"C",1}, -- Cadence progression - ii-V-I
-          [4]={"C",1,"C",1,"F",1,"G",1},  -- Happy progression - I-I-IV-V
-          [5]={"Am",1,"F",1,"C",1,"G",1}, -- Sad 1 progression  vi-IV-I-V
-          [6]={"Am",1,"Em",1,"G",1,"F",1}, -- Sad 2 progression  vi-iii-V-IV
+     c = {[1]={"C",1,"G7",1,"Am",1,"Em",1,"F",1,"C",1,"F",1,"G7",1}, -- Pachelbel`s Canon progression 
+          [2]={"C",1,"Am",1,"F",1,"G7",1}, -- 50s progression - I-vi-IV-V
+          [3]={"Dm7",1,"G7",1,"C",1,"C",1}, -- Cadence progression - ii-V-I
+          [4]={"C",1,"C",1,"F",1,"G7",1},  -- Happy progression - I-I-IV-V
+          [5]={"Am",1,"F",1,"C",1,"G7",1}, -- Sad 1 progression  vi-IV-I-V
+          [6]={"Am",1,"Em",1,"G7",1,"F",1}, -- Sad 2 progression  vi-iii-V-IV
           [7]={"Cm",1,"Gm",1,"Bb",1,"Fm",1}, -- Sad 3 progression  i-v-bVII-iv
           [8]={"Cm",1,"Gm",1,"Bb",1,"F",1}, -- sadder progression  i-v-bVII-IV
-          [9]={"Am",1,"G",1,"F",1,"G",1}, -- Uplifting progression vi-V-IV-V
-         [10]={"C",1,"Bb",1,"Ab",1,"G",1},-- Andalusian Cadence progression I-bVII-BVI-V
-         [11]={"C",1,"F",1,"Am",1,"G",1},-- Storyteller progression vi-V-IV-V
+          [9]={"Am",1,"G7",1,"F",1,"G7",1}, -- Uplifting progression vi-V-IV-V
+         [10]={"C",1,"Bb",1,"Ab",1,"G7",1},-- Andalusian Cadence progression I-bVII-BVI-V
+         [11]={"C",1,"F",1,"Am",1,"G7",1},-- Storyteller progression vi-V-IV-V
          [12]={"C",1,"Dm",1,"C",1,"F",1},-- Bass Player progression
-         [13]={"F",1,"C",1,"G",1,"G",1}, -- Journey progression 
-         [14]={"F",1,"G",1,"E",1,"Am",1},-- Secondary Dominants progression
-         [15]={"Am",1,"Dm",1,"G",1,"C",1},-- Circle progression 
+         [13]={"F",1,"C",1,"G7",1,"G7",1}, -- Journey progression 
+         [14]={"F",1,"G7",1,"E",1,"Am",1},-- Secondary Dominants progression
+         [15]={"Am",1,"Dm",1,"G7",1,"C",1},-- Circle progression 
          [16]={"F",1,"Fm",1,"C",1,"C",1},-- Minor Change progression 
-         [17]={"C",1,"F",1,"G",1,"G",1},-- La Bamba progression 
-         [18]={"C",1,"Ab",1,"Am",1,"G",1},-- Epic progression 
-         [19]={"C",4,"F",2,"C",2,"G",1,"F",1,"C",1,"G",1},-- Blues 12-bar progression 
-         [20]={"C",1,"F",1,"C",2,"F",2,"C",2,"G",1,"F",1,"C",1,"G",1},-- Blues 12-bar V2 progression vi-V-IV-V
+         [17]={"C",1,"F",1,"G7",1,"G7",1},-- La Bamba progression 
+         [18]={"C",1,"Ab",1,"Am",1,"G7",1},-- Epic progression 
+         [19]={"C",4,"F",2,"C",2,"G7",1,"F",1,"C",1,"G7",1},-- Blues 12-bar progression 
+         [20]={"C7",1,"F7",1,"C7",2,"F7",2,"C7",2,"G7",1,"F7",1,"C7",1,"G7",1},-- Blues 12-bar V2 progression vi-V-IV-V
          [21]={"C",1,"Am",1,"Em",1,"D",1},-- Pop 1 progression 
-         [22]={"C",1,"G",1,"Am",1,"F",1},-- Pop 2 progression 
+         [22]={"C",1,"G7",1,"Am",1,"F",1},-- Pop 2 progression 
          [23]={"C",1,"F",1,"C",1,"G+",1},-- Rock 1 progression 
          [24]={"Cm",1,"Ab",1,"Fm",1,"Fm",1},-- Rock 2 progression 
-         [25]={"F",1,"G",1,"Am",1,"C",1},-- Rock 3 progression 
+         [25]={"F",1,"G7",1,"Am",1,"C",1},-- Rock 3 progression 
          [26]={"C",1,"C",1,"Bb",1,"F",1},-- Rock 4 progression 
-         [27]={"C",1,"G",1,"Dm",1,"F",1},-- Rock 5 progression 
+         [27]={"C",1,"G7",1,"Dm",1,"F",1},-- Rock 5 progression 
          [28]={"Dm7",1,"G7",1,"Cmaj7",2},-- Jazz 1 
          [29]={"Dm7b5",1,"G7",1,"Cm7",2},-- Jazz 2
          [30]={"Cmaj7",1,"Am7",1,"Dm7",1,"G7",1},-- Jazz 3
@@ -13673,7 +13800,6 @@ end
 end
 end
 end
-end
 reaper.Main_OnCommand(40718,0)
 
 commandID2 = reaper.NamedCommandLookup("_SWSMARKERLIST13")
@@ -13681,45 +13807,7 @@ commandID2 = reaper.NamedCommandLookup("_SWSMARKERLIST13")
 reaper.Undo_EndBlock2(0, "Chords from midi item", -1)
 reaper.MIDIEditor_OnCommand( hwnd, 2 ) --File: Close window
 
-
-
-function getTrackByName(name)
-  for trackIndex = 0, reaper.CountTracks(0) - 1 do
-    local track = reaper.GetTrack(0, trackIndex)
-    local ok, trackName = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
-
-    if ok and trackName == name then
-      return track -- found it! stopping the search here
-    end
-  end
 end
-
-local track = getTrackByName("chordtrack")
-
-if track == nil then do 
---if ctrack == nil then
-reaper.Main_OnCommand(reaper.NamedCommandLookup("_SWS_CREATETRK1"),0)-- insert track at top
-ctrack=reaper.GetSelectedTrack( 0, 0 )
-reaper.GetSetMediaTrackInfo_String(ctrack, "P_NAME", "chordtrack", true)
-reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
-if ctrack then 
-reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
-reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
-reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
-reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
-
-  color = reaper.ColorToNative(95,175,178)
-  reaper.SetTrackColor(ctrack, color)
-  end
-
-chord_progression(ca)
-end
-else
-
-chord_progression(ca)
-end
-end
-
 --==============================================================================================
 --================================== metadata entries in render region =========================
 --==============================================================================================
@@ -13729,6 +13817,9 @@ end
 -- https://forum.cockos.com/showthread.php?t=259165
 
 function metadata_entries_2_region()
+local function Msg(str)
+  reaper.ShowConsoleMsg(tostring(str) .. "\n")
+end
 local _, rg_idx = reaper.GetLastMarkerAndCurRegion( 0,  reaper.GetCursorPositionEx( 0 ) )
 if rg_idx == -1 then
   reaper.ShowConsoleMsg( "Edit cursor not inside a region!" )
@@ -13750,10 +13841,10 @@ if proj_started ~= "" then -- if not empty string
   day = string.sub(proj_started, 1,2) 
   month = string.sub(proj_started, 4,5) 
   year = string.sub(proj_started, 7,10) 
-  
+ 
 end
 
-local start =  year .. "-" .. month .. "-" .. day
+local start =  year.."-"..month .."-"..day
 
 -------------Work Timer----------
 function restore_time() 
@@ -13773,7 +13864,7 @@ function sec_to_ddhhmm(time_sec)
 end
 
 restored_time_sec = restore_time()
-local timer =  sec_to_ddhhmm(restored_time_sec)
+local work_timer =  sec_to_ddhhmm(restored_time_sec)
 
 ------------------------------------------------------------------
 --rating, genre, finished, deadline---- Get User Input------------
@@ -13842,7 +13933,7 @@ local ok = reaper.SetProjectMarker4( 0, markrgnindexnumber, isrgn, pos, rgnend,
                                           ";   Key="..key..
                                           ";   Genre="..genre..
                                           ";   Finished="..finished..
-                                          ";   WorkTimer="..timer..
+                                          ";   Work_Timer="..work_timer..
                                           ";", color, tr_name == "" and 1 or 0 )
 if ok then
   reaper.Undo_OnStateChangeEx2( 0, "Timer to Region", 8, -1 )

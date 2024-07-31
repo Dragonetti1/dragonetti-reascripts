@@ -1,10 +1,10 @@
--- @version 1.9.9.3
+-- @version 1.9.9
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + chordtrack is automatically generated when a progression is selected
+--    + Randomizer
 
 
 ------------------------------
@@ -264,7 +264,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'B##2',32,y) then startoffs_right() reaper.SetCursorContext(1, nil)end 
                reaper.ImGui_PopFont(ctx)
                ToolTip(tt, "useful for longer midi or audio phrases \ncontent one grid right")
-            if reaper.ImGui_Button(ctx, 'rand', (btn_w*2)+(spacing_x*1),y) then shuffle_startoffs() reaper.SetCursorContext(1, nil)end
+            if reaper.ImGui_Button(ctx, 'rand', (btn_w*2)+(spacing_x*1),y) then random_startoffs() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "useful for longer midi or audio phrases \ncontent start random depending on grid")               
                reaper.ImGui_EndGroup(ctx)
                
@@ -481,7 +481,6 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
            if reaper.ImGui_Button(ctx, 'reverse', (btn_w*2)+(spacing_x*1),y) then reverse_items()reaper.SetCursorContext(1, nil)end
               
            if reaper.ImGui_Button(ctx, 'rand or', (btn_w*2)+(spacing_x*1),y) then order_shuffle_chords() reaper.SetCursorContext(1, nil)end
-              ToolTip(tt, "shuffle within the chords (if available)")
               reaper.ImGui_EndGroup(ctx) 
         
 --========================= MIDI  ============================================================================  
@@ -560,25 +559,25 @@ local pattern ={
                ToolTip(tt, "Creates a chordtrack at the top if already available - move above selected track")
                
 local chords = {
-'  Pachelbel"s Canon  -  C G Am Em F C F G',
-'  50s progression  -  C Am F G',
-'  Cadence progression  -  Dm G C',
-'  Happy progression  -  C C F G',
-'  Sad 1 progression  -  Am F C G',
-'  Sad 2 progression  -  Am Em G F',
+'  Pachelbel"s Canon  -  C G7 Am Em F C F G7',
+'  50s progression  -  C Am F G7',
+'  Cadence progression  -  Dm7 G7 C',
+'  Happy progression  -  C C F G7',
+'  Sad 1 progression  -  Am F C G7',
+'  Sad 2 progression  -  Am Em G7 F',
 '  Sad 3 progression  -  Cm Gm Bb Fm',
 '  Sadder progression  -  Cm Gm Bb F',
-'  Uplifting progression  -  Am G F G',
-'  Andalusian Cadence progression  -  Cm Bb Ab G',
-'  Storyteller progression  -  C F Am G',
+'  Uplifting progression  -  Am G7 F G7',
+'  Andalusian Cadence progression  -  Cm Bb Ab G7',
+'  Storyteller progression  -  C F Am G7',
 '  Bass Player progression  -  C Dm C F',
-'  Journey progression  -  F C G G',
-'  Secondary Dominants progression  -  F G E Am',
-'  Circle progression  -  Am Dm G C',
+'  Journey progression  -  F C G G7',
+'  Secondary Dominants progression  -  F G7 E Am',
+'  Circle progression  -  Am Dm G7 C',
 '  Minor Change progression  -  F Fm C C',
-'  La Bamba progression  -  C F G F',
-'  Epic progression  -  C Ab G G',
-'  Blues 12-bar progression  -  C(4x) F(2x) C(2x) G F C G',
+'  La Bamba progression  -  C F G7 F',
+'  Epic progression  -  C Ab G7 G7',
+'  Blues 12-bar progression  -  C(4x) F(2x) C(2x) G F C G7',
 '  Blues 12-bar V2 progression  -  C F C C F F C C G F C G',
 '  Pop 1 progression  -  C Am Em D',
 '  Pop 2 progression  -  C G Am F',
@@ -604,7 +603,7 @@ local chords = {
                   for i, chord in ipairs(chords) do
                      i = i
                   if reaper.ImGui_Selectable(ctx, chord, ca == i) then
-                  chord_progression_new(i)
+                  chord_progression(i)
                    end
                    if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                   end
