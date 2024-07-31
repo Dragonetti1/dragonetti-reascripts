@@ -1,10 +1,10 @@
--- @version 1.9.9
+-- @version 2.0
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + Randomizer
+--    + bug_fixes
 
 
 ------------------------------
