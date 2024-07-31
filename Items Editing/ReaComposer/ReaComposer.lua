@@ -1,10 +1,10 @@
--- @version 2.0
+-- @version 2.0.1
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + bug_fixes
+--    + design fix
 
 
 ------------------------------
