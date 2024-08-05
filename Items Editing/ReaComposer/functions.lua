@@ -9629,13 +9629,23 @@ local track = getTrackByName("chordtrack")
 
 local chord_items = {}
 
-for i = 0, reaper.CountTrackMediaItems(track) - 1 do
-    local item = reaper.GetTrackMediaItem(track, i)
-    local start_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
-    local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-    local end_pos = start_pos + length
+-- Check if the track is valid
+if track then
+    local item_count = reaper.CountTrackMediaItems(track)
+    if item_count > 0 then
+        for i = 0, item_count - 1 do
+            local item = reaper.GetTrackMediaItem(track, i)
+            local start_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+            local length = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+            local end_pos = start_pos + length
 
-    table.insert(chord_items, {start_pos = start_pos, end_pos = end_pos})
+            table.insert(chord_items, {start_pos = start_pos, end_pos = end_pos})
+        end
+    else
+        reaper.ShowMessageBox("No media items found on the track.", "Error", 0)
+    end
+else
+    reaper.ShowMessageBox("Track not found: chordtrack", "Error", 0)
 end
 
 for j, chord_item in ipairs(chord_items) do
@@ -10582,6 +10592,7 @@ function chordsymbol_trans_up()
    
    
                    ctrack = getTrackByName("chordtrack")
+                   if ctrack == nil then return end
              count_chords = reaper.CountTrackMediaItems(ctrack)
      start_time, end_time = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
               count_items = reaper.CountSelectedMediaItems(0)
@@ -10691,6 +10702,7 @@ function chord_up(item_notes)
 
 
                 ctrack = getTrackByName("chordtrack")
+                if ctrack == nil then return end
           count_chords = reaper.CountTrackMediaItems(ctrack)
   start_time, end_time = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
            count_items = reaper.CountSelectedMediaItems(0)
@@ -10800,6 +10812,7 @@ function chord_up(item_notes)
 
 
                 ctrack = getTrackByName("chordtrack")
+                if ctrack == nil then return end
           count_chords = reaper.CountTrackMediaItems(ctrack)
   start_time, end_time = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
            count_items = reaper.CountSelectedMediaItems(0)
@@ -10977,6 +10990,7 @@ function chordsymbol_trans_down()
     
     
                     ctrack = getTrackByName("chordtrack")
+                    if ctrack == nil then return end
               count_chords = reaper.CountTrackMediaItems(ctrack)
       start_time, end_time = reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
                count_items = reaper.CountSelectedMediaItems(0)
@@ -13084,7 +13098,9 @@ end
 function chords_34()
     retval, filetxt = reaper.GetUserFileNameForRead("", "Import Chords from SGU,MGU...", "")
     
-    --print(GetFilename(filetxt))
+    if not retval or filetxt == "" then
+        return -- Beendet das Skript sicher, wenn keine Datei ausgewählt wurde
+    end
     
     f = assert(io.open(filetxt, "rb"))
     
@@ -13321,9 +13337,11 @@ end
 function chords_44()
     retval, filetxt = reaper.GetUserFileNameForRead("", "Import Chords from SGU,MGU...", "")
     
-    --print(GetFilename(filetxt))
-    
+   if not retval or filetxt == "" then
+       return -- Beendet das Skript sicher, wenn keine Datei ausgewählt wurde
+   end
     f = assert(io.open(filetxt, "rb"))
+    if f == nil then return end
     
     local first_byte_sig = f:read(1)
     local name_bytes = f:read(1)
@@ -13741,7 +13759,22 @@ function getTrackByName(name)
 end
 
  ctrack = getTrackByName("chordtrack")
- if ctrack == nil then Msg("no chordtrack") end
+  if ctrack == nil then 
+  
+ -- create chordtrack 
+ create_track = reaper.NamedCommandLookup("_SWS_CREATETRK1")
+ reaper.Main_OnCommand(create_track,0)
+  ctrack = reaper.GetTrack( 0, 0 )
+  reaper.GetSetMediaTrackInfo_String(ctrack, 'P_NAME', 'chordtrack', true)
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
+  reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
+  reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
+  color = reaper.ColorToNative(95,175,178)
+  reaper.SetTrackColor(ctrack, color)
+ 
+ end 
 
 if ctrack then -- if a track named "Structure" was found
   reaper.SetOnlyTrackSelected(ctrack)

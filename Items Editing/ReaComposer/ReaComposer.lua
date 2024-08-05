@@ -1,12 +1,14 @@
--- @version 2.0.1
+-- @version 2.0.2
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + design fix
+--    + imgui fix 
+--    + other bug fixes
 
-
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.8'
 ------------------------------
 info = debug.getinfo(1,'S')
 local script_path = info.source:match[[^@?(.*[\/])[^\/]-$]] -- this script folder
@@ -493,7 +495,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0x34D632AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x1A6E19AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x34D632AA)
-            if reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y) then midi_creator() reaper.SetCursorContext(1, nil)end
+               reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y)
                reaper.ImGui_PopStyleColor(ctx, 3)
 local pattern ={
 "1 -- guitar - Mothership Connection",
@@ -533,11 +535,14 @@ local pattern ={
             if reaper.ImGui_BeginCombo(ctx, '##pattern', "    pattern",  reaper.ImGui_ComboFlags_NoArrowButton()) then
                for i, pat in ipairs(pattern) do
                  i = i
+                 
             if reaper.ImGui_Selectable(ctx, pat, index == i) then midi_pattern(i) end
+           
             if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                end
                reaper.ImGui_EndCombo(ctx)
-               end           
+               end 
+               ToolTip(tt, "some midi patterns \nyou need a \nTime Selection")
             if reaper.ImGui_Button(ctx, 'SEQ', (btn_w*2)+(spacing_x*1),y) then midi_creator() reaper.SetCursorContext(1, nil)end 
                ToolTip(tt, "Generates midi notes in time selection\n1 for one grid\n2 for two grids\netc. \nfor selected tracks")
             if reaper.ImGui_Button(ctx, 'pat.',  btn_w,y) then midi_rand() reaper.SetCursorContext(1, nil)end
@@ -671,12 +676,13 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
                         ToolTip(tt, "loads the appropriate xml file for the audio file.(if available)\nselect track and don't allow import midi tempo..")
                         reaper.ImGui_SameLine(ctx)
              if reaper.ImGui_Button(ctx, 'Col',(btn_w),y) then reaper.Main_OnCommand(40357,0) reaper.Main_OnCommand(40707,0) end 
+             ToolTip(tt, "Change Track Color")
              if reaper.ImGui_Button(ctx, 'Ren.', (btn_w),y) then create_render_region() end 
              ToolTip(tt, "create a render region")
              reaper.ImGui_SameLine(ctx)
              if reaper.ImGui_Button(ctx, 'Rig.', (btn_w),y) then metadata_entries_2_region() reaper.SetCursorContext(1, nil)end 
              ToolTip(tt, "additional metadata \nfor the rendered song(mp3,wav..) \nyou need a render region")
-             if reaper.ImGui_Button(ctx, 'RANDOMI', (btn_w*2)+(spacing_x*1),y) then randomizer() reaper.SetCursorContext(1, nil)end 
+             if reaper.ImGui_Button(ctx, 'randomizer', (btn_w*2)+(spacing_x*1),y) then randomizer() reaper.SetCursorContext(1, nil)end 
              ToolTip(tt, "Start with the randomizer \nif you need a little inspiration")
              reaper.ImGui_EndGroup(ctx)    
              
