@@ -6,7 +6,7 @@
 --==================================================================================================================================
 --============================ crazy item length ========================================
 --==========================================================================================
--- crazy item length (beta)
+-- crazy item length (beta) 
 -- script by dragonetti and sexan
 --function crazy_item_length()
 local function Msg(str)
@@ -13592,7 +13592,22 @@ function getTrackByName(name)
 end
 
  ctrack = getTrackByName("chordtrack")
- if ctrack == nil then Msg("no chordtrack") end
+if ctrack == nil then 
+  
+ -- create chordtrack 
+ create_track = reaper.NamedCommandLookup("_SWS_CREATETRK1")
+ reaper.Main_OnCommand(create_track,0)
+  ctrack = reaper.GetTrack( 0, 0 )
+  reaper.GetSetMediaTrackInfo_String(ctrack, 'P_NAME', 'chordtrack', true)
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
+  reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
+  reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
+  color = reaper.ColorToNative(95,175,178)
+  reaper.SetTrackColor(ctrack, color)
+ 
+ end 
 
 if ctrack then -- if a track named "Structure" was found
   reaper.SetOnlyTrackSelected(ctrack)
@@ -13633,29 +13648,28 @@ end
 
 
 local ret, fn = reaper.GetUserFileNameForRead(reaper.GetProjectPath("").."\\*.*", "Project path:", "")
-if ret then
-local file = io.open(fn, "r")
-   chords = {}
-   count = 1
-
- -- read each line of the file
- for line in file:lines() do
-   -- look for lines that contain chord symbols
-   for chord_symbol in line:gmatch("%[(%w+)%]") do
-     -- add the chord symbol to the table
-     chords[count] = chord_symbol
-     count = count + 1
-   end
- end
- 
- -- close the file
- file:close()
-
- 
- 
-
-  -- ...
+if not ret then 
+  return 
 end
+
+local file = io.open(fn, "r")
+chords = {}
+count = 1
+
+-- read each line of the file
+for line in file:lines() do
+  -- look for lines that contain chord symbols
+  for chord_symbol in line:gmatch("%[(%w+)%]") do
+    -- add the chord symbol to the table
+    chords[count] = chord_symbol
+    count = count + 1
+  end
+end
+
+-- close the file
+file:close()
+
+
 function CreateTextItem(track, position, length, text, color)
    if track ==  nil then return end
   local item = reaper.AddMediaItemToTrack(track)
@@ -13696,7 +13710,22 @@ function getTrackByName(name)
 end
 
  ctrack = getTrackByName("chordtrack")
- if ctrack == nil then Msg("no chordtrack") end
+if ctrack == nil then 
+  
+ -- create chordtrack 
+ create_track = reaper.NamedCommandLookup("_SWS_CREATETRK1")
+ reaper.Main_OnCommand(create_track,0)
+  ctrack = reaper.GetTrack( 0, 0 )
+  reaper.GetSetMediaTrackInfo_String(ctrack, 'P_NAME', 'chordtrack', true)
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
+  reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
+  reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
+  color = reaper.ColorToNative(95,175,178)
+  reaper.SetTrackColor(ctrack, color)
+ 
+ end 
 
 if ctrack then -- if a track named "Structure" was found
   reaper.SetOnlyTrackSelected(ctrack)
@@ -13741,7 +13770,16 @@ function CreateTextItem(track, position, length, text, color)
   if color ~= nil then
     reaper.SetMediaItemInfo_Value(item, "I_CUSTOMCOLOR", color)
   end
-
+  if item then
+              -- Hole den XML-Chunk des Items
+              local _, item_chunk = reaper.GetItemStateChunk(item, "", false)
+  
+              -- Setze den IMGRESOURCEFLAGS-Wert auf 3
+              local new_chunk = item_chunk:gsub("IMGRESOURCEFLAGS %d+", "IMGRESOURCEFLAGS 3")
+  
+              -- Setze den modifizierten XML-Chunk zurück
+              reaper.SetItemStateChunk(item, new_chunk, false)
+          end
   return item
 
 end
@@ -14139,7 +14177,7 @@ for i = 0, selItemsCount - 1 do
   src_bpm = tonumber(({reaper.CF_GetMediaSourceMetadata( source, "BPM", "" )})[2]) or
    tonumber(({reaper.CF_GetMediaSourceMetadata( source, "bpm", "" )})[2])
  local nameandpath = reaper.GetMediaSourceFileName(source, "",512 )
- local name =   string.sub(nameandpath,1, -5) ..".musicxml"  
+ local name =   string.sub(nameandpath,1, -5) ..".xml"  
  
    
  
@@ -14184,7 +14222,7 @@ TakeXml = reaper.GetMediaItemTake( ItemXml,0 )
 
 
 
-reaper.BR_SetMidiTakeTempoInfo( TakeXml, true, src_bpm, src_bpm, 0 ) 
+--reaper.BR_SetMidiTakeTempoInfo( TakeXml, true, src_bpm, src_bpm, 0 ) 
 
 ---------------------------------------------------------------------------
 

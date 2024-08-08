@@ -1,11 +1,10 @@
--- @version 2.0.2
+-- @version 2.0.3
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + imgui fix 
---    + other bug fixes
+--    + chordtrack text height
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.8'
@@ -659,10 +658,10 @@ mods = {"  sudden dominant (2items)", "  minor subdominant (2items)", "  subdomi
                   ToolTip(tt, "add extension to chord symbol  \nmaj7 m7b9 7aug ...")
                   reaper.ImGui_SameLine(ctx)
                if reaper.ImGui_Button(ctx, 'pro',32,22) then convert_chordpro() reaper.SetCursorContext(1, nil)end
-                  ToolTip(tt, "import ChordPro File,extract Chords  \nyou can find many ChordPro files on the internet")
+                  ToolTip(tt, "import ChordPro File,extract Chords  \nyou can find many ChordPro files on the internet \nhttps://ozbcoz.com/Songs/cp/index.php?instr=soprano")
                   reaper.ImGui_SameLine(ctx)
                   if reaper.ImGui_Button(ctx, 'SGU',32,22) then import_biab_song() reaper.SetCursorContext(1, nil)end
-                  ToolTip(tt, "import BIAB Songs")
+                  ToolTip(tt, "import BIAB Songs\nsearch: \nsteelguitarforum biab tracks")
                   reaper.ImGui_EndGroup(ctx) 
              
 --========================= OTHER ============================================================================   
