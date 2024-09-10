@@ -1,11 +1,12 @@
--- @version 2.0.3
+-- @version 2.0.4
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + chordtrack text height
+--    + create midi track
 
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.8'
 ------------------------------
@@ -494,7 +495,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0x34D632AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x1A6E19AA)
                reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x34D632AA)
-               reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y)
+             if  reaper.ImGui_Button(ctx, 'MIDI', (btn_w*2)+(spacing_x*1),y) then create_midi_track() chord_builder() pitch_comp() end
+               ToolTip(tt, "***THE BEGINNIG*** \ncreate a time selection \nload a chord progression \nthen push this button")
                reaper.ImGui_PopStyleColor(ctx, 3)
 local pattern ={
 "1 -- guitar - Mothership Connection",

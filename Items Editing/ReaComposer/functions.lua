@@ -9748,6 +9748,112 @@ end
 sort_items_by_length()
 end
 --======================================================================================================
+--======================================= Create_Midi_Track ============================================
+--=======================================================================================================
+
+function create_midi_track()
+-- Start an undo block
+reaper.Undo_BeginBlock()
+
+-- Get the current project
+project = 0
+
+-- Get the current time selection
+start_time, end_time = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
+
+-- Calculate the length of 1 bar based on the project tempo and time signature
+measures = 1 -- we want each note to be 1 bar long
+bar_len = reaper.TimeMap2_beatsToTime(project, measures * 4) -- assuming 4/4 time
+
+-- Define the note pitch (C4, MIDI note 60)
+note_pitch = 60
+
+-- Define turquoise color
+turquoise_color = reaper.ColorToNative(64, 224, 208) | 0x1000000 -- RGB (64, 224, 208)
+
+-- Create the folder track (parent)
+folderTrackIdx = reaper.CountTracks(project) -- This gets the next available track index
+reaper.InsertTrackAtIndex(folderTrackIdx, true)
+folderTrack = reaper.GetTrack(project, folderTrackIdx)
+
+-- Set the folder track to be a folder parent
+reaper.SetMediaTrackInfo_Value(folderTrack, "I_FOLDERDEPTH", 1)
+
+-- Set folder track volume to -12 dB
+reaper.SetMediaTrackInfo_Value(folderTrack, "D_VOL", 10 ^ (-12 / 20))
+
+-- Load ReaSynth on the folder track
+vstName = "ReaSynth (Cockos)"  -- VSTi name as it appears in REAPER
+fxIdx = reaper.TrackFX_AddByName(folderTrack, vstName, false, -1) 
+
+-- Set ReaSynth parameters: Sustain to -inf (parameter 5) and Sawtooth mix to 0.5 (parameter 1)
+reaper.TrackFX_SetParam(folderTrack, fxIdx, 9, -80)     -- Sustain to -80
+reaper.TrackFX_SetParam(folderTrack, fxIdx,3, 0.4)   -- sawtooth mix to 0.4
+reaper.TrackFX_SetParam(folderTrack, fxIdx,6, 0.03)-- decay to 451ms
+
+-- Set folder track color to turquoise
+reaper.SetTrackColor(folderTrack, turquoise_color)
+-- Set folder track name to "ReaSynth"
+reaper.GetSetMediaTrackInfo_String(folderTrack, "P_NAME", "ReaSynth", true)
+
+-- Create 4 MIDI tracks (child tracks) under the folder track
+all_items = {} -- Table to store references to all created items
+
+for i = 1, 4 do
+  trackIdx = folderTrackIdx + i
+  reaper.InsertTrackAtIndex(trackIdx, true)
+  midiTrack = reaper.GetTrack(project, trackIdx)
+  
+  -- Set these tracks as folder children
+  reaper.SetMediaTrackInfo_Value(midiTrack, "I_FOLDERDEPTH", 0)
+  
+  -- Set child track color to turquoise
+  reaper.SetTrackColor(midiTrack, turquoise_color)
+
+  -- Create MIDI items that fill the entire time selection
+  if start_time ~= end_time then  -- Check if time selection is active
+    current_time = start_time
+    while current_time < end_time do
+      -- Create MIDI item for each bar
+      item = reaper.CreateNewMIDIItemInProj(midiTrack, current_time, current_time + bar_len, false)
+      take = reaper.GetMediaItemTake(item, 0)
+      
+      -- Insert a C4 note (MIDI note number 60) with bar length
+      reaper.MIDI_InsertNote(take, false, false, reaper.MIDI_GetPPQPosFromProjTime(take, current_time),
+                             reaper.MIDI_GetPPQPosFromProjTime(take, current_time + bar_len-0.02),
+                             0, note_pitch, 100, false)
+
+      -- Set the item length to 1 bar
+      reaper.SetMediaItemLength(item, bar_len, false)
+
+      -- Add the item to the all_items table
+      table.insert(all_items, item)
+
+      -- Move to the next bar position
+      current_time = current_time + bar_len
+    end
+  end
+end
+
+-- Select all created items
+for _, item in ipairs(all_items) do
+  reaper.SetMediaItemSelected(item, true)
+end
+
+-- Set the last MIDI track as the folder end
+lastMidiTrack = reaper.GetTrack(project, folderTrackIdx + 4)
+reaper.SetMediaTrackInfo_Value(lastMidiTrack, "I_FOLDERDEPTH", -1)
+
+-- End the undo block
+reaper.Undo_EndBlock("Create Folder Track with 4 MIDI Tracks, ReaSynth, and MIDI Items", -1)
+
+-- Update the arrangement to reflect changes
+reaper.UpdateArrange()
+
+
+
+end
+--======================================================================================================
 --====================================== Midi_Pattern ==================================================
 --=====================================================================================================
 function midi_pattern(index)
