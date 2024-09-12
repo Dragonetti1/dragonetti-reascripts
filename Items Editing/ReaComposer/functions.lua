@@ -740,6 +740,136 @@ reaper.SetCursorContext(1,0)
 
 end
 end
+--====================================================================================================================
+--======================================= Split_items_by_pattern =======================================================
+--=========================================================================================================================
+function split_items_by_pattern()
+-- Funktion zum Zerschneiden eines Items basierend auf einer fortlaufenden Sequenz
+function split_item_by_sequence(item, sequence, note_length)
+    local item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+    local item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+    local item_end = item_pos + item_len
+
+    -- Länge des Notenwerts in Sekunden berechnen
+    local note_length_in_seconds = (240 / reaper.Master_GetTempo()) / notex
+
+    -- Berechne die Schnittpositionen basierend auf der Sequenz
+    local cut_positions = {}
+    local cumulative_offset = 0
+
+    -- Berechne die Positionen für Schnitte gemäß der fortlaufenden Sequenz
+    for i = 1, #sequence do
+        local value = sequence[i]
+        cumulative_offset = cumulative_offset + (value * note_length_in_seconds)
+        if cumulative_offset < item_len then
+            table.insert(cut_positions, item_pos + cumulative_offset)
+        end
+    end
+
+    -- Sortiere Schnittpositionen aufsteigend
+    table.sort(cut_positions)
+
+    -- Führe die Schnitte durch
+    local last_cut_pos = item_pos
+
+    for i = 1, #cut_positions do
+        local cut_position = cut_positions[i]
+
+        -- Sicherstellen, dass der Schnitt innerhalb der Item-Länge liegt und nach der letzten Schnittposition erfolgt
+        if cut_position < item_end and cut_position > last_cut_pos then
+            -- SplitMediaItem führt den Schnitt durch und gibt das rechte Split-Item zurück
+            local right_split = reaper.SplitMediaItem(item, cut_position)
+            if not right_split then
+                reaper.ShowMessageBox("Schnitt fehlgeschlagen bei Position " .. cut_position, "Fehler", 0)
+                return
+            end
+
+            -- Update die Position für den nächsten Schnitt
+            last_cut_pos = cut_position
+
+            -- Aktualisiere das Item auf das neu geschnittene rechte Item
+            item = right_split
+        end
+    end
+end
+
+-- Funktion zum Erstellen einer wiederholten Sequenz
+function repeat_sequence(sequence, times)
+    local repeated_sequence = {}
+    for i = 1, times do
+        for _, value in ipairs(sequence) do
+            table.insert(repeated_sequence, value)
+        end
+    end
+    return repeated_sequence
+end
+
+-- Hauptfunktion, die das Script ausführt
+function main()
+    -- Sicherstellen, dass Items ausgewählt sind
+    local item_count = reaper.CountSelectedMediaItems(0)
+    if item_count == 0 then
+        reaper.ShowMessageBox("Keine Items ausgewählt!", "Fehler", 0)
+        return
+    end
+
+    -- Benutzereingabe für das Muster und den Notenwert
+    retval, user_input = reaper.GetUserInputs("Zerschneide Items", 2, "Gib Muster ein (z.B. 123 für 1/16 2/16 3/16), Notenwert (1 für 16tel, 2 für 8tel, 4 für Viertel):", "1,16")
+    if retval then
+        -- Parsen der Eingabe
+        local pattern, note_value = user_input:match("^(.-),(%d+)$")
+        notex = tonumber(note_value)
+
+        if not pattern or not note_value then
+            reaper.ShowMessageBox("Ungültige Eingabe! Bitte gebe Muster und Notenwert korrekt ein.", "Fehler", 0)
+            return
+        end
+
+      
+
+        -- Parsen der Eingabe in eine Sequenz von Schnittrhythmen
+        local sequence = {}
+        for char in pattern:gmatch('%d') do
+            local value = tonumber(char)
+            if value then
+                table.insert(sequence, value)
+            else
+                reaper.ShowMessageBox("Ungültiger Wert in der Sequenz!", "Fehler", 0)
+                return
+            end
+        end
+
+        -- Wiederhole die Sequenz 100-mal
+        local long_sequence = repeat_sequence(sequence, 100)
+
+        
+
+        -- Alle ausgewählten Items bearbeiten
+        reaper.Undo_BeginBlock()
+        reaper.PreventUIRefresh(1)
+
+        -- Erstelle eine Tabelle, um alle ausgewählten Items zu speichern
+        local selected_items = {}
+        for i = 0, item_count - 1 do
+            table.insert(selected_items, reaper.GetSelectedMediaItem(0, i))
+        end
+
+        -- Durchlaufe die Items und zerschneide sie nach der langen Sequenz
+        for i = 1, #selected_items do
+            local item = selected_items[i]
+            split_item_by_sequence(item, long_sequence, note_length_in_seconds)
+        end
+
+        reaper.PreventUIRefresh(-1)
+        reaper.UpdateArrange()
+        reaper.Undo_EndBlock("Items nach langer Sequenz zerschneiden", -1)
+    else
+        reaper.ShowMessageBox("Keine Eingabe erkannt!", "Fehler", 0)
+    end
+end
+
+main()
+end
 ---------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------LENGHT_RANDOM------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------

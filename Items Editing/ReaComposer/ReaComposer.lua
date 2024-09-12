@@ -1,10 +1,10 @@
--- @version 2.0.4
+-- @version 2.0.5
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + create midi track
+--    + split items by pattern
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
@@ -192,8 +192,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'x2', 32,y) then length_double() reaper.SetCursorContext(1, nil)end
                
            
-            if reaper.ImGui_Button(ctx, 'split', 48,32)then reaper.Main_OnCommand(40932,0)end
-               ToolTip(tt, "split at grid")
+            if reaper.ImGui_Button(ctx, 'split', 48,32)then split_items_by_pattern()end
+               ToolTip(tt, "split at by pattern")
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'SEQ##2', 50,32)then length_input() end
                ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
