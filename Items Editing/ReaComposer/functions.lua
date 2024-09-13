@@ -779,10 +779,10 @@ function split_item_by_sequence(item, sequence, note_length)
         if cut_position < item_end and cut_position > last_cut_pos then
             -- SplitMediaItem führt den Schnitt durch und gibt das rechte Split-Item zurück
             local right_split = reaper.SplitMediaItem(item, cut_position)
-            if not right_split then
-                reaper.ShowMessageBox("Schnitt fehlgeschlagen bei Position " .. cut_position, "Fehler", 0)
-                return
-            end
+         --   if not right_split then
+           --     reaper.ShowMessageBox("wrong cut at position " .. cut_position, "error", 0)
+            --    return
+           -- end
 
             -- Update die Position für den nächsten Schnitt
             last_cut_pos = cut_position
@@ -809,19 +809,19 @@ function main()
     -- Sicherstellen, dass Items ausgewählt sind
     local item_count = reaper.CountSelectedMediaItems(0)
     if item_count == 0 then
-        reaper.ShowMessageBox("Keine Items ausgewählt!", "Fehler", 0)
+        reaper.ShowMessageBox("no items selected!", "error", 0)
         return
     end
 
     -- Benutzereingabe für das Muster und den Notenwert
-    retval, user_input = reaper.GetUserInputs("Zerschneide Items", 2, "Gib Muster ein (z.B. 123 für 1/16 2/16 3/16), Notenwert (1 für 16tel, 2 für 8tel, 4 für Viertel):", "1,16")
+    retval, user_input = reaper.GetUserInputs("cut Items by pattern", 2, "pattern (e.g. Bossa Nova 33433), value (1 for 16tel, 2 for 8tel, 4 for quarter,):", "1,16")
     if retval then
         -- Parsen der Eingabe
         local pattern, note_value = user_input:match("^(.-),(%d+)$")
         notex = tonumber(note_value)
 
         if not pattern or not note_value then
-            reaper.ShowMessageBox("Ungültige Eingabe! Bitte gebe Muster und Notenwert korrekt ein.", "Fehler", 0)
+            reaper.ShowMessageBox("wrong input.", "error", 0)
             return
         end
 
@@ -834,7 +834,7 @@ function main()
             if value then
                 table.insert(sequence, value)
             else
-                reaper.ShowMessageBox("Ungültiger Wert in der Sequenz!", "Fehler", 0)
+                reaper.ShowMessageBox("wrong input!", "Fehler", 0)
                 return
             end
         end
@@ -864,7 +864,7 @@ function main()
         reaper.UpdateArrange()
         reaper.Undo_EndBlock("Items nach langer Sequenz zerschneiden", -1)
     else
-        reaper.ShowMessageBox("Keine Eingabe erkannt!", "Fehler", 0)
+        reaper.ShowMessageBox("No Input!", "Fehler", 0)
     end
 end
 

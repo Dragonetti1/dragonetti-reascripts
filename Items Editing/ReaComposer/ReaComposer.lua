@@ -1,4 +1,4 @@
--- @version 2.0.5
+-- @version 2.0.6
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
@@ -193,7 +193,7 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                
            
             if reaper.ImGui_Button(ctx, 'split', 48,32)then split_items_by_pattern()end
-               ToolTip(tt, "split at by pattern")
+               ToolTip(tt, "split by pattern")
                reaper.ImGui_SameLine( ctx)
             if reaper.ImGui_Button(ctx, 'SEQ##2', 50,32)then length_input() end
                ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
