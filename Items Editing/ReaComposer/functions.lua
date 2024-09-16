@@ -19,13 +19,13 @@ local reload_font = false
 -- Initialisiere den Slider-Wert als Zahl
 local am = 0
 local old_am = 0 -- Speichern des alten Werts
-local selected_cu = 1 -- Stelle sicher, dass selected_cu initialisiert ist
+local selected_cu = 15 -- Stelle sicher, dass selected_cu initialisiert ist
 local do_reset_value = false
 
 local function Msg(str)
   reaper.ShowConsoleMsg(tostring(str) .. "\n")
 end
-
+reaper.ImGui_Col_Header()
 function reset_rate_length()
   reaper.Undo_BeginBlock()
   reaper.PreventUIRefresh(1)
@@ -276,6 +276,7 @@ function calculate_items(item_tbl, idx, cu, am)
   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  
    function twoandtwo(seq,idx)
            seq_len = #seq 
            normalized_idx = ((idx-1 ) % seq_len) +1
@@ -314,8 +315,6 @@ function calculate_items(item_tbl, idx, cu, am)
 end
 
 local function contents()
-  -- Zeige den Slider für Amplitude (am)
-  ImGui.Text(ctx, 'Amplitude (am)')
 
   -- Sicherstellen, dass der Slider-Wert als Zahl gesetzt wird
   local changed, new_am = ImGui.SliderDouble(ctx, '##am', am, -50.0, 50.0)
@@ -332,182 +331,107 @@ if ImGui.Button(ctx, 'RESET') then reset_rate_length() am = 0 end
   if do_reset_value and not ImGui.IsItemActive(ctx) then
     do_reset_value, am = false, 0
     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-  --  Msg(am)
+  
   end
 
   
-
-
--- ===================
- local rv = ImGui.RadioButton(ctx, "logerit 1  ", selected_cu == 1)
-   if rv then
-     selected_cu = 1
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "logerit 2  ", selected_cu == 2)
-   if rv then
-     selected_cu = 2
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   
-   
-   rv = ImGui.RadioButton(ctx, "logerit 8  ", selected_cu == 3)
-   if rv then
-     selected_cu = 3
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "logerit 4  ", selected_cu == 4)
-   if rv then
-     selected_cu = 4
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   
-   
-   rv = ImGui.RadioButton(ctx, "Curve 05", selected_cu == 5)
-   if rv then
-     selected_cu = 5
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "Curve 06", selected_cu == 6)
-   if rv then
-     selected_cu = 6
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
- local rv = ImGui.RadioButton(ctx, "Curve 07", selected_cu == 7)
-   if rv then
-     selected_cu = 7
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "Curve 08", selected_cu == 8)
-   if rv then
-     selected_cu = 8
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   
-   
-   rv = ImGui.RadioButton(ctx, "Curve 09", selected_cu == 9)
-   if rv then
-     selected_cu = 9
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "Curve 10", selected_cu == 10)
-   if rv then
-     selected_cu = 10
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   
-   
-   rv = ImGui.RadioButton(ctx, "Curve 11", selected_cu == 11)
-   if rv then
-     selected_cu = 11
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "Curve 12", selected_cu == 12)
-   if rv then
-     selected_cu = 12
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
- local rv = ImGui.RadioButton(ctx, "Curve 13", selected_cu == 13)
-   if rv then
-     selected_cu = 13
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "Curve 14", selected_cu == 14)
-   if rv then
-     selected_cu = 14
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   
-   
-   rv = ImGui.RadioButton(ctx, "swing      ", selected_cu == 15)
+     rv = ImGui.RadioButton(ctx, "swing", selected_cu == 15)
    if rv then
      selected_cu = 15
      crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
    end
-   ImGui.SameLine(ctx)
+  
    
-   rv = ImGui.RadioButton(ctx, "Curve 16", selected_cu == 16)
-   if rv then
-     selected_cu = 16
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   
-   
-   rv = ImGui.RadioButton(ctx, "Gnawa16t", selected_cu == 17)
+   rv = ImGui.RadioButton(ctx, "Gnawa 16th", selected_cu == 17)
    if rv then
      selected_cu = 17
      crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
    end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "Curve 18", selected_cu == 18)
-   if rv then
-     selected_cu = 18
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
- local rv = ImGui.RadioButton(ctx, "3,4 vor    ", selected_cu == 19)
-   if rv then
-     selected_cu = 19
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
-   ImGui.SameLine(ctx)
-   
-   rv = ImGui.RadioButton(ctx, "vien waltz", selected_cu == 20)
-   if rv then
-     selected_cu = 20
-     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-   end
    
    
-   rv = ImGui.RadioButton(ctx, "Gnawa tri", selected_cu == 21)
+   rv = ImGui.RadioButton(ctx, "Gnawa triplet ", selected_cu == 21)
    if rv then
      selected_cu = 21
      crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
    end
-   ImGui.SameLine(ctx)
+
    
-   rv = ImGui.RadioButton(ctx, "Curve 22", selected_cu == 22)
+   rv = ImGui.RadioButton(ctx, "curve 1", selected_cu == 5)
    if rv then
-     selected_cu = 22
+     selected_cu = 5
      crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
    end
    
    
-   rv = ImGui.RadioButton(ctx, "Curve 23", selected_cu == 23)
+   rv = ImGui.RadioButton(ctx, "curve 2", selected_cu == 6)
+   if rv then
+     selected_cu = 6
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+  
+   
+   rv = ImGui.RadioButton(ctx, "curve 3", selected_cu == 7)
+   if rv then
+     selected_cu = 7
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   rv = ImGui.RadioButton(ctx, "curve 4", selected_cu == 16)
+   if rv then
+     selected_cu = 16
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+  
+   
+   rv = ImGui.RadioButton(ctx, "curve 5", selected_cu == 18)
+   if rv then
+     selected_cu = 18
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "curve 6", selected_cu == 23)
    if rv then
      selected_cu = 23
      crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
    end
-   ImGui.SameLine(ctx)
+
    
-   rv = ImGui.RadioButton(ctx, "Curve 24", selected_cu == 24)
+   rv = ImGui.RadioButton(ctx, "curve 7", selected_cu == 24)
    if rv then
      selected_cu = 24
      crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
    end
+   
+   
+   rv = ImGui.RadioButton(ctx, "Viennese waltz (use 3 quarter)", selected_cu == 20)
+   if rv then
+     selected_cu = 20
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+  
+   
+   rv = ImGui.RadioButton(ctx, "exponential 1", selected_cu == 1)
+   if rv then
+     selected_cu = 1
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   rv = ImGui.RadioButton(ctx, "exponential 2", selected_cu == 2)
+   if rv then
+     selected_cu = 2
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   rv = ImGui.RadioButton(ctx, "exponential 4", selected_cu == 4)
+   if rv then
+     selected_cu = 4
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   rv = ImGui.RadioButton(ctx, "exponential 8", selected_cu == 3)
+   if rv then
+     selected_cu = 3
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
         
---  for i = 1, 24 do
---      local rv = ImGui.RadioButton(ctx, "Curve " .. i, selected_cu == i)
---      if rv then
---        selected_cu = i
---        crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
---      end
---    end
---  
+ 
 end
 
 local function loop()
@@ -521,7 +445,7 @@ local function loop()
     ImGui.Attach(ctx, font)
   end
 
- ImGui.SetNextWindowSize(ctx, 200, 360, ImGui.Cond_FirstUseEver)
+ ImGui.SetNextWindowSize(ctx, 200, 410, ImGui.Cond_FirstUseEver)
 
   local visible, open = ImGui.Begin(ctx, 'crazy length',true)
   if visible then

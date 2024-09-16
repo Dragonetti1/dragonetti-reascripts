@@ -1,10 +1,10 @@
--- @version 2.0.7
+-- @version 2.0.8
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + new micro rhythm curves
+--    + new micro rhythm curves new
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
