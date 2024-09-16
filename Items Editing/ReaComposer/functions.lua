@@ -6,194 +6,207 @@
 --==================================================================================================================================
 --============================ crazy item length ========================================
 --==========================================================================================
--- crazy item length (beta) 
--- script by dragonetti and sexan
---function crazy_item_length()
+function crazy_length_1()
+
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9.2'
+local ctx = ImGui.CreateContext('My script')
+
+local font = nil
+local font_size = 12
+local reload_font = false
+
+-- Initialisiere den Slider-Wert als Zahl
+local am = 0
+local old_am = 0 -- Speichern des alten Werts
+local selected_cu = 1 -- Stelle sicher, dass selected_cu initialisiert ist
+local do_reset_value = false
+
 local function Msg(str)
   reaper.ShowConsoleMsg(tostring(str) .. "\n")
 end
 
-
-local r = reaper
-
 function reset_rate_length()
+  reaper.Undo_BeginBlock()
+  reaper.PreventUIRefresh(1)
 
--- local function Msg(str)
---  reaper.ShowConsoleMsg(tostring(str) .. "\n")
---end
+  ItemsSelCount = reaper.CountSelectedMediaItems(0)
+  if ItemsSelCount == 0 then return end
 
+  ItemsSel = {}
+  Idx = 1
+  otherItems = {} 
+  counter = 1
 
-reaper.Undo_BeginBlock()
-reaper.PreventUIRefresh(1)
+  loop_start, loop_end = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false)
+  mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
 
-ItemsSelCount = reaper.CountSelectedMediaItems(0)
-if ItemsSelCount ==0 then return
-end
+  for i = 0, ItemsSelCount - 1 do
+    item = reaper.GetSelectedMediaItem(0, i)
+    take = reaper.GetActiveTake(item) 
+    if take == nil then return end
 
-ItemsSel = {}
-Idx = 1
+    local thisTrack = reaper.GetMediaItem_Track(item)
 
-otherItems = {} 
-counter = 1
-
-loop_start, loop_end = reaper.GetSet_LoopTimeRange(false,true,0,0,false  )
-
-mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
-
-ItemsSelCount = reaper.CountSelectedMediaItems(0)
-
-for i = 0, ItemsSelCount - 1 do
-  item = reaper.GetSelectedMediaItem(0, i)
-  take = reaper.GetActiveTake(item) 
-  if take == nil then return end
-
-  local thisTrack = reaper.GetMediaItem_Track(item)
-
-  if thisTrack == mainTrack then
-   
-    ItemsSel[Idx] = {} 
-    ItemsSel[Idx].thisItem = item
-    ItemsSel[Idx].oldPosition =  reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
-  --  ItemsSel[Idx].oldPlayrate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
-    ItemsSel[Idx].oldLength = reaper.GetMediaItemInfo_Value( item, "D_LENGTH")
-    
-    _,grid = reaper.GetSetProjectGrid( 0, false )
-    start = ItemsSel[1].oldPosition  
-    grid_end = reaper.BR_GetNextGridDivision( start)      
-    grid_length = grid_end - start
-    
-    source = reaper.GetMediaItemTake_Source( take ) reaper.GetMediaItemTake_Source( take ) 
-    source_length, lengthIsQN = reaper.GetMediaSourceLength( source )
+    if thisTrack == mainTrack then
+      ItemsSel[Idx] = {} 
+      ItemsSel[Idx].thisItem = item
+      ItemsSel[Idx].oldPosition = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      ItemsSel[Idx].oldLength = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+      
+      _, grid = reaper.GetSetProjectGrid(0, false)
+      start = ItemsSel[1].oldPosition  
+      grid_end = reaper.BR_GetNextGridDivision(start)      
+      grid_length = grid_end - start
+      
+      source = reaper.GetMediaItemTake_Source(take)
+      source_length, lengthIsQN = reaper.GetMediaSourceLength(source)
+      _, bpm1 = reaper.GetMediaFileMetadata(source, "Generic:BPM")
+      _, _, tempo = reaper.TimeMap_GetTimeSigAtTime(0, start)
+     
+      if bpm1 == "" then 
+        play_factor = 1
+        new_length = source_length * (60 / tempo)
+      else
+        play_factor = tempo / bpm1
+        new_length = source_length / play_factor
+      end
   
-          _,bpm1 = reaper.GetMediaFileMetadata(source,"Generic:BPM")
-     _, _, tempo = reaper.TimeMap_GetTimeSigAtTime( 0, start )
-     
-     if bpm1 == ""
-     then 
-     play_factor = 1
-     new_length = source_length*(60/tempo)
-     
-     else
-     
-     play_factor = tempo/bpm1
-     new_length = source_length/play_factor
-     
-     end
-  
-    old_length = ItemsSel[Idx].oldLength
-    playrate = ItemsSel[Idx].oldPlayrate
-    
-    
-    
-    ItemsSel[Idx].newLength = new_length
-    ItemsSel[Idx].newRate = play_factor
+      old_length = ItemsSel[Idx].oldLength
+      playrate = ItemsSel[Idx].oldPlayrate
+      
+      ItemsSel[Idx].newLength = new_length
+      ItemsSel[Idx].newRate = play_factor
 
-    reaper.SetMediaItemInfo_Value(item, "D_LENGTH",new_length)
-    reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", play_factor)
+      reaper.SetMediaItemInfo_Value(item, "D_LENGTH", new_length)
+      reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", play_factor)
 
-    Idx = Idx + 1 -- 1-based table in Lua 
-
-  else
-    otherItems[counter] = {
-  item = item,
-  take = take,
-  track = thisTrack,
-    }
-
-    counter = counter + 1
+      Idx = Idx + 1
+    else
+      otherItems[counter] = {
+        item = item,
+        take = take,
+        track = thisTrack,
+      }
+      counter = counter + 1
+    end
   end
-end
- 
-for i = 2, Idx - 1 do
 
-  --grabs items
-  local prevItem = ItemsSel[i-1].thisItem
-  local thisItem = ItemsSel[i].thisItem
+  for i = 2, Idx - 1 do
+    local prevItem = ItemsSel[i-1].thisItem
+    local thisItem = ItemsSel[i].thisItem
+    local prevStart = reaper.GetMediaItemInfo_Value(prevItem, "D_POSITION")
+    local prevLen = reaper.GetMediaItemInfo_Value(prevItem, "D_LENGTH")
+    local prevEnd = prevStart + prevLen
+    ItemsSel[i].newStart = prevEnd
+    reaper.SetMediaItemInfo_Value(thisItem, "D_POSITION", prevEnd)
+  end
 
-  --grabs previous item's info
-  local prevStart = reaper.GetMediaItemInfo_Value(prevItem, "D_POSITION")
-  local prevLen = reaper.GetMediaItemInfo_Value(prevItem, "D_LENGTH")
-  local prevEnd = prevStart + prevLen
+  local index = 1
+  for i = 1, counter - 1 do
+    if index > Idx - 1 then index = 1 end
 
-  ItemsSel[i].newStart = prevEnd
+    reaper.SetMediaItemInfo_Value(otherItems[i].item, "D_POSITION", ItemsSel[index].newStart or ItemsSel[index].oldPosition)
+    reaper.SetMediaItemInfo_Value(otherItems[i].item, "D_LENGTH", ItemsSel[index].newLength)
+    reaper.SetMediaItemTakeInfo_Value(otherItems[i].take, "D_PLAYRATE", ItemsSel[index].newRate)
 
-  reaper.SetMediaItemInfo_Value(thisItem, "D_POSITION", prevEnd) --sets item to be at the end of the previous item
-end
+    index = index + 1
+  end
 
-local index = 1
-for i = 1, counter - 1 do
-  if index > Idx - 1 then index = 1 end
-
-  reaper.SetMediaItemInfo_Value(otherItems[i].item, "D_POSITION", ItemsSel[index].newStart or ItemsSel[index].oldPosition)
-  reaper.SetMediaItemInfo_Value(otherItems[i].item, "D_LENGTH", ItemsSel[index].newLength)
-  reaper.SetMediaItemTakeInfo_Value(otherItems[i].take, "D_PLAYRATE", ItemsSel[index].newRate)
-
-  index = index + 1
-end
-
-reaper.PreventUIRefresh(-1)
-reaper.UpdateArrange()
-reaper.Undo_EndBlock("reset_rate_length", -1)
-reaper.SetCursorContext(1,0)
---Msg(source_length)
+  reaper.PreventUIRefresh(-1)
+  reaper.UpdateArrange()
+  reaper.Undo_EndBlock("reset_rate_length", -1)
+  reaper.SetCursorContext(1, 0)
 end
 
-function crazy_length()
+function crazy_length(cu, am)
+  reaper.Undo_BeginBlock()
   
-  
-  r.Main_OnCommand(40297, 0) -- unselect all tracks
-  local select_tracks = r.NamedCommandLookup("_SWS_SELTRKWITEM") -- only select tracks with selected items
+  local r = reaper
+  r.Main_OnCommand(40297, 0) 
+  local select_tracks = r.NamedCommandLookup("_SWS_SELTRKWITEM") 
   r.Main_OnCommand(select_tracks, 0)
-  sel_tr_count = r.CountSelectedTracks(0) -- count selected tracks
+  local sel_tr_count = r.CountSelectedTracks(0) 
 
+  local loop_start, loop_end = r.GetSet_LoopTimeRange(false, true, 0, 0, false) 
+  local _, grid = r.GetSetProjectGrid(0, false)
+  local bpm = r.TimeMap2_GetDividedBpmAtTime(0, loop_start) 
+  local particle = 0.0156257
 
-  loop_start, loop_end = r.GetSet_LoopTimeRange(false, true, 0, 0, false) -- time selection
-  _, grid = r.GetSetProjectGrid(0, false) -- get grid
-  bpm = r.TimeMap2_GetDividedBpmAtTime(0, loop_start) -- bpm at loop_start
-  particle = 0.015625 -- minimal unit for addition
-
-  ICount = r.CountSelectedMediaItems(0)
+  local ICount = r.CountSelectedMediaItems(0)
   if ICount == 0 then
+    reaper.Undo_EndBlock("Crazy Length Adjustment", -1) 
     return
   end
 
   local tracks = {}
+  local total_original_length = 0
+  local total_new_length = 0
+
   for i = 0, r.CountSelectedTracks(0) - 1 do
     local track = r.GetSelectedTrack(0, i)
     local track_items = {}
+    local track_length = 0
+
     for j = 0, r.CountTrackMediaItems(track) - 1 do
       local item = r.GetTrackMediaItem(track, j)
       local item_length = r.GetMediaItemInfo_Value(item, "D_LENGTH")
       local item_rate = r.GetMediaItemTakeInfo_Value(r.GetActiveTake(item), "D_PLAYRATE")
       if r.IsMediaItemSelected(item) then
         track_items[#track_items + 1] = { item = item, length = item_length, rate = item_rate }
+        track_length = track_length + item_length
       end
     end
 
     if #track_items > 0 then
-      tracks[track] = track_items
+      tracks[track] = { items = track_items, original_length = track_length }
+      total_original_length = total_original_length + track_length
     end
   end
 
-  for track, items_tbl in pairs(tracks) do
-    for i = 1, #items_tbl do
-      calculate_items(items_tbl, i,cu,am)
+  if total_original_length == 0 then
+    reaper.Undo_EndBlock("Crazy Length Adjustment", -1) 
+    return
+  end
+
+  for track, data in pairs(tracks) do
+    local items = data.items
+    local track_new_length = 0
+
+    for i = 1, #items do
+      calculate_items(items, i, cu, am)
+      track_new_length = track_new_length + items[i].length
     end
 
-    local lowest = find_lowest(items_tbl)
+    tracks[track].new_length = track_new_length
+    total_new_length = total_new_length + track_new_length
+  end
 
+  local length_scale_factor = total_original_length / total_new_length
+  for track, data in pairs(tracks) do
+    local items = data.items
+    for i = 1, #items do
+      items[i].length = items[i].length * length_scale_factor
+    end
+  end
+
+  for track, data in pairs(tracks) do
+    local items = data.items
+    local lowest = find_lowest(items)
     if lowest > particle * 240 / bpm / 10 then
-      for i = 1, #items_tbl do
-        set_items(items_tbl, i)
+      for i = 1, #items do
+        set_items(items, i)
       end
     end
   end
+
+  reaper.Undo_EndBlock("Crazy Length Adjustment", -1)
 end
 
 function find_lowest(tbl)
   local min = math.huge
   for i = 1, #tbl do
-    min = min < tbl[i].length and min or tbl[i].length
+    min = math.min(min, tbl[i].length)
   end
   return min
 end
@@ -203,394 +216,327 @@ function set_items(item_tbl, idx)
   local item_length = item_tbl[idx].length
   local playrate = item_tbl[idx].rate
 
-  r.SetMediaItemInfo_Value(item, "D_LENGTH", item_length)
-  r.SetMediaItemTakeInfo_Value(r.GetActiveTake(item), "D_PLAYRATE", playrate)
+  reaper.SetMediaItemInfo_Value(item, "D_LENGTH", item_length)
+  reaper.SetMediaItemTakeInfo_Value(reaper.GetActiveTake(item), "D_PLAYRATE", playrate)
 
   if idx > 1 then
     local prev_item = item_tbl[idx - 1].item
-    local prev_pos = r.GetMediaItemInfo_Value(prev_item, "D_POSITION")
-    local prev_length = r.GetMediaItemInfo_Value(prev_item, "D_LENGTH")
+    local prev_pos = reaper.GetMediaItemInfo_Value(prev_item, "D_POSITION")
+    local prev_length = reaper.GetMediaItemInfo_Value(prev_item, "D_LENGTH")
     local new_pos = prev_pos + prev_length
-    r.SetMediaItemInfo_Value(item, "D_POSITION", new_pos)
+    reaper.SetMediaItemInfo_Value(item, "D_POSITION", new_pos)
   end
 end
 
-function calculate_items(item_tbl, idx,cu,am)
-  
+function calculate_items(item_tbl, idx, cu, am)
   local item_length = item_tbl[idx].length
   local playrate = item_tbl[idx].rate
-  local ratio = ICount/sel_tr_count
-  local ICount_2 = ICount/2
---  local xpi = 0.1
---  local b = ICount/8
---  local c = 8
---  local d = 2
---  local curve = math.cos((2 * math.pi * (idx - (ratio) - 0.5) / ratio*b) - math.pi / xpi*2)
--- local curve = math.cos((2 * math.pi * (idx - (ratio) - 0.5) /b)-math.pi*c )*math.sin(( 2* math.pi * (idx - (ratio) - 0.5) / 1)-2*math.pi)
- --  local curve =-0.1*(idx-(ratio/2-0.5))/1
- -- local curve = -0.1*((idx-1)- (ratio/2-0.5))
+  local ICount = reaper.CountSelectedMediaItems(0)
+  local sel_tr_count = reaper.CountSelectedTracks(0)
+  local ratio = ICount / sel_tr_count
 
-
---   local curve = math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(ratio/b))- math.pi / c*2)
-
-   local curve1 = -1*math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(ratio*4))- 0.5*1*math.pi)
-   local curve2 =-1*math.cos((2* math.pi*  ((idx-1)-(ratio-0.5))/(ratio*1))- math.pi)
-   local curve3 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   local curve4 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
-   local curve5 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)*math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
-   local curve6 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   local curve7 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(1.5))- 0.5*2*math.pi) 
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(1.5))- 0.5*2*math.pi)
-   local curve8 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
-   local curve9 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi) 
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
-   local curve10 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
-   local curve11 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi) 
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
-   local curve12 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi) 
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
-   local curve13 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
-   local curve14 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
-   *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
- --  local  curve14 = (-1) ^ idx
-   
+  local curve1 = -1*math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(ratio*4))- 0.5*1*math.pi)
+  local curve2 =-1*math.cos((2* math.pi*  ((idx-1)-(ratio-0.5))/(ratio*1))- math.pi)
+  local curve3 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  local curve4 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
+  local curve5 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)*math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)*-2
+  local curve6 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  local curve7 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(1.5))- 0.5*2*math.pi) 
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(1.5))- 0.5*2*math.pi)
+  local curve8 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
+  local curve9 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi) 
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
+  local curve10 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(8))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
+  local curve11 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi) 
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
+  local curve12 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi) 
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
+  local curve13 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(3))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(2))- 0.5*2*math.pi)
+  local curve14 =0.02*ratio* math.cos((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi) 
+  *math.sin((2* math.pi*  ((idx-1)-(ratio/2-0.5))/(4))- 0.5*2*math.pi)
    function twoandtwo(seq,idx)
            seq_len = #seq 
            normalized_idx = ((idx-1 ) % seq_len) +1
-           return seq[normalized_idx]
+           return seq[normalized_idx] 
           end   
-   if cu == 15 then seq = {-1,-1.25,-1.5,-1.75,-2,4,3.5,0} curve15 = 0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 15 then seq = {16,0} curve15 = 0.001*ratio*twoandtwo(seq,idx) end -- swing
    if cu == 16 then seq = {0,1,1,-2} curve16 = 0.025*ratio*twoandtwo(seq,idx) end
-   if cu == 17 then seq = {0,1,0,-1} curve17 = 0.025*ratio*twoandtwo(seq,idx) end
-   if cu == 18 then seq = {-1,-1,-1,-1,4,0,0,0} curve18 = 0.025*ratio*twoandtwo(seq,idx) end
-   if cu == 19 then seq = {0,0,5,-1,-1,-1,-1,-1} curve19 = 0.025*ratio*twoandtwo(seq,idx) end
-   if cu == 20 then seq = {0,0,0,0,0,0,2,-2} curve20 = 0.025*ratio*twoandtwo(seq,idx) end
-   if cu == 21 then seq = {-1,-1,-1,-1,-1,-1,-1,7} curve21 = 0.025*ratio*twoandtwo(seq,idx) end
-   if cu == 22 then seq = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15} curve22 = 0.025*ratio*twoandtwo(seq,idx) end
-   if cu == 23 then seq = {-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,120} curve23 = 1/256*ratio*twoandtwo(seq,idx) end
+   if cu == 17 then seq = {-16,16,16,-16} curve17 = -0.0001*ratio*twoandtwo(seq,idx) end --2,4 zu 3(Gnawa or Brazilian 16th)
+   if cu == 18 then seq = {0,-1,-1,-1,4,0,0,0} curve18 = 0.01*ratio*twoandtwo(seq,idx) end 
+   if cu == 19 then seq = {0,-16,0,16} curve19 = 0.0001*ratio*twoandtwo(seq,idx) end --  3,4 vor
+   if cu == 20 then seq = {0,16,1}   curve20 = 0.002*ratio*twoandtwo(seq,idx) end  -- vienna waltz 3/4
+   if cu == 21 then seq = {8,-1,8,16} curve21 = 0.005*ratio*twoandtwo(seq,idx) end -- gnawa triplet triole plus quarter
+   if cu == 22 then seq = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15} curve22 = -0.025*ratio*twoandtwo(seq,idx) end
+   if cu == 23 then seq = {-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,120} curve23 = -1/256*ratio*twoandtwo(seq,idx) end
    if cu == 24 then seq = {20,-2,-3,-4,-4,-4,-2,-1} curve24 = 0.025*ratio*twoandtwo(seq,idx) end
-     
- --  local  curve15 = 0.1*twoandtwo(seq,idx)
-  
-   if cu==nil  then cu=1 end
-   if cu==0 then curve = curve14*2 end
-   if cu==1 then curve = curve1 end
-   if cu==2 then curve = curve2  end
-   if cu==3 then curve = curve3*2 end
-   if cu==4 then curve = curve4*2 end
-   if cu==5 then curve = curve5*2 end
-   if cu==6 then curve = curve6*2 end
-   if cu==7 then curve = curve7*2 end
-   if cu==8 then curve = curve8*2 end
-   if cu==9 then curve = curve9*2 end
-   if cu==10 then curve = curve10*2 end
-   if cu==11 then curve = curve11*2 end
-   if cu==12 then curve = curve12*2 end
-   if cu==13 then curve = curve13*2 end
-   if cu==14 then curve = curve14*2 end
-   if cu==15 then curve = curve15*2 end
-   if cu==16 then curve = curve16*2 end
-   if cu==17 then curve = curve17*2 end
-   if cu==18 then curve = curve18*2 end
-   if cu==19 then curve = curve19*2 end
-   if cu==20 then curve = curve20*2 end
-   if cu==21 then curve = curve21*2 end
-   if cu==22 then curve = curve22*2 end
-   if cu==23 then curve = curve23 end
-   if cu==24 then curve = curve24*2 end
-  if am==nil then am=1 end
-  -- Calculate the amount by which to increase the item length, based on its position in the list of items
-  local addition = am *2*1/ICount*20* curve * particle * 480 / bpm * 0.2
+ -- Tabelle mit allen Kurven
+ local curves = {
+   curve1, curve2, curve3, curve4, curve5, curve6, curve7, curve8, curve9, curve10,
+   curve11, curve12, curve13, curve14, curve15, curve16, curve17, curve18, curve19, curve20, curve21, curve22, curve23, curve24 
+ }
+ 
+ -- Auswahl der Kurve basierend auf dem Index
+ local curve = curves[cu] or 1  -- Wenn 'cu' außerhalb des Bereichs ist, wird 'curve = 1' gesetzt
+ 
 
+  local particle = 0.015625
+  local addition = (am - old_am) * 2 * 1 / ICount * 20 * curve * particle * 480 / reaper.TimeMap2_GetDividedBpmAtTime(0, 0) * 0.2
   local new_length = item_length + addition
   local new_rate = item_length / new_length * playrate
-  -- Calculate the new length of the item, based on the current length and the calculated addition
+
+  print(string.format("Item %d: length = %.2f, playrate = %.2f", idx, item_length, playrate))
+  print(string.format("Curve: %.2f, Addition: %.2f, New length: %.2f, New rate: %.2f", curve, addition, new_length, new_rate))
+
   item_tbl[idx].length = new_length
   item_tbl[idx].rate = new_rate
 end
 
---============================================================================================================
---=============================== IM_GUI ========================================================================
---============================================================================================================
---[[
+local function contents()
+  -- Zeige den Slider für Amplitude (am)
+  ImGui.Text(ctx, 'Amplitude (am)')
 
-function GuiInit()
-  ctx = r.ImGui_CreateContext('crazy_length', r.ImGui_ConfigFlags_DockingEnable()) -- Add VERSION TODO
-  draw_list = r.ImGui_GetWindowDrawList(ctx)
-  FONT = r.ImGui_CreateFont('Arial', 14) -- Create the fonts you need
-  r.ImGui_Attach(ctx, FONT) -- Attach the fonts you need
-end
-
-function HSV(h, s, v, a)
-  local r, g, b = r.ImGui_ColorConvertHSVtoRGB(h, s, v)
-  return r.ImGui_ColorConvertDouble4ToU32(r, g, b, a or 1.0)
-end
-
-function loop()
-  if set_dock_id then
-    r.ImGui_SetNextWindowDockID(ctx, set_dock_id)
-    set_dock_id = nil
+  -- Sicherstellen, dass der Slider-Wert als Zahl gesetzt wird
+  local changed, new_am = ImGui.SliderDouble(ctx, '##am', am, -50.0, 50.0)
+  if changed then
+    old_am = am
+    am = new_am
+    crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+  end
+if ImGui.Button(ctx, 'RESET') then reset_rate_length() am = 0 end
+  -- Überprüfe, ob der Slider doppelt geklickt wurde und setze ihn auf 0
+  if ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked(ctx, ImGui.MouseButton_Left) then
+    do_reset_value = true
+  end
+  if do_reset_value and not ImGui.IsItemActive(ctx) then
+    do_reset_value, am = false, 0
+    crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+  --  Msg(am)
   end
 
+  
 
-  local window_flags = r.ImGui_WindowFlags_MenuBar()
-  r.ImGui_SetNextWindowSize(ctx, 180, 160, r.ImGui_Cond_Once()) -- Set the size of the windows.  Use in the 4th argument r.ImGui_Cond_FirstUseEver() to just apply at the first user run, so ImGUI remembers user resize s2
 
-  r.ImGui_PushFont(ctx, FONT) -- Says you want to start using a specific font
+-- ===================
+ local rv = ImGui.RadioButton(ctx, "logerit 1  ", selected_cu == 1)
+   if rv then
+     selected_cu = 1
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "logerit 2  ", selected_cu == 2)
+   if rv then
+     selected_cu = 2
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "logerit 8  ", selected_cu == 3)
+   if rv then
+     selected_cu = 3
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "logerit 4  ", selected_cu == 4)
+   if rv then
+     selected_cu = 4
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "Curve 05", selected_cu == 5)
+   if rv then
+     selected_cu = 5
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 06", selected_cu == 6)
+   if rv then
+     selected_cu = 6
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+ local rv = ImGui.RadioButton(ctx, "Curve 07", selected_cu == 7)
+   if rv then
+     selected_cu = 7
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 08", selected_cu == 8)
+   if rv then
+     selected_cu = 8
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "Curve 09", selected_cu == 9)
+   if rv then
+     selected_cu = 9
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 10", selected_cu == 10)
+   if rv then
+     selected_cu = 10
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "Curve 11", selected_cu == 11)
+   if rv then
+     selected_cu = 11
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 12", selected_cu == 12)
+   if rv then
+     selected_cu = 12
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+ local rv = ImGui.RadioButton(ctx, "Curve 13", selected_cu == 13)
+   if rv then
+     selected_cu = 13
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 14", selected_cu == 14)
+   if rv then
+     selected_cu = 14
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "swing      ", selected_cu == 15)
+   if rv then
+     selected_cu = 15
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 16", selected_cu == 16)
+   if rv then
+     selected_cu = 16
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "Gnawa16t", selected_cu == 17)
+   if rv then
+     selected_cu = 17
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 18", selected_cu == 18)
+   if rv then
+     selected_cu = 18
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+ local rv = ImGui.RadioButton(ctx, "3,4 vor    ", selected_cu == 19)
+   if rv then
+     selected_cu = 19
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "vien waltz", selected_cu == 20)
+   if rv then
+     selected_cu = 20
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "Gnawa tri", selected_cu == 21)
+   if rv then
+     selected_cu = 21
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 22", selected_cu == 22)
+   if rv then
+     selected_cu = 22
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   
+   
+   rv = ImGui.RadioButton(ctx, "Curve 23", selected_cu == 23)
+   if rv then
+     selected_cu = 23
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+   ImGui.SameLine(ctx)
+   
+   rv = ImGui.RadioButton(ctx, "Curve 24", selected_cu == 24)
+   if rv then
+     selected_cu = 24
+     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+   end
+        
+--  for i = 1, 24 do
+--      local rv = ImGui.RadioButton(ctx, "Curve " .. i, selected_cu == i)
+--      if rv then
+--        selected_cu = i
+--        crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
+--      end
+--    end
+--  
+end
 
-  local visible, open = r.ImGui_Begin(ctx, 'crazy length', true)
-
-  if visible then
-    local dock_id = r.ImGui_GetWindowDockID(ctx)
-    if r.ImGui_BeginPopupContextItem(ctx, 'window_menu') then
-      if r.ImGui_MenuItem(ctx, 'Dock', nil, dock_id ~= 0) then
-        set_dock_id = dock_id == 0 and -1 or 0
-      end
-      r.ImGui_EndPopup(ctx)
+local function loop()
+  if not font or reload_font then
+    if font then
+      ImGui.Detach(ctx, font)
     end
 
-    --==================================== Drag ==============================================================
-    
-   ret, cu = r.ImGui_DragInt(ctx, "curve",cu, 0.05, 0, 18)
-       if ret then
-         crazy_length(cu,am)
-       end
-    local   old_am = am
-    ret, am = reaper.ImGui_DragInt( ctx, "ampli",0, 1, -4,4)
-    if ret then
-    am = am - old_am
-    crazy_length(b,am) end
-    if reaper.ImGui_Button(ctx, '-1', 54,32) then am=-1 crazy_length(cu,am) reaper.SetCursorContext(1, nil)end
-    reaper.ImGui_SameLine(ctx)
-    if reaper.ImGui_Button(ctx, '+1', 54,32) then am=1 crazy_length(cu,am) reaper.SetCursorContext(1, nil)end
-                            
-   
-    
-                              
-       if reaper.ImGui_Button(ctx, 'reset', 116,32) then reset_rate_length() reaper.SetCursorContext(1, nil)end
-       
-  
-    --==================================== Drag ==============================================================
-    r.ImGui_End(ctx)
+    font = ImGui.CreateFont('sans-serif', font_size)
+    reload_font = false
+    ImGui.Attach(ctx, font)
   end
 
-  r.ImGui_PopFont(ctx) -- Pop Font
+ ImGui.SetNextWindowSize(ctx, 200, 360, ImGui.Cond_FirstUseEver)
+
+  local visible, open = ImGui.Begin(ctx, 'crazy length',true)
+  if visible then
+    ImGui.PushFont(ctx, font)
+    contents()
+    ImGui.PopFont(ctx)
+    ImGui.End(ctx)
+  end
 
   if open then
-    r.defer(loop)
-  else
-    r.ImGui_DestroyContext(ctx)
+    reaper.defer(loop)
   end
 end
 
-GuiInit()
-loop()
-end
-]]--
---========================
---===========================
---============================
-
-function length_sinus(x,s1)
-
- local function Msg(str)
-  reaper.ShowConsoleMsg(tostring(str) .. "\n")
-end
-
-loop_start, loop_end = reaper.GetSet_LoopTimeRange(false,true,0,0,false  )
-_,grid = reaper.GetSetProjectGrid( 0, false ) -- get grid
-bpm = reaper.TimeMap2_GetDividedBpmAtTime( 0, loop_start )
-
-
-
-grid_mod = math.floor(grid*10000)
---grid triple or straight
-if grid_mod==10000 or grid_mod==5000 or grid_mod==2500 or grid_mod==1250 or grid_mod==625 or grid_mod==312 then ground = 0.015625 end -- for straight grid
-if grid_mod==6666 or grid_mod==3333 or grid_mod==1666 or grid_mod==833 or grid_mod==416 or grid_mod==208 then ground = 0.0208333333 end -- for trip
-
-s2=s1
-
-select_tracks = reaper.NamedCommandLookup("_SWS_SELTRKWITEM")
-reaper.Main_OnCommand(select_tracks,0)
-sel_tracks_count =  reaper.CountSelectedTracks( 0 )
-
-ICount_all = reaper.CountSelectedMediaItems(0)
-
-
-
-if ICount_all ==0 then return
-end 
-
-
-ICount = ICount_all/sel_tracks_count
-
-for i = 1, ICount  do
-  item = reaper.GetSelectedMediaItem(0, i-1)
-    min_length =  reaper.GetMediaItemInfo_Value( item, "D_LENGTH" )
-   
-   if min_length <= ground*240/bpm then return   end 
-end  
-
-
------------------------------------------------- 
-
-reaper.Undo_BeginBlock()
-reaper.PreventUIRefresh(1)
-
-ItemsSel = {}
-Idx = 1
-
-otherItems = {} 
-counter = 1
-
-
-
-mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
-
---ICount = reaper.CountSelectedMediaItems(0)
-for i = 0, ICount - 1 do
-
-  item = reaper.GetSelectedMediaItem(0, i)
-  take = reaper.GetActiveTake(item) 
-
-  local thisTrack = reaper.GetMediaItem_Track(item)
-
-  if thisTrack == mainTrack then
-   
-    ItemsSel[Idx] = {} 
-    ItemsSel[Idx].thisItem = item
-    ItemsSel[Idx].oldPosition =  reaper.GetMediaItemInfo_Value( item, "D_POSITION" )
-    if take ~=  nil then
-       
-        ItemsSel[Idx].oldPlayrate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")
-       end
-    ItemsSel[Idx].oldLength = reaper.GetMediaItemInfo_Value( item, "D_LENGTH")
-    
-    grid_mod = math.floor(grid*10000)
-    start = ItemsSel[1].oldPosition  
-    grid_end = reaper.BR_GetNextGridDivision( start)      
-    grid_length = grid_end - start
-    
-
-
-old_length = ItemsSel[Idx].oldLength
-
-
-
---change the length with the help of a sinus function    
-if s1==nil then s1=0 end
- 
-if s1==0 then   
-  aos = (0.05*(x)*((i)-(ICount/2-0.5)))   -- aos is an add or subtract factor of 64straight or 32triplet 
-elseif s1==1 then 
-  aos =math.sin(0.07*((x)*((i)-(ICount/2-0.5))))
-  elseif s1==2 then 
-    aos =math.sin(0.2*((x)*((i)-(ICount/2-0.5))))
-    elseif s1==3 then 
-        aos =math.sin(0.4*((x)*((i)-(ICount/2-0.5))))
-        elseif s1==4 then 
-                aos =math.sin(0.8*((x)*((i)-(ICount/2-0.5))))
-    elseif s1==5 then 
-      aos = math.sin(1.1*(x)*(i-(ICount/2-0.5)))
-      elseif s1==6 then 
-            aos = math.sin(8*(x)*(i-(ICount/2-0.5)))
-  end
---------------------------------------------------------------------  
-    
-    playrate = ItemsSel[Idx].oldPlayrate
-    if playrate ~= nil then
-        new_rate = ItemsSel[Idx].oldPlayrate
-       
-        end 
-     
-    new_length = old_length+(aos*ground*480/bpm) -- factor * very small straight(1/64) or triplet(1/32 triplet) grid 
-    
-    new_rate = old_length/new_length*playrate
-    
-    
- 
-    ItemsSel[Idx].newLength = new_lengthS
-    ItemsSel[Idx].newRate = new_rate
-  
-  
-  
-    reaper.SetMediaItemInfo_Value(item, "D_LENGTH",new_length)
-    reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", new_rate)
-        
-        
- 
-
-    Idx = Idx + 1 -- 1-based table in Lua 
-
-  else
-    otherItems[counter] = {
-  item = item,
-  take = take,
-  track = thisTrack,
-    }
-
-    counter = counter + 1
-  
-end
-end 
-for i = 2, Idx - 1 do
-
-  --grabs items
-  local prevItem = ItemsSel[i-1].thisItem
-  local thisItem = ItemsSel[i].thisItem
-  
-
-  --grabs previous item's info
-  local prevStart = reaper.GetMediaItemInfo_Value(prevItem, "D_POSITION")
-  local prevLen = reaper.GetMediaItemInfo_Value(prevItem, "D_LENGTH")
-  local prevEnd = prevStart + prevLen
-
-
-  ItemsSel[i].newStart = prevEnd
-
-
-  reaper.SetMediaItemInfo_Value(thisItem, "D_POSITION", prevEnd) --sets item to be at the end of the previous item
-
-end
-
-local index = 1
-for i = 1, counter - 1 do
-  if index > Idx - 1 then index = 1 end
-
-  reaper.SetMediaItemInfo_Value(otherItems[i].item, "D_POSITION", ItemsSel[index].newStart or ItemsSel[index].oldPosition)
-  reaper.SetMediaItemInfo_Value(otherItems[i].item, "D_LENGTH", ItemsSel[index].newLength)
-  reaper.SetMediaItemTakeInfo_Value(otherItems[i].take, "D_PLAYRATE", ItemsSel[index].newRate)
-
-  index = index + 1
- 
-end
-
-reaper.PreventUIRefresh(-1)
-reaper.UpdateArrange()
-reaper.Undo_EndBlock("Item Random Position", -1)
-
+reaper.defer(loop)
 end
 
 --==================================================================================================================
@@ -859,7 +805,7 @@ function main()
             local item = selected_items[i]
             split_item_by_sequence(item, long_sequence, note_length_in_seconds)
         end
-
+        reaper.Main_OnCommand(0,40362)
         reaper.PreventUIRefresh(-1)
         reaper.UpdateArrange()
         reaper.Undo_EndBlock("Items nach langer Sequenz zerschneiden", -1)
@@ -8935,7 +8881,7 @@ end
 
 
 function volume_sequence()
-local retval, input_str = reaper.GetUserInputs("item volume sequenz",1, "1=0db  2=-0.2db 3=-0.4db " , "12")
+local retval, input_str = reaper.GetUserInputs("item volume sequenz",1, "1=0db  2=-0.2db 3=-0.4db 4=-0.6db" , "1234")
 if not retval then return end
 
 -- Extrahiere Längen und Akzente aus dem Benutzereingabestring 
@@ -8985,7 +8931,10 @@ for track in pairs(selected_tracks) do
         if reaper.IsMediaItemSelected(item) then
             count = count + 1
             sequence_index = (count - 1) % #sequence + 1 -- Get the current sequence index
-            if sequence[sequence_index] == 3 then -- Reduce volume
+            if sequence[sequence_index] == 4 then -- Reduce volume
+                new_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL") - 0.6
+                reaper.SetMediaItemInfo_Value(item, "D_VOL", new_vol)
+            elseif  sequence[sequence_index] == 3 then -- Reduce volume  
                 new_vol = reaper.GetMediaItemInfo_Value(item, "D_VOL") - 0.4
                 reaper.SetMediaItemInfo_Value(item, "D_VOL", new_vol)
             elseif  sequence[sequence_index] == 2 then -- Reduce volume  
@@ -9899,7 +9848,7 @@ bar_len = reaper.TimeMap2_beatsToTime(project, measures * 4) -- assuming 4/4 tim
 note_pitch = 60
 
 -- Define turquoise color
-turquoise_color = reaper.ColorToNative(64, 224, 208) | 0x1000000 -- RGB (64, 224, 208)
+turquoise_color = reaper.ColorToNative(220, 80, 87) | 0x1000000 -- RGB (64, 224, 208)
 
 -- Create the folder track (parent)
 folderTrackIdx = reaper.CountTracks(project) -- This gets the next available track index
@@ -9919,7 +9868,7 @@ fxIdx = reaper.TrackFX_AddByName(folderTrack, vstName, false, -1)
 -- Set ReaSynth parameters: Sustain to -inf (parameter 5) and Sawtooth mix to 0.5 (parameter 1)
 reaper.TrackFX_SetParam(folderTrack, fxIdx, 9, -80)     -- Sustain to -80
 reaper.TrackFX_SetParam(folderTrack, fxIdx,3, 0.4)   -- sawtooth mix to 0.4
-reaper.TrackFX_SetParam(folderTrack, fxIdx,6, 0.03)-- decay to 451ms
+reaper.TrackFX_SetParam(folderTrack, fxIdx,6, 0.015)-- decay to 451ms
 
 -- Set folder track color to turquoise
 reaper.SetTrackColor(folderTrack, turquoise_color)
@@ -10403,89 +10352,92 @@ end
 --============================== MIDI_PATTERN 3===========================================================
 --===================================================================================================================
 function midi_creator()
-local function Msg(str)
-  reaper.ShowConsoleMsg(tostring(str) .. "\n")
-end
-local retval, input_str = reaper.GetUserInputs("Create Midi Pattern", 2, "Length 1=1unit  2=2unit  0=mute,UNIT " , "3323324444,16")
-if not retval then return end
-
--- Extrahiere Längen und Akzente aus dem Benutzereingabestring 
-local length_str = input_str:sub(1, input_str:find(",") - 1)
-local grid_division = input_str:sub(input_str:find(",") + 1)
-
-
-
--- Konvertiere Längen- und Akzent-Strings in Tabellen
-local sequence = {}
-for i = 1, #length_str do
-  sequence[i] = tonumber(length_str:sub(i, i))
-end
-
-local length_stellen = string.len(length_str)
-
-
-local vols = {}
-for i = 1, length_stellen do
-  vols[i] = 1
-end
-
-
--- Überprüfe, ob die Anzahl der Längen und Akzente gleich ist
-if #sequence ~= #vols then
-  reaper.ShowMessageBox("The number of lengths and vol must be the same.", "Error", 0)
-  return
-end
-
--- Berechne notwendige Variablen
-
-local cursor = reaper.GetCursorPosition()
-local bpm = reaper.TimeMap2_GetDividedBpmAtTime(0, cursor)
-local bar_length = 240 / bpm
-local grid_size = bar_length / grid_division 
-local grid_length = bar_length / grid_division
-local note_quantity = 1 / grid_division
-local qn = note_quantity / 4
-local bar_ppq = 3840
-local grid_ppq = 3840 * note_quantity
-local TIME_SEL_START, TIME_SEL_END = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
-
--- Funktion zum Erstellen eines MIDI-Items
-local function create_midi_item(start_time, length, track, midi_length, vol, mute)
-
-  local midi_item = reaper.CreateNewMIDIItemInProj(track, start_time, start_time + length)
-  local take = reaper.GetActiveTake(midi_item)
-  
- 
-  reaper.SetMediaItemSelected(midi_item, true)
-  reaper.SetMediaItemInfo_Value(midi_item, "B_MUTE",mute)
-  reaper.SetMediaItemInfo_Value(midi_item, "D_VOL",vol)
-  reaper.MIDI_InsertNote(take, true, false, 0, midi_length, 0, 60, 126, false)
-end
-
--- Für jede ausgewählte Spur MIDI-Items erstellen
-for i=0, reaper.CountSelectedTracks()-1 do
-  local track = reaper.GetSelectedTrack(0, i)
-  local note_idx = 1
-  local start_time = TIME_SEL_START
-  local prev_item_end = start_time
-  while start_time < TIME_SEL_END do
-    local length = sequence[note_idx] == 0 and 1*grid_size or sequence[note_idx] * grid_size
-  
-    local midi_length = sequence[note_idx] == 0 and grid_ppq or sequence[note_idx] * grid_ppq
-    local vol = 127
-    if vols[note_idx] then
-      if vols[note_idx] == 0 then vol = 0.7 else vol = 1 end
-    end
-    local mute = false
-        if sequence[note_idx] == 0 then mute = 1 else mute=0 end
-    local midi_item = create_midi_item(prev_item_end, length, track, midi_length, vol, mute)
-    prev_item_end = start_time + length
-    note_idx = note_idx % #sequence + 1
-    start_time = prev_item_end
+  local function Msg(str)
+    reaper.ShowConsoleMsg(tostring(str) .. "\n")
   end
+
+  -- Starte den Undo-Block
+  reaper.Undo_BeginBlock()
+
+  -- Benutzer-Eingaben abfragen
+  local retval, input_str = reaper.GetUserInputs("Create Midi Pattern", 2, "Length 1=1unit  2=2unit  0=mute,UNIT ", "3323324444,16")
+  if not retval then 
+    reaper.Undo_EndBlock("Create MIDI Pattern - User Cancelled", -1)
+    return 
+  end
+
+  -- Extrahiere Längen und Akzente aus dem Benutzereingabestring 
+  local length_str = input_str:sub(1, input_str:find(",") - 1)
+  local grid_division = input_str:sub(input_str:find(",") + 1)
+
+  -- Konvertiere Längen- und Akzent-Strings in Tabellen
+  local sequence = {}
+  for i = 1, #length_str do
+    sequence[i] = tonumber(length_str:sub(i, i))
+  end
+
+  local length_stellen = string.len(length_str)
+
+  local vols = {}
+  for i = 1, length_stellen do
+    vols[i] = 1
+  end
+
+  -- Überprüfe, ob die Anzahl der Längen und Akzente gleich ist
+  if #sequence ~= #vols then
+    reaper.ShowMessageBox("The number of lengths and volumes must be the same.", "Error", 0)
+    reaper.Undo_EndBlock("Create MIDI Pattern - Error", -1)
+    return
+  end
+
+  -- Berechne notwendige Variablen
+  local cursor = reaper.GetCursorPosition()
+  local bpm = reaper.TimeMap2_GetDividedBpmAtTime(0, cursor)
+  local bar_length = 240 / bpm
+  local grid_size = bar_length / grid_division 
+  local grid_length = bar_length / grid_division
+  local note_quantity = 1 / grid_division
+  local qn = note_quantity / 4
+  local bar_ppq = 3840
+  local grid_ppq = 3840 * note_quantity
+  local TIME_SEL_START, TIME_SEL_END = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
+
+  -- Funktion zum Erstellen eines MIDI-Items
+  local function create_midi_item(start_time, length, track, midi_length, vol, mute)
+    local midi_item = reaper.CreateNewMIDIItemInProj(track, start_time, start_time + length)
+    local take = reaper.GetActiveTake(midi_item)
+    reaper.SetMediaItemSelected(midi_item, true)
+    reaper.SetMediaItemInfo_Value(midi_item, "B_MUTE", mute)
+    reaper.SetMediaItemInfo_Value(midi_item, "D_VOL", vol)
+    reaper.MIDI_InsertNote(take, true, false, 0, midi_length, 0, 60, 126, false)
+  end
+
+  -- Für jede ausgewählte Spur MIDI-Items erstellen
+  for i = 0, reaper.CountSelectedTracks() - 1 do
+    local track = reaper.GetSelectedTrack(0, i)
+    local note_idx = 1
+    local start_time = TIME_SEL_START
+    local prev_item_end = start_time
+    while start_time < TIME_SEL_END do
+      local length = sequence[note_idx] == 0 and 1 * grid_size or sequence[note_idx] * grid_size
+      local midi_length = sequence[note_idx] == 0 and grid_ppq or sequence[note_idx] * grid_ppq
+      local vol = 127
+      if vols[note_idx] then
+        if vols[note_idx] == 0 then vol = 0.7 else vol = 1 end
+      end
+      local mute = false
+      if sequence[note_idx] == 0 then mute = 1 else mute = 0 end
+      create_midi_item(prev_item_end, length, track, midi_length, vol, mute)
+      prev_item_end = start_time + length
+      note_idx = note_idx % #sequence + 1
+      start_time = prev_item_end
+    end
+  end
+
+  -- Beende den Undo-Block
+  reaper.Undo_EndBlock("Create MIDI Pattern", -1)
 end
 
-end
 --============================================================================================================================
 --======================================= DETECT_MIDI_CHORDS =================================================================
 --============================================================================================================================

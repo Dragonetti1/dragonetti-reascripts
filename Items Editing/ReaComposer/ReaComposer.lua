@@ -1,10 +1,10 @@
--- @version 2.0.6
+-- @version 2.0.7
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + split items by pattern
+--    + new micro rhythm curves
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
@@ -198,22 +198,8 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'SEQ##2', 50,32)then length_input() end
                ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
                reaper.ImGui_PushItemWidth( ctx,23) 
-               ret, cu = r.ImGui_DragInt(ctx, "##curve",cu, 0.05, 0, 24)
-            if ret then
-               crazy_length(cu,am) 
-               end 
-               ToolTip(tt, "length presets")
-                reaper.ImGui_SameLine(ctx)
-               local   old_am = am
-               ret, am = reaper.ImGui_DragInt( ctx, "##ampli",0, 1, -4,4)
-            if ret then
-               am = am - old_am
-               crazy_length(b,am) end
-               ToolTip(tt, "depth")
-               reaper.ImGui_SameLine(ctx)
-            if reaper.ImGui_Button(ctx, '-1', 24,32) then am=-1 crazy_length(cu,am) reaper.SetCursorContext(1, nil)end
-               reaper.ImGui_SameLine(ctx)
-            if reaper.ImGui_Button(ctx, '+1', 24,32) then am=1 crazy_length(cu,am) reaper.SetCursorContext(1, nil)end
+              if reaper.ImGui_Button(ctx, 'crazy length', (btn_w*3)+(spacing_x*2),y) then crazy_length_1()end
+                 ToolTip(tt, "reset item length")
             if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                reaper.ImGui_EndGroup(ctx)
            
