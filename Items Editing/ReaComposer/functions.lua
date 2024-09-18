@@ -315,15 +315,20 @@ function calculate_items(item_tbl, idx, cu, am)
 end
 
 local function contents()
-
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_SliderGrab(),0x6E005BFF)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_SliderGrabActive(),0x3E0033FF)
   -- Sicherstellen, dass der Slider-Wert als Zahl gesetzt wird
   local changed, new_am = ImGui.SliderDouble(ctx, '##am', am, -50.0, 50.0)
+  reaper.ImGui_PopStyleColor(ctx,2)
   if changed then
     old_am = am
     am = new_am
     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
   end
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x94007BFF)
+reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0xD905B5FF)
 if ImGui.Button(ctx, 'RESET') then reset_rate_length() am = 0 end
+reaper.ImGui_PopStyleColor(ctx,2)
   -- Überprüfe, ob der Slider doppelt geklickt wurde und setze ihn auf 0
   if ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked(ctx, ImGui.MouseButton_Left) then
     do_reset_value = true
@@ -331,7 +336,7 @@ if ImGui.Button(ctx, 'RESET') then reset_rate_length() am = 0 end
   if do_reset_value and not ImGui.IsItemActive(ctx) then
     do_reset_value, am = false, 0
     crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
-  
+
   end
 
   
@@ -444,7 +449,13 @@ local function loop()
     reload_font = false
     ImGui.Attach(ctx, font)
   end
-
+    
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(),0x94007BFF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBg(),0x71006CFF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),0x525252F0)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(),0xC00DA2FF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(),0xCB03C3FF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),0xC203BBFF)
  ImGui.SetNextWindowSize(ctx, 200, 410, ImGui.Cond_FirstUseEver)
 
   local visible, open = ImGui.Begin(ctx, 'crazy length',true)
@@ -453,6 +464,7 @@ local function loop()
     contents()
     ImGui.PopFont(ctx)
     ImGui.End(ctx)
+    reaper.ImGui_PopStyleColor(ctx, 6)
   end
 
   if open then
@@ -462,7 +474,135 @@ end
 
 reaper.defer(loop)
 end
+--==================================================================================================================
+--============================= glue_items_group =====================================================================
+--=======================================================================================================================
+function glue_items_group()
+-- Import ReaScript
+reaper.Undo_BeginBlock() -- Beginne einen Undo-Block
 
+-- Hilfsfunktion, um die Position eines Items zu erhalten
+local function getItemPosition(item)
+    return reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+end
+
+-- Hilfsfunktion, um die Länge eines Items zu erhalten
+local function getItemLength(item)
+    return reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+end
+
+-- Hilfsfunktion, um das Take eines Items zu erhalten
+local function getItemTake(item)
+    return reaper.GetMediaItemTake(item, 0)
+end
+
+-- Funktion zum Anpassen der Länge und der Playrate des Items
+local function adjustItem(item, newLength, oldPlayrate)
+    local take = getItemTake(item)
+    local currentLength = getItemLength(item)
+
+    -- Setze die neue Länge des Items
+    reaper.SetMediaItemInfo_Value(item, "D_LENGTH", newLength)
+
+    -- Berechne die neue Playrate
+    local newPlayrate = oldPlayrate * (currentLength / newLength)
+    reaper.SetMediaItemTakeInfo_Value(take, "D_PLAYRATE", newPlayrate)
+end
+
+-- Funktion zum Verarbeiten von Items auf einem Track
+local function processTrack(track)
+    -- Sammle alle Items auf diesem Track
+    local itemsOnTrack = {}
+    for i = 0, reaper.CountTrackMediaItems(track) - 1 do
+        local item = reaper.GetTrackMediaItem(track, i)
+        if reaper.IsMediaItemSelected(item) then
+            table.insert(itemsOnTrack, item)
+        end
+    end
+
+    -- Wenn es keine Items gibt, überspringen
+    if #itemsOnTrack == 0 then return end
+
+    -- Sortiere die Items nach ihrer Position
+    table.sort(itemsOnTrack, function(a, b)
+        return getItemPosition(a) < getItemPosition(b)
+    end)
+
+    local i = 1
+    local numItems = #itemsOnTrack
+
+    -- Bearbeite Gruppen von aufeinander folgenden selektierten Items
+    while i <= numItems do
+        -- Identifiziere die aktuelle Gruppe von aufeinander folgenden Items
+        local group = { itemsOnTrack[i] }
+        local firstItem = itemsOnTrack[i]
+        local firstItemPos = getItemPosition(firstItem)
+        local lastItemEnd = getItemPosition(firstItem) + getItemLength(firstItem)
+
+        while i < numItems do
+            local nextItem = itemsOnTrack[i + 1]
+            local nextItemPos = getItemPosition(nextItem)
+            local nextItemEnd = nextItemPos + getItemLength(nextItem)
+
+            if nextItemPos <= lastItemEnd then
+                -- Füge das nächste Item zur Gruppe hinzu
+                table.insert(group, nextItem)
+                lastItemEnd = math.max(lastItemEnd, nextItemEnd)
+                i = i + 1
+            else
+                -- Falls nächstes Item nicht zur aktuellen Gruppe gehört, breche ab
+                break
+            end
+        end
+
+        -- Berechne die Länge und Playrate des ersten Items
+        local firstItemLength = getItemLength(firstItem)
+        local totalDeletedLength = 0
+        local itemsToDelete = {}
+
+        -- Sammle die Items zum Löschen
+        for j = 2, #group do
+            local item = group[j]
+            table.insert(itemsToDelete, item)
+            totalDeletedLength = totalDeletedLength + getItemLength(item)
+        end
+
+        -- Berechne die neue Länge des ersten Items
+        local newLength = firstItemLength + totalDeletedLength
+
+        -- Alte Playrate des ersten Items
+        local firstItemTake = getItemTake(firstItem)
+        local oldPlayrate = reaper.GetMediaItemTakeInfo_Value(firstItemTake, "D_PLAYRATE")
+
+        -- Setze die neue Länge und berechne die neue Playrate
+        adjustItem(firstItem, newLength, oldPlayrate)
+
+        -- Lösche die Items
+        for _, item in ipairs(itemsToDelete) do
+            reaper.DeleteTrackMediaItem(track, item)
+        end
+
+        -- Weiter zur nächsten Gruppe
+        i = i + 1
+    end
+end
+
+-- Verarbeite alle Tracks, die Items enthalten
+local function processTracks()
+    local numTracks = reaper.CountTracks(0)
+
+    for i = 0, numTracks - 1 do
+        local track = reaper.GetTrack(0, i)
+        processTrack(track)
+    end
+
+    reaper.Undo_EndBlock("Lösche Items hinter dem ersten ausgewählten Item und passe das erste Item an", -1)
+    reaper.UpdateArrange() -- Anordnung aktualisieren
+end
+
+-- Ausführen der Funktion
+processTracks()
+end
 --==================================================================================================================
 --============================= Length_SEQ_Input=====================================================================
 --=======================================================================================================================
@@ -8325,6 +8465,199 @@ reaper.Main_OnCommand(40297,0)
 --Msg(root_note)
 
 end
+--===================================================================================================================
+--==================================== select_by_pattern ==============================================================
+--=======================================================================================================================
+function select_by_pattern()
+-- Import ReaImGui
+if not reaper.ImGui_GetBuiltinPath then
+    return reaper.MB('ReaImGui is not installed or too old.', 'My script', 0)
+end
+
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9.2'
+local font = ImGui.CreateFont('sans-serif', 13)
+local ctx = ImGui.CreateContext('Custom Selection Pattern')
+ImGui.Attach(ctx, font)
+
+-- Initialisierung der GUI-Elemente
+local inputText = '101' -- Standardmäßig ein Beispiel-Pattern
+local selectedPattern = nil -- Variable zum Speichern des ausgewählten Radio-Buttons
+local originalSelections = {} -- Tabelle zum Speichern der ursprünglichen Selektionszustände
+
+-- Funktion zum Speichern des ursprünglichen Selektionszustands
+local function saveOriginalSelections()
+    originalSelections = {}
+    local numSelectedItems = reaper.CountSelectedMediaItems(0)
+    for i = 1, numSelectedItems do
+        local item = reaper.GetSelectedMediaItem(0, i - 1)
+        originalSelections[item] = true
+    end
+end
+
+-- Funktion zum Zurücksetzen auf die ursprünglichen Selektionszustände
+local function resetSelections()
+    reaper.PreventUIRefresh(1)
+    for item in pairs(originalSelections) do
+        reaper.SetMediaItemInfo_Value(item, "B_UISEL", 1)
+    end
+    reaper.PreventUIRefresh(-1)
+    reaper.UpdateArrange()
+end
+
+-- Funktion zum Anwenden des benutzerdefinierten Auswahl-Patterns
+local function applyCustomSelectionPattern(pattern)
+    reaper.Undo_BeginBlock()
+    reaper.PreventUIRefresh(1)
+
+    local numSelectedItems = reaper.CountSelectedMediaItems(0)
+    if numSelectedItems == 0 then
+        reaper.ShowMessageBox("Keine Items ausgewählt!", "Fehler", 0)
+        reaper.Undo_EndBlock("Custom Selection Pattern angewendet", -1)
+        reaper.PreventUIRefresh(-1)
+        return
+    end
+
+    local item_ptrs = {}
+    local itemCount = 1
+    local other_items = {}
+    local otherCount = 1
+    local mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
+
+    -- Items nach Tracks gruppieren
+    for selitem = 1, numSelectedItems do
+        local thisItem = reaper.GetSelectedMediaItem(0, selitem - 1)
+        local thisTrack = reaper.GetMediaItem_Track(thisItem)
+
+        if thisTrack == mainTrack then
+            item_ptrs[itemCount] = thisItem
+            itemCount = itemCount + 1
+        else
+            other_items[otherCount] = {
+                item = thisItem,
+                track = thisTrack,
+            }
+            otherCount = otherCount + 1
+        end
+    end
+
+    -- Pattern parsen
+    local parsed_t = {}
+    for char in pattern:gmatch('%d') do 
+        local val = (char == '1') and 1 or 0
+        parsed_t[#parsed_t + 1] = val 
+    end
+
+    -- Pattern auf Haupt-Track anwenden
+    for i = 1, itemCount - 1 do 
+        local ptid = (1 + (i - 1) % #parsed_t)
+        if parsed_t[ptid] then
+            reaper.SetMediaItemInfo_Value(item_ptrs[i], "B_UISEL", parsed_t[ptid])
+        end
+    end
+
+    -- Pattern auf andere Tracks anwenden
+    local lastTrack, index
+    for i = 1, otherCount - 1 do
+        if not lastTrack or lastTrack ~= other_items[i].track then
+            index = 1
+            lastTrack = other_items[i].track
+        elseif not parsed_t[index] then
+            index = 1
+        end
+        reaper.SetMediaItemInfo_Value(other_items[i].item, "B_UISEL", parsed_t[index])
+        index = index + 1
+    end
+
+    reaper.PreventUIRefresh(-1)
+    reaper.UpdateArrange()
+    reaper.Undo_EndBlock("Custom Selection Pattern angewendet", -1)
+end
+
+-- GUI Aufbau
+local function drawUI()
+    -- Überschrift über dem Input-Feld
+    ImGui.Text(ctx, 'Pattern (1 = Select, 0 = Deselect)')
+
+    -- Eingabefeld für das Pattern mit halbierter Breite
+    local rv
+    ImGui.SetNextItemWidth(ctx, 200) -- Setzt die Breite des Input-Feldes
+    rv, inputText = ImGui.InputText(ctx, '##patternInput', inputText, ImGui.InputTextFlags_EnterReturnsTrue)
+    if rv then
+        -- Überprüfen, ob das Pattern nur aus 1 und 0 besteht
+        if string.match(inputText, "^[01]+$") then
+            applyCustomSelectionPattern(inputText)
+        else
+            reaper.ShowMessageBox("Nur Ziffern 1 und 0 sind erlaubt!", "Fehler", 0)
+        end
+    end
+
+    -- Reset-Button hinzufügen
+    if ImGui.Button(ctx, "Reset Selections") then
+        resetSelections()
+    end
+
+    -- Neuer Radio-Button für das Muster "0" oben
+    rv = ImGui.RadioButton(ctx, 'Pattern 0', selectedPattern == "0")
+    if rv then
+        selectedPattern = "0"
+        inputText = "0" -- Setzt das Muster im Textfeld
+        applyCustomSelectionPattern(inputText)
+    end
+
+    -- Erstellen der Radio-Buttons für vordefinierte Muster
+    local patterns = {
+        "10",   -- 1. Radio-Button
+        "01",   -- 2. Radio-Button
+        "100",  -- 3. Radio-Button
+        "001",  -- 4. Radio-Button
+        "1000", -- 5. Radio-Button
+        "0001"  -- 6. Radio-Button
+    }
+
+    for i, pattern in ipairs(patterns) do
+        local isSelected = (selectedPattern == pattern)
+        rv = ImGui.RadioButton(ctx, 'Pattern ' .. pattern, isSelected)
+        if rv then
+            selectedPattern = pattern
+            inputText = pattern -- Das Muster wird in das Textfeld übernommen
+            applyCustomSelectionPattern(inputText) -- Das ausgewählte Muster sofort anwenden
+        end
+    end
+end
+
+-- Hauptschleife für das Fenster
+local function loop()
+    ImGui.PushFont(ctx, font)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(),0x3F3F3FF0)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(),0x054B6BFF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBg(),0x021D29FF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),0x525252F0)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(),0x085375FF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(),0x043850FF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),0x043850FF)
+    ImGui.SetNextWindowSize(ctx, 240, 260, ImGui.Cond_FirstUseEver)
+    local visible, open = ImGui.Begin(ctx, 'SELECT', true)
+
+    if visible then
+        drawUI()
+        ImGui.End(ctx)
+    end
+
+    ImGui.PopFont(ctx)
+
+    if open then
+        reaper.defer(loop)
+    end
+    reaper.ImGui_PopStyleColor(ctx, 7)
+end
+
+-- Speichern der ursprünglichen Selektionszustände, wenn das Fenster geöffnet wird
+reaper.defer(function()
+    saveOriginalSelections()
+    loop()
+end)
+end
 --=================================================================================================================
 --====================== pattern select ===========================================================================
 --=================================================================================================================
@@ -9051,6 +9384,144 @@ end
 reaper.PreventUIRefresh(-1)
 reaper.UpdateArrange()
 end
+--===================================================================================================
+--===================================== mute_by_pattern ==============================================
+--========================================================================================================
+function mute_by_pattern()
+-- Import ReaImGui
+if not reaper.ImGui_GetBuiltinPath then
+    return reaper.MB('ReaImGui is not installed or too old.', 'My script', 0)
+end
+
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9.2'
+local font = ImGui.CreateFont('sans-serif', 13)
+local ctx = ImGui.CreateContext('MUTE')
+ImGui.Attach(ctx, font)
+
+-- Initialisierung der GUI-Elemente
+local inputText = '101' -- Standardmäßig ein Beispiel-Pattern
+local selectedPattern = nil -- Variable zum Speichern des ausgewählten Radio-Buttons
+
+-- Funktion zum Anwenden des benutzerdefinierten Mute-Patterns
+local function applyCustomMutePattern(pattern)
+    reaper.Undo_BeginBlock()
+
+    local numSelectedTracks = reaper.CountSelectedTracks(0)
+    if numSelectedTracks == 0 then
+        reaper.ShowMessageBox("Keine Tracks ausgewählt!", "Fehler", 0)
+        reaper.Undo_EndBlock("Custom Mute Pattern angewendet", -1)
+        return
+    end
+
+    -- Schleife durch alle selektierten Tracks
+    for t = 0, numSelectedTracks - 1 do
+        local track = reaper.GetSelectedTrack(0, t)
+        local numItemsInTrack = reaper.CountTrackMediaItems(track)
+
+        -- Liste der selektierten Items des aktuellen Tracks
+        local selectedItems = {}
+        for i = 0, numItemsInTrack - 1 do
+            local item = reaper.GetTrackMediaItem(track, i)
+            if reaper.IsMediaItemSelected(item) then
+                table.insert(selectedItems, item)
+            end
+        end
+
+        -- Pattern anwenden auf die selektierten Items des aktuellen Tracks
+        for i = 1, #selectedItems do
+            local item = selectedItems[i]
+            local muteState = tonumber(string.sub(pattern, ((i - 1) % #pattern) + 1, ((i - 1) % #pattern) + 1))
+
+            -- Mute (1) oder Unmute (0) basierend auf dem Pattern
+            if muteState == 1 then
+                reaper.SetMediaItemInfo_Value(item, "B_MUTE", 1) -- Mute
+            else
+                reaper.SetMediaItemInfo_Value(item, "B_MUTE", 0) -- Unmute
+            end
+        end
+    end
+
+    reaper.Undo_EndBlock("Custom Mute Pattern angewendet", -1)
+    reaper.UpdateArrange() -- Ansicht aktualisieren
+end
+
+-- GUI Aufbau
+local function drawUI()
+    -- Überschrift über dem Input-Feld
+    ImGui.Text(ctx, 'Pattern (1 = Mute, 0 = Unmute)')
+
+    -- Eingabefeld für das Pattern mit halbierter Breite
+    local rv
+    ImGui.SetNextItemWidth(ctx, 200) -- Setzt die Breite des Input-Feldes
+    rv, inputText = ImGui.InputText(ctx, '##patternInput', inputText, ImGui.InputTextFlags_EnterReturnsTrue)
+    if rv then
+        -- Überprüfen, ob das Pattern nur aus 1 und 0 besteht
+        if string.match(inputText, "^[01]+$") then
+            applyCustomMutePattern(inputText)
+        else
+            reaper.ShowMessageBox("Nur Ziffern 1 und 0 sind erlaubt!", "Fehler", 0)
+        end
+    end
+
+    -- Neuer Radio-Button für das Muster "0" oben
+    rv = ImGui.RadioButton(ctx, 'Pattern 0', selectedPattern == "0")
+    if rv then
+        selectedPattern = "0"
+        inputText = "0" -- Setzt das Muster im Textfeld
+        applyCustomMutePattern(inputText)
+    end
+
+    -- Erstellen der Radio-Buttons für vordefinierte Muster
+    local patterns = {
+        "10",   -- 1. Radio-Button
+        "01",   -- 2. Radio-Button
+        "100",  -- 3. Radio-Button
+        "001",  -- 4. Radio-Button
+        "1000", -- 5. Radio-Button
+        "0001"  -- 6. Radio-Button
+    }
+
+    for i, pattern in ipairs(patterns) do
+        local isSelected = (selectedPattern == pattern)
+        rv = ImGui.RadioButton(ctx, 'Pattern ' .. pattern, isSelected)
+        if rv then
+            selectedPattern = pattern
+            inputText = pattern -- Das Muster wird in das Textfeld übernommen
+            applyCustomMutePattern(inputText) -- Das ausgewählte Muster sofort anwenden
+        end
+    end
+end
+
+-- Hauptschleife für das Fenster
+local function loop()
+    ImGui.PushFont(ctx, font)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(),0x3F3F3FF0)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(),0xC1321DFF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBg(),0x572214FF)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(),0x525252F0)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(),0xCC000082)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(),0xCC000082)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),0xFF220066)
+    ImGui.SetNextWindowSize(ctx, 240, 240, ImGui.Cond_FirstUseEver)
+    local visible, open = ImGui.Begin(ctx, 'MUTE', true)
+
+    if visible then
+        drawUI()
+        ImGui.End(ctx)
+    end
+
+    ImGui.PopFont(ctx)
+
+    if open then
+        reaper.defer(loop)
+    end
+    reaper.ImGui_PopStyleColor(ctx, 7)
+end
+
+-- Starten der Schleife
+reaper.defer(loop)
+end
 ----------------------------------------------------------------------------------------------------
 -------------------------MUTE_RANDOM--------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
@@ -9754,108 +10225,119 @@ end
 --======================================= Create_Midi_Track ============================================
 --=======================================================================================================
 
+
 function create_midi_track()
--- Start an undo block
-reaper.Undo_BeginBlock()
+   -- Start an undo block
+   reaper.Undo_BeginBlock()
+   
+   -- Get the current project
+   project = 0
+   -- Setze die Zeitbereichsauswahl von 0 bis 4 Bars, wenn keine Auswahl vorhanden ist
 
--- Get the current project
-project = 0
+   
+   -- Get the current time selection
+   start_time, end_time = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
+   
+   -- Calculate quarter note length based on the project tempo
+   quarter_note_len = (reaper.TimeMap2_QNToTime(project, 1) - reaper.TimeMap2_QNToTime(project, 0))*4
+   
+   -- Define the note pitch (C4, MIDI note 60)
+   note_pitch = 60
+   
+   -- Define turquoise color
+   turquoise_color = reaper.ColorToNative(182, 90, 77) | 0x1000000 -- RGB (64, 224, 208)
+   
+   -- Create the folder track (parent)
+   folderTrackIdx = reaper.CountTracks(project) -- This gets the next available track index
+   reaper.InsertTrackAtIndex(folderTrackIdx, true)
+   folderTrack = reaper.GetTrack(project, folderTrackIdx)
+   
+   -- Set the folder track to be a folder parent
+   reaper.SetMediaTrackInfo_Value(folderTrack, "I_FOLDERDEPTH", 1)
+   
+   -- Set folder track volume to -12 dB
+   reaper.SetMediaTrackInfo_Value(folderTrack, "D_VOL", 10 ^ (-12 / 20))
+   
+   -- Load ReaSynth on the folder track
+   vstName = "ReaSynth (Cockos)"  -- VSTi name as it appears in REAPER
+   fxIdx = reaper.TrackFX_AddByName(folderTrack, vstName, false, -1)
+   
+   -- Set ReaSynth parameters: Sustain to -inf (parameter 5) and Sawtooth mix to 0.5 (parameter 1)
+   reaper.TrackFX_SetParam(folderTrack, fxIdx, 9, -80)     -- Sustain to -80
+   reaper.TrackFX_SetParam(folderTrack, fxIdx,3, 0.4)   -- sawtooth mix to 0.4
+   reaper.TrackFX_SetParam(folderTrack, fxIdx,6, 0.015)-- decay to 451ms
+   -- Set folder track name to "ReaSynth"
+   reaper.GetSetMediaTrackInfo_String(folderTrack, "P_NAME", "ReaSynth", true)
+   
+   -- Set folder track color to turquoise
+   reaper.SetTrackColor(folderTrack, turquoise_color)
+   
+   -- Create 4 MIDI tracks (child tracks) under the folder track
+   all_items = {} -- Table to store references to all created items
+   
+   for i = 1, 4 do
+     trackIdx = folderTrackIdx + i
+     reaper.InsertTrackAtIndex(trackIdx, true)
+     midiTrack = reaper.GetTrack(project, trackIdx)
+     
+     -- Set the track name (optional)
+     reaper.GetSetMediaTrackInfo_String(midiTrack, "P_NAME", "MIDI Track " .. i, true)
+     
+     -- Set these tracks as folder children
+     reaper.SetMediaTrackInfo_Value(midiTrack, "I_FOLDERDEPTH", 0)
+     
+     -- Set child track color to turquoise
+     reaper.SetTrackColor(midiTrack, turquoise_color)
+   
+     -- Create MIDI items that fill the entire time selection
+     if start_time ~= end_time then  -- Check if time selection is active
+       current_time = start_time
+       while current_time < end_time do
+         -- Create MIDI item for each quarter note
+         item = reaper.CreateNewMIDIItemInProj(midiTrack, current_time, current_time + quarter_note_len, false)
+         take = reaper.GetMediaItemTake(item, 0)
+         
+         -- Insert a C4 note (MIDI note number 60) with quarter note length
+         reaper.MIDI_InsertNote(take, false, false, reaper.MIDI_GetPPQPosFromProjTime(take, current_time),
+                                reaper.MIDI_GetPPQPosFromProjTime(take, current_time + quarter_note_len),
+                                0, note_pitch, 100, false)
+         
+         -- Set the item length to a quarter note (optional, in case of adjustment)
+         reaper.SetMediaItemLength(item, quarter_note_len, false)
+   
+         -- Add the item to the all_items table
+         table.insert(all_items, item)
+   
+         -- Move to the next quarter note position
+         current_time = current_time + quarter_note_len
+       end
+     end
+   end
+   
+   -- Select all created items
+   for _, item in ipairs(all_items) do
+     reaper.SetMediaItemSelected(item, true)
+   end
+   
+   -- Set the last MIDI track as the folder end
+   lastMidiTrack = reaper.GetTrack(project, folderTrackIdx + 4)
+   reaper.SetMediaTrackInfo_Value(lastMidiTrack, "I_FOLDERDEPTH", -1)
+   
+   -- End the undo block
+   reaper.Undo_EndBlock("Create Folder Track with 4 MIDI Tracks, ReaSynth, and MIDI Items", -1)
+   
+   -- Update the arrangement to reflect changes
+   reaper.UpdateArrange()
+   
+   -- Ensure the selected items are visible
+   reaper.Main_OnCommand(40913, 0) -- Zoom to selected items
+   
+end
 
--- Get the current time selection
-start_time, end_time = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
-
--- Calculate the length of 1 bar based on the project tempo and time signature
-measures = 1 -- we want each note to be 1 bar long
-bar_len = reaper.TimeMap2_beatsToTime(project, measures * 4) -- assuming 4/4 time
-
--- Define the note pitch (C4, MIDI note 60)
-note_pitch = 60
-
--- Define turquoise color
-turquoise_color = reaper.ColorToNative(220, 80, 87) | 0x1000000 -- RGB (64, 224, 208)
-
--- Create the folder track (parent)
-folderTrackIdx = reaper.CountTracks(project) -- This gets the next available track index
-reaper.InsertTrackAtIndex(folderTrackIdx, true)
-folderTrack = reaper.GetTrack(project, folderTrackIdx)
-
--- Set the folder track to be a folder parent
-reaper.SetMediaTrackInfo_Value(folderTrack, "I_FOLDERDEPTH", 1)
-
--- Set folder track volume to -12 dB
-reaper.SetMediaTrackInfo_Value(folderTrack, "D_VOL", 10 ^ (-12 / 20))
-
--- Load ReaSynth on the folder track
-vstName = "ReaSynth (Cockos)"  -- VSTi name as it appears in REAPER
-fxIdx = reaper.TrackFX_AddByName(folderTrack, vstName, false, -1) 
-
--- Set ReaSynth parameters: Sustain to -inf (parameter 5) and Sawtooth mix to 0.5 (parameter 1)
-reaper.TrackFX_SetParam(folderTrack, fxIdx, 9, -80)     -- Sustain to -80
-reaper.TrackFX_SetParam(folderTrack, fxIdx,3, 0.4)   -- sawtooth mix to 0.4
-reaper.TrackFX_SetParam(folderTrack, fxIdx,6, 0.015)-- decay to 451ms
-
--- Set folder track color to turquoise
-reaper.SetTrackColor(folderTrack, turquoise_color)
--- Set folder track name to "ReaSynth"
-reaper.GetSetMediaTrackInfo_String(folderTrack, "P_NAME", "ReaSynth", true)
-
--- Create 4 MIDI tracks (child tracks) under the folder track
-all_items = {} -- Table to store references to all created items
-
-for i = 1, 4 do
-  trackIdx = folderTrackIdx + i
-  reaper.InsertTrackAtIndex(trackIdx, true)
-  midiTrack = reaper.GetTrack(project, trackIdx)
+ 
   
-  -- Set these tracks as folder children
-  reaper.SetMediaTrackInfo_Value(midiTrack, "I_FOLDERDEPTH", 0)
-  
-  -- Set child track color to turquoise
-  reaper.SetTrackColor(midiTrack, turquoise_color)
-
-  -- Create MIDI items that fill the entire time selection
-  if start_time ~= end_time then  -- Check if time selection is active
-    current_time = start_time
-    while current_time < end_time do
-      -- Create MIDI item for each bar
-      item = reaper.CreateNewMIDIItemInProj(midiTrack, current_time, current_time + bar_len, false)
-      take = reaper.GetMediaItemTake(item, 0)
-      
-      -- Insert a C4 note (MIDI note number 60) with bar length
-      reaper.MIDI_InsertNote(take, false, false, reaper.MIDI_GetPPQPosFromProjTime(take, current_time),
-                             reaper.MIDI_GetPPQPosFromProjTime(take, current_time + bar_len-0.02),
-                             0, note_pitch, 100, false)
-
-      -- Set the item length to 1 bar
-      reaper.SetMediaItemLength(item, bar_len, false)
-
-      -- Add the item to the all_items table
-      table.insert(all_items, item)
-
-      -- Move to the next bar position
-      current_time = current_time + bar_len
-    end
-  end
-end
-
--- Select all created items
-for _, item in ipairs(all_items) do
-  reaper.SetMediaItemSelected(item, true)
-end
-
--- Set the last MIDI track as the folder end
-lastMidiTrack = reaper.GetTrack(project, folderTrackIdx + 4)
-reaper.SetMediaTrackInfo_Value(lastMidiTrack, "I_FOLDERDEPTH", -1)
-
--- End the undo block
-reaper.Undo_EndBlock("Create Folder Track with 4 MIDI Tracks, ReaSynth, and MIDI Items", -1)
-
--- Update the arrangement to reflect changes
-reaper.UpdateArrange()
 
 
-
-end
 --======================================================================================================
 --====================================== Midi_Pattern ==================================================
 --=====================================================================================================
@@ -11030,12 +11512,12 @@ ctrack=reaper.GetSelectedTrack( 0, 0 )
 reaper.GetSetMediaTrackInfo_String(ctrack, "P_NAME", "chordtrack", true)
 reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
 if ctrack then 
-reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
+reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 48)
 reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
 reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
 reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
 
-  color = reaper.ColorToNative(95,175,178)
+  color = reaper.ColorToNative(205,128,14)
   reaper.SetTrackColor(ctrack, color)
 
 
@@ -13917,11 +14399,11 @@ end
   ctrack = reaper.GetTrack( 0, 0 )
   reaper.GetSetMediaTrackInfo_String(ctrack, 'P_NAME', 'chordtrack', true)
   reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
-  reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
+  reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 48)
   reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
   reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
   reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
-  color = reaper.ColorToNative(95,175,178)
+  color = reaper.ColorToNative(205,128,14)
   reaper.SetTrackColor(ctrack, color)
  
  end 

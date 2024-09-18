@@ -1,10 +1,12 @@
--- @version 2.0.8
+-- @version 2.1.0
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + new micro rhythm curves new
+--    + new function curves with micro rhythm
+--    + select and mute edit
+--    + glue selected items group
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
@@ -198,8 +200,11 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
             if reaper.ImGui_Button(ctx, 'SEQ##2', 50,32)then length_input() end
                ToolTip (tt, "changes the item length. \n1 for one grid\n2 for two grids \netc \nfactor 3 for triplet \nfactor 5 for quintole \netc." )
                reaper.ImGui_PushItemWidth( ctx,23) 
-              if reaper.ImGui_Button(ctx, 'crazy length', (btn_w*3)+(spacing_x*2),y) then crazy_length_1()end
-                 ToolTip(tt, "reset item length")
+              if reaper.ImGui_Button(ctx, 'curves', 48,32) then crazy_length_1()end
+                 ToolTip(tt, "crazy length")
+                 reaper.ImGui_SameLine( ctx)
+                 if reaper.ImGui_Button(ctx, 'glue', 48,32) then glue_items_group()end
+                    ToolTip(tt, "glue selected items groups")
             if reaper.ImGui_IsItemDeactivated( ctx ) then reaper.SetCursorContext(1, nil)end
                reaper.ImGui_EndGroup(ctx)
            
@@ -372,8 +377,12 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
 
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx) 
-            if reaper.ImGui_Button(ctx, 'SELECT',(btn_w*3)+(spacing_x*2),y) then pattern_select() reaper.SetCursorContext(1, nil)end
-               ToolTip(tt, "Creates a select pattern \n0 = unselected \n1 = selected")
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0xF9198C0)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x9354892)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x887FA5)
+            if reaper.ImGui_Button(ctx, 'SELECT',(btn_w*3)+(spacing_x*2),y) then select_by_pattern() reaper.SetCursorContext(1, nil)end
+               ToolTip(tt, "Select by pattern \n0 = unselected \n1 = selected")
+               reaper.ImGui_PopStyleColor(ctx, 3)
             if reaper.ImGui_Button(ctx, 'chord',32,y) then select_chord() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "Select only the selected items that are in the chord range \nunder which the cursor is positioned.")
                reaper.ImGui_SameLine( ctx)
@@ -384,10 +393,13 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
                ToolTip(tt, "only selects items that start on the grid") 
                
                --VOLUME
-               
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0xF9198C0)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x887F72)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x9E8E94)
             if reaper.ImGui_Button(ctx, 'VOLUME',66,y) then reaper.Main_OnCommand(41923,0) reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "reset Volume")  
                reaper.ImGui_SameLine( ctx)
+               reaper.ImGui_PopStyleColor(ctx, 3)
             if reaper.ImGui_Button(ctx, 'SEQ##7',32,y) then volume_sequence() reaper.SetCursorContext(1, nil)end
                ToolTip(tt, "volume sequencer for \nselected items \n1=0db \n2=-0.2db \n3=-0.4db")    
             if divider == nil then divider = 10 end
@@ -424,9 +436,13 @@ local spacing_x = reaper.ImGui_GetStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacin
 --========================= MUTE  ============================================================================  
 
                reaper.ImGui_SameLine(ctx, nil, 10)
-               reaper.ImGui_BeginGroup(ctx) 
-            if reaper.ImGui_Button(ctx, 'MUTE', (btn_w*2)+(spacing_x*1),y) then reaper.Main_OnCommand(40175,0) end
-         
+               reaper.ImGui_BeginGroup(ctx)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0xE35858F0)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x803232F0)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0xCC6868F0)
+            if reaper.ImGui_Button(ctx, 'MUTE', (btn_w*2)+(spacing_x*1),y) then mute_by_pattern() end
+               ToolTip(tt, "Mute by pattern")
+               reaper.ImGui_PopStyleColor(ctx, 3)
               reaper.ImGui_PushItemWidth( ctx, (btn_w*2)+(spacing_x*1))
                retval, dinger = reaper.ImGui_DragInt( ctx, "##d", dinger, 0.1, 0,128)
                if retval then
@@ -545,9 +561,9 @@ local pattern ={
                
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx) 
-               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0x20CFFFAA)
-               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x167B97AA)
-               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0x20CFFFAA)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0xE67A00B9)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x894A02B9)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0xE67A00B9)
             if reaper.ImGui_Button(ctx, 'CHORDTRACK', (btn_w*4)+(spacing_x*3),y) then create_chordtrack() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopStyleColor(ctx, 3)
                ToolTip(tt, "Creates a chordtrack at the top if already available - move above selected track")
