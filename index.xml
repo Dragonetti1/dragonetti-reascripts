@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="2bf08b865604dc03091b590b523b660927d61538">
+<index version="1" name="dragonetti-reascripts" commit="91950b5d0be9516f95c2efa21447787d48936830">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -339,6 +339,14 @@
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/2bf08b865604dc03091b590b523b660927d61538/Items%20Editing/ReaComposer/ReaComposer.lua</source>
         <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/2bf08b865604dc03091b590b523b660927d61538/Items%20Editing/ReaComposer/functions.lua</source>
         <source file="Fonts/Symbols.ttf">https://github.com/Dragonetti1/dragonetti-reascripts/raw/2bf08b865604dc03091b590b523b660927d61538/Items%20Editing/ReaComposer/Fonts/Symbols.ttf</source>
+      </version>
+      <version name="2.1.0" author="Dragonetti" time="2024-09-18T13:36:12Z">
+        <changelog><![CDATA[+ new function curves with micro rhythm
++ select and mute edit
++ glue selected items group]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/91950b5d0be9516f95c2efa21447787d48936830/Items%20Editing/ReaComposer/ReaComposer.lua</source>
+        <source file="functions.lua">https://github.com/Dragonetti1/dragonetti-reascripts/raw/91950b5d0be9516f95c2efa21447787d48936830/Items%20Editing/ReaComposer/functions.lua</source>
+        <source file="Fonts/Symbols.ttf">https://github.com/Dragonetti1/dragonetti-reascripts/raw/91950b5d0be9516f95c2efa21447787d48936830/Items%20Editing/ReaComposer/Fonts/Symbols.ttf</source>
       </version>
     </reapack>
   </category>
