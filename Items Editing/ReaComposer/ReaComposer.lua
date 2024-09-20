@@ -6,8 +6,6 @@
 -- @changelog
 --    + random mute function
 
-
-
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.8'
