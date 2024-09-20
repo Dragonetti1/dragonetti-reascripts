@@ -1,10 +1,10 @@
--- @version 2.1.1
+-- @version 2.1.2
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + random mute function
+--    + random mute function bug fix
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'

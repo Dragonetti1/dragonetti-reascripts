@@ -14427,6 +14427,32 @@ end
 --==========================================================================================================
 
 function chord_progression(ca)
+-- Set the project tempo (beats per minute) and time signature
+tempo = reaper.Master_GetTempo() -- Get the current project tempo (BPM)
+beats_per_bar = 4 -- Assuming a 4/4 time signature
+
+-- Get the current time selection
+start_time, end_time = reaper.GetSet_LoopTimeRange(false, false, 0, 0, false)
+
+-- Check if there is no time selection
+if start_time == end_time then
+    -- Set the project tempo (beats per minute) and time signature
+    tempo = reaper.Master_GetTempo() -- Get the current project tempo (BPM)
+    beats_per_bar = 4 -- Assuming a 4/4 time signature
+
+    -- Calculate the length of 4 bars in seconds
+    bars = 4
+    beats = bars * beats_per_bar
+    project_time_per_beat = 60.0 / tempo
+    time_selection_end = beats * project_time_per_beat
+
+    -- Set time selection from 0 to the end of 4 bars
+    reaper.GetSet_LoopTimeRange(true, false, 0, time_selection_end, false)
+
+    -- Update the arrange view to reflect the new time selection
+    reaper.UpdateArrange()
+
+end
 
 
 
