@@ -1,12 +1,12 @@
--- @version 2.1.0
+-- @version 2.1.1
 -- @author Dragonetti
 -- @provides 
 --    functions.lua
 --    Fonts/*.ttf
 -- @changelog
---    + new function curves with micro rhythm
---    + select and mute edit
---    + glue selected items group
+--    + random mute function
+
+
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
@@ -561,9 +561,9 @@ local pattern ={
                
                reaper.ImGui_SameLine(ctx, nil, 10)
                reaper.ImGui_BeginGroup(ctx) 
-               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0xE67A00B9)
-               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0x894A02B9)
-               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0xE67A00B9)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(),0xF7E056EB)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),0xE3C81E79)
+               reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(),0xF5B77AAF)
             if reaper.ImGui_Button(ctx, 'CHORDTRACK', (btn_w*4)+(spacing_x*3),y) then create_chordtrack() reaper.SetCursorContext(1, nil)end
                reaper.ImGui_PopStyleColor(ctx, 3)
                ToolTip(tt, "Creates a chordtrack at the top if already available - move above selected track")

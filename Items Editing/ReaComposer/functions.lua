@@ -1,3 +1,4 @@
+
 --@noindex
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -318,7 +319,7 @@ local function contents()
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_SliderGrab(),0x6E005BFF)
 reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_SliderGrabActive(),0x3E0033FF)
   -- Sicherstellen, dass der Slider-Wert als Zahl gesetzt wird
-  local changed, new_am = ImGui.SliderDouble(ctx, '##am', am, -50.0, 50.0)
+  local changed, new_am = ImGui.SliderDouble(ctx, '##am', am, -50.0, 50.0)reaper.ImGui_SameLine(ctx)reaper.ImGui_Text(ctx,"depth")
   reaper.ImGui_PopStyleColor(ctx,2)
   if changed then
     old_am = am
@@ -354,7 +355,7 @@ reaper.ImGui_PopStyleColor(ctx,2)
    end
    
    
-   rv = ImGui.RadioButton(ctx, "Gnawa triplet ", selected_cu == 21)
+   rv = ImGui.RadioButton(ctx, "Gnawa triplet (triplet+quarter) ", selected_cu == 21)
    if rv then
      selected_cu = 21
      crazy_length(selected_cu, am)  -- Direkt die Veränderung anwenden
@@ -8582,6 +8583,9 @@ local function drawUI()
     -- Eingabefeld für das Pattern mit halbierter Breite
     local rv
     ImGui.SetNextItemWidth(ctx, 200) -- Setzt die Breite des Input-Feldes
+    if ImGui.IsWindowAppearing(ctx) then
+      ImGui.SetKeyboardFocusHere(ctx)
+    end
     rv, inputText = ImGui.InputText(ctx, '##patternInput', inputText, ImGui.InputTextFlags_EnterReturnsTrue)
     if rv then
         -- Überprüfen, ob das Pattern nur aus 1 und 0 besteht
@@ -9387,6 +9391,7 @@ end
 --===================================================================================================
 --===================================== mute_by_pattern ==============================================
 --========================================================================================================
+
 function mute_by_pattern()
 -- Import ReaImGui
 if not reaper.ImGui_GetBuiltinPath then
@@ -9396,78 +9401,142 @@ end
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' '0.9.2'
 local font = ImGui.CreateFont('sans-serif', 13)
-local ctx = ImGui.CreateContext('MUTE')
+local ctx = ImGui.CreateContext('Custom Mute Pattern')
 ImGui.Attach(ctx, font)
 
 -- Initialisierung der GUI-Elemente
-local inputText = '101' -- Standardmäßig ein Beispiel-Pattern
-local selectedPattern = nil -- Variable zum Speichern des ausgewählten Radio-Buttons
+local inputText = '2112112121122121' -- Standardmäßig ein Beispiel-Pattern
+local mutePattern = nil -- Variable zum Speichern des ausgewählten Radio-Buttons
+local originalMutes = {} -- Tabelle zum Speichern der ursprünglichen Selektionszustände
 
--- Funktion zum Anwenden des benutzerdefinierten Mute-Patterns
+-- Funktion zum Speichern des ursprünglichen Selektionszustands
+local function saveOriginalMutes()
+    originalSelections = {}
+    local numMutedItems = reaper.CountSelectedMediaItems(0)
+    for i = 1, numMutedItems do
+        local item = reaper.GetSelectedMediaItem(0, i - 1)
+        originalMutes[item] = true
+    end
+end
+function generate_random_pattern()
+    local pattern = ""
+    rand = math.random(2, 32)
+    for i = 1, rand do
+        local random_digit = math.random(1, 2) -- Generate random 1 or 2
+        pattern = pattern .. tostring(random_digit)
+    end
+    return pattern
+end
+-- Funktion zum Zurücksetzen auf die ursprünglichen Selektionszustände
+local function resetMutes()
+    reaper.PreventUIRefresh(1)
+    for item in pairs(originalMutes) do
+        reaper.SetMediaItemInfo_Value(item, "B_MUTE", 1)
+    end
+    reaper.PreventUIRefresh(-1)
+    reaper.UpdateArrange()
+end
+
+-- Funktion zum Anwenden des benutzerdefinierten Auswahl-Patterns
+-- Funktion zum Anwenden des benutzerdefinierten Auswahl-Patterns
 local function applyCustomMutePattern(pattern)
     reaper.Undo_BeginBlock()
+    reaper.PreventUIRefresh(1)
 
-    local numSelectedTracks = reaper.CountSelectedTracks(0)
-    if numSelectedTracks == 0 then
-        reaper.ShowMessageBox("Keine Tracks ausgewählt!", "Fehler", 0)
+    local numMutedItems = reaper.CountSelectedMediaItems(0)
+    if numMutedItems == 0 then
+        reaper.ShowMessageBox("Keine Items ausgewählt!", "Fehler", 0)
         reaper.Undo_EndBlock("Custom Mute Pattern angewendet", -1)
+        reaper.PreventUIRefresh(-1)
         return
     end
 
-    -- Schleife durch alle selektierten Tracks
-    for t = 0, numSelectedTracks - 1 do
-        local track = reaper.GetSelectedTrack(0, t)
-        local numItemsInTrack = reaper.CountTrackMediaItems(track)
+    local item_ptrs = {}
+    local itemCount = 1
+    local other_items = {}
+    local otherCount = 1
+    local mainTrack = reaper.GetMediaItem_Track(reaper.GetSelectedMediaItem(0, 0))
 
-        -- Liste der selektierten Items des aktuellen Tracks
-        local selectedItems = {}
-        for i = 0, numItemsInTrack - 1 do
-            local item = reaper.GetTrackMediaItem(track, i)
-            if reaper.IsMediaItemSelected(item) then
-                table.insert(selectedItems, item)
-            end
-        end
+    -- Items nach Tracks gruppieren
+    for selitem = 1, numMutedItems do
+        local thisItem = reaper.GetSelectedMediaItem(0, selitem - 1)
+        local thisTrack = reaper.GetMediaItem_Track(thisItem)
 
-        -- Pattern anwenden auf die selektierten Items des aktuellen Tracks
-        for i = 1, #selectedItems do
-            local item = selectedItems[i]
-            local muteState = tonumber(string.sub(pattern, ((i - 1) % #pattern) + 1, ((i - 1) % #pattern) + 1))
-
-            -- Mute (1) oder Unmute (0) basierend auf dem Pattern
-            if muteState == 1 then
-                reaper.SetMediaItemInfo_Value(item, "B_MUTE", 1) -- Mute
-            else
-                reaper.SetMediaItemInfo_Value(item, "B_MUTE", 0) -- Unmute
-            end
+        if thisTrack == mainTrack then
+            item_ptrs[itemCount] = thisItem
+            itemCount = itemCount + 1
+        else
+            other_items[otherCount] = {
+                item = thisItem,
+                track = thisTrack,
+            }
+            otherCount = otherCount + 1
         end
     end
 
+    -- Pattern parsen und 2 als 0 behandeln
+    local parsed_t = {}
+    for char in pattern:gmatch('%d') do 
+        local val = (char == '1') and 1 or 0  -- Wenn 1, dann Mute (1), ansonsten Unmute (0)
+        parsed_t[#parsed_t + 1] = val 
+    end
+
+    -- Pattern auf Haupt-Track anwenden
+    for i = 1, itemCount - 1 do 
+        local ptid = (1 + (i - 1) % #parsed_t)
+        if parsed_t[ptid] then
+            reaper.SetMediaItemInfo_Value(item_ptrs[i], "B_MUTE", parsed_t[ptid])
+        end
+    end
+
+    -- Pattern auf andere Tracks anwenden
+    local lastTrack, index
+    for i = 1, otherCount - 1 do
+        if not lastTrack or lastTrack ~= other_items[i].track then
+            index = 1
+            lastTrack = other_items[i].track
+        elseif not parsed_t[index] then
+            index = 1
+        end
+        reaper.SetMediaItemInfo_Value(other_items[i].item, "B_MUTE", parsed_t[index])
+        index = index + 1
+    end
+
+    reaper.PreventUIRefresh(-1)
+    reaper.UpdateArrange()
     reaper.Undo_EndBlock("Custom Mute Pattern angewendet", -1)
-    reaper.UpdateArrange() -- Ansicht aktualisieren
 end
+
 
 -- GUI Aufbau
 local function drawUI()
     -- Überschrift über dem Input-Feld
-    ImGui.Text(ctx, 'Pattern (1 = Mute, 0 = Unmute)')
+    ImGui.Text(ctx, 'Pattern (1 = Mute, 0 or 2 = Unmute)')
 
     -- Eingabefeld für das Pattern mit halbierter Breite
     local rv
     ImGui.SetNextItemWidth(ctx, 200) -- Setzt die Breite des Input-Feldes
+    if ImGui.IsWindowAppearing(ctx) then
+      ImGui.SetKeyboardFocusHere(ctx)
+    end
     rv, inputText = ImGui.InputText(ctx, '##patternInput', inputText, ImGui.InputTextFlags_EnterReturnsTrue)
     if rv then
-        -- Überprüfen, ob das Pattern nur aus 1 und 0 besteht
-        if string.match(inputText, "^[01]+$") then
+        -- Überprüfen, ob das Pattern nur aus 1, 0 oder 2 besteht
+        if string.match(inputText, "^[012]+$") then
             applyCustomMutePattern(inputText)
         else
-            reaper.ShowMessageBox("Nur Ziffern 1 und 0 sind erlaubt!", "Fehler", 0)
+            reaper.ShowMessageBox("Nur Ziffern 1, 0 und 2 sind erlaubt!", "Fehler", 0)
         end
     end
+    
+
+
+
 
     -- Neuer Radio-Button für das Muster "0" oben
-    rv = ImGui.RadioButton(ctx, 'Pattern 0', selectedPattern == "0")
+    rv = ImGui.RadioButton(ctx, 'Pattern 0 (reset)', mutedPattern == "0")
     if rv then
-        selectedPattern = "0"
+        mutedPattern = "0"
         inputText = "0" -- Setzt das Muster im Textfeld
         applyCustomMutePattern(inputText)
     end
@@ -9479,19 +9548,34 @@ local function drawUI()
         "100",  -- 3. Radio-Button
         "001",  -- 4. Radio-Button
         "1000", -- 5. Radio-Button
-        "0001"  -- 6. Radio-Button
+        "0001",  -- 6. Radio-Button
+        "2112112121121121", --7. Radio-Button
+        "1122112211121122", --8. Radio-Button
+        "2112112111211211", --9. Radio-Button
+        "2112112111121121", --10. Radio-Button
+        "2112111211212111", --11. Radio-Button
+        "2111211212112111", --12. Radio-Button
+            
     }
-
+    -- Neuen Button für zufälliges Pattern hinzufügen
+            local isMuted = (mutedPattern == pattern)
+        if ImGui.RadioButton(ctx, "Random", isMuted) then
+            local randomPattern = generate_random_pattern()
+            selectedPattern = randomPattern
+            inputText = randomPattern -- Zeigt das zufällige Pattern im Textfeld an
+            applyCustomMutePattern(randomPattern) -- Wendet das zufällige Pattern sofort an
+        end 
     for i, pattern in ipairs(patterns) do
-        local isSelected = (selectedPattern == pattern)
-        rv = ImGui.RadioButton(ctx, 'Pattern ' .. pattern, isSelected)
+        local isMuted = (mutedPattern == pattern)
+        rv = ImGui.RadioButton(ctx, 'Pattern ' .. pattern, isMuted)
         if rv then
-            selectedPattern = pattern
+            mutedPattern = pattern
             inputText = pattern -- Das Muster wird in das Textfeld übernommen
             applyCustomMutePattern(inputText) -- Das ausgewählte Muster sofort anwenden
         end
     end
 end
+
 
 -- Hauptschleife für das Fenster
 local function loop()
@@ -9503,7 +9587,7 @@ local function loop()
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_CheckMark(),0xCC000082)
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(),0xCC000082)
     reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgActive(),0xFF220066)
-    ImGui.SetNextWindowSize(ctx, 240, 240, ImGui.Cond_FirstUseEver)
+    ImGui.SetNextWindowSize(ctx, 220, 400, ImGui.Cond_FirstUseEver)
     local visible, open = ImGui.Begin(ctx, 'MUTE', true)
 
     if visible then
@@ -9519,8 +9603,11 @@ local function loop()
     reaper.ImGui_PopStyleColor(ctx, 7)
 end
 
--- Starten der Schleife
-reaper.defer(loop)
+-- Speichern der ursprünglichen Selektionszustände, wenn das Fenster geöffnet wird
+reaper.defer(function()
+    saveOriginalMutes()
+    loop()
+end)
 end
 ----------------------------------------------------------------------------------------------------
 -------------------------MUTE_RANDOM--------------------------------------------------------------
@@ -10824,7 +10911,7 @@ function midi_creator()
     local note_idx = 1
     local start_time = TIME_SEL_START
     local prev_item_end = start_time
-    while start_time < TIME_SEL_END do
+    while start_time < TIME_SEL_END-0.02 do
       local length = sequence[note_idx] == 0 and 1 * grid_size or sequence[note_idx] * grid_size
       local midi_length = sequence[note_idx] == 0 and grid_ppq or sequence[note_idx] * grid_ppq
       local vol = 127
@@ -11517,7 +11604,7 @@ reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
 reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
 reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
 
-  color = reaper.ColorToNative(205,128,14)
+  color = reaper.ColorToNative(241,227,174)
   reaper.SetTrackColor(ctrack, color)
 
 
@@ -14403,7 +14490,7 @@ end
   reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
   reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
   reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
-  color = reaper.ColorToNative(205,128,14)
+  color = reaper.ColorToNative(241,227,174)
   reaper.SetTrackColor(ctrack, color)
  
  end 
