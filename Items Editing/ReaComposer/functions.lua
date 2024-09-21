@@ -751,23 +751,39 @@ reaper.SetCursorContext(1,0)
 end
 end
 --====================================================================================================================
---======================================= Split_items_by_pattern =======================================================
+--======================================= Split_by_pattern =======================================================
 --=========================================================================================================================
 function split_items_by_pattern()
+-- Import ReaImGui
+if not reaper.ImGui_GetBuiltinPath then
+    return reaper.MB('ReaImGui is not installed or too old.', 'My script', 0)
+end
+
+local function Msg(str)
+    reaper.ShowConsoleMsg(tostring(str) .. "\n")
+end
+
+package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
+local ImGui = require 'imgui' '0.9.2'
+local font = ImGui.CreateFont('sans-serif', 13)
+local ctx = ImGui.CreateContext('Custom Split by Pattern')
+ImGui.Attach(ctx, font)
+
+local inputPattern = '1'  -- Standardmäßiges Beispiel-Pattern
+local noteValue = '16'     -- Standardmäßiger Notenwert (16tel)
+
 -- Funktion zum Zerschneiden eines Items basierend auf einer fortlaufenden Sequenz
-function split_item_by_sequence(item, sequence, note_length)
+function split_item_by_sequence(item, sequence, note_value)
     local item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
     local item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
     local item_end = item_pos + item_len
 
-    -- Länge des Notenwerts in Sekunden berechnen
-    local note_length_in_seconds = (240 / reaper.Master_GetTempo()) / notex
+    local bpm = reaper.Master_GetTempo()
+    local note_length_in_seconds = (240 / bpm) / note_value
 
-    -- Berechne die Schnittpositionen basierend auf der Sequenz
     local cut_positions = {}
     local cumulative_offset = 0
 
-    -- Berechne die Positionen für Schnitte gemäß der fortlaufenden Sequenz
     for i = 1, #sequence do
         local value = sequence[i]
         cumulative_offset = cumulative_offset + (value * note_length_in_seconds)
@@ -776,34 +792,19 @@ function split_item_by_sequence(item, sequence, note_length)
         end
     end
 
-    -- Sortiere Schnittpositionen aufsteigend
     table.sort(cut_positions)
-
-    -- Führe die Schnitte durch
     local last_cut_pos = item_pos
 
     for i = 1, #cut_positions do
         local cut_position = cut_positions[i]
-
-        -- Sicherstellen, dass der Schnitt innerhalb der Item-Länge liegt und nach der letzten Schnittposition erfolgt
         if cut_position < item_end and cut_position > last_cut_pos then
-            -- SplitMediaItem führt den Schnitt durch und gibt das rechte Split-Item zurück
             local right_split = reaper.SplitMediaItem(item, cut_position)
-         --   if not right_split then
-           --     reaper.ShowMessageBox("wrong cut at position " .. cut_position, "error", 0)
-            --    return
-           -- end
-
-            -- Update die Position für den nächsten Schnitt
-            last_cut_pos = cut_position
-
-            -- Aktualisiere das Item auf das neu geschnittene rechte Item
             item = right_split
+            last_cut_pos = cut_position
         end
     end
 end
 
--- Funktion zum Erstellen einer wiederholten Sequenz
 function repeat_sequence(sequence, times)
     local repeated_sequence = {}
     for i = 1, times do
@@ -814,71 +815,184 @@ function repeat_sequence(sequence, times)
     return repeated_sequence
 end
 
--- Hauptfunktion, die das Script ausführt
-function main()
-    -- Sicherstellen, dass Items ausgewählt sind
+-- Funktion zur Generierung eines zufälligen Patterns mit der Summe 16
+function generate_random_pattern()
+    local total = 16
+    local numbers = {1, 2, 3, 4, 5, 6}
+    local random_pattern = {}
+    local sum = 0
+
+    while sum < total do
+        local num = numbers[math.random(1, #numbers)]
+        if sum + num <= total then
+            table.insert(random_pattern, num)
+            sum = sum + num
+        end
+    end
+
+    return table.concat(random_pattern)
+end
+
+-- Funktion zum Anwenden des Split-Patterns auf alle Tracks
+local function apply_split_pattern(pattern, note_value)
+    reaper.Undo_BeginBlock()
+    reaper.PreventUIRefresh(1)
+
     local item_count = reaper.CountSelectedMediaItems(0)
     if item_count == 0 then
-        reaper.ShowMessageBox("no items selected!", "error", 0)
+        reaper.ShowMessageBox("Keine Items ausgewählt!", "Fehler", 0)
+        reaper.Undo_EndBlock("Split Pattern angewendet", -1)
+        reaper.PreventUIRefresh(-1)
         return
     end
 
-    -- Benutzereingabe für das Muster und den Notenwert
-    retval, user_input = reaper.GetUserInputs("cut Items by pattern", 2, "pattern (e.g. Bossa Nova 33433), value (1 for 16tel, 2 for 8tel, 4 for quarter,):", "1,16")
-    if retval then
-        -- Parsen der Eingabe
-        local pattern, note_value = user_input:match("^(.-),(%d+)$")
-        notex = tonumber(note_value)
-
-        if not pattern or not note_value then
-            reaper.ShowMessageBox("wrong input.", "error", 0)
-            return
+    local sequence = {}
+    for char in pattern:gmatch('%d') do
+        local value = tonumber(char)
+        if value then
+            table.insert(sequence, value)
         end
-
-      
-
-        -- Parsen der Eingabe in eine Sequenz von Schnittrhythmen
-        local sequence = {}
-        for char in pattern:gmatch('%d') do
-            local value = tonumber(char)
-            if value then
-                table.insert(sequence, value)
-            else
-                reaper.ShowMessageBox("wrong input!", "Fehler", 0)
-                return
-            end
-        end
-
-        -- Wiederhole die Sequenz 100-mal
-        local long_sequence = repeat_sequence(sequence, 100)
-
-        
-
-        -- Alle ausgewählten Items bearbeiten
-        reaper.Undo_BeginBlock()
-        reaper.PreventUIRefresh(1)
-
-        -- Erstelle eine Tabelle, um alle ausgewählten Items zu speichern
-        local selected_items = {}
-        for i = 0, item_count - 1 do
-            table.insert(selected_items, reaper.GetSelectedMediaItem(0, i))
-        end
-
-        -- Durchlaufe die Items und zerschneide sie nach der langen Sequenz
-        for i = 1, #selected_items do
-            local item = selected_items[i]
-            split_item_by_sequence(item, long_sequence, note_length_in_seconds)
-        end
-        reaper.Main_OnCommand(0,40362)
-        reaper.PreventUIRefresh(-1)
-        reaper.UpdateArrange()
-        reaper.Undo_EndBlock("Items nach langer Sequenz zerschneiden", -1)
-    else
-        reaper.ShowMessageBox("No Input!", "Fehler", 0)
     end
+
+    local long_sequence = repeat_sequence(sequence, 100)
+
+    local main_track_items = {}
+    local other_track_items = {}
+    local first_track = reaper.GetMediaItemTrack(reaper.GetSelectedMediaItem(0, 0))
+
+    for i = 0, item_count - 1 do
+        local item = reaper.GetSelectedMediaItem(0, i)
+        local track = reaper.GetMediaItemTrack(item)
+
+        if track == first_track then
+            table.insert(main_track_items, item)
+        else
+            table.insert(other_track_items, { item = item, track = track })
+        end
+    end
+
+    for i = 1, #main_track_items do
+        local ptid = (1 + (i - 1) % #sequence)
+        if sequence[ptid] then
+            split_item_by_sequence(main_track_items[i], long_sequence, tonumber(note_value))
+        end
+    end
+
+    local lastTrack, index
+    for i = 1, #other_track_items do
+        if not lastTrack or lastTrack ~= other_track_items[i].track then
+            index = 1
+            lastTrack = other_track_items[i].track
+        elseif not sequence[index] then
+            index = 1
+        end
+        split_item_by_sequence(other_track_items[i].item, long_sequence, tonumber(note_value))
+        index = index + 1
+    end
+
+    reaper.PreventUIRefresh(-1)
+    reaper.UpdateArrange()
+    reaper.Undo_EndBlock("Items nach Muster zerschnitten", -1)
 end
 
-main()
+-- GUI
+-- GUI
+local function drawUI()
+    ImGui.Text(ctx, 'Notenwert (1 für 16tel, 2 für 8tel, 4 für Viertel):')
+    ImGui.SetNextItemWidth(ctx, 100)
+    
+    local tempNoteValue = noteValue  -- Temporäre Kopie des Notenwerts
+    local noteValueChanged
+    
+    noteValueChanged, tempNoteValue = ImGui.InputText(ctx, '##noteValue', tempNoteValue, ImGui.InputTextFlags_EnterReturnsTrue)
+
+    if noteValueChanged and tempNoteValue ~= "" then
+        noteValue = tempNoteValue  -- Update nur, wenn eine Änderung erfolgte
+    end
+
+    ImGui.Text(ctx, 'Pattern (z.B. 33433):')
+    ImGui.SetNextItemWidth(ctx, 100)
+    if ImGui.IsWindowAppearing(ctx) then
+        ImGui.SetKeyboardFocusHere(ctx)
+    end
+
+    local patternChanged
+    patternChanged, inputPattern = ImGui.InputText(ctx, '##patternInput', inputPattern, ImGui.InputTextFlags_EnterReturnsTrue)
+
+    -- Undo Button
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x000000F5)
+    if ImGui.Button(ctx, 'Undo') then
+        reaper.Undo_DoUndo2(0)
+    end
+
+    -- Zufälliges Pattern (Summe = 16)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x71026CD9)
+    if ImGui.Button(ctx, "Random Pattern") then
+        local randomPattern = generate_random_pattern()
+        inputPattern = randomPattern
+        apply_split_pattern(randomPattern, noteValue)
+    end
+
+    -- Wenn die Eingabetaste gedrückt wurde und Eingaben nicht leer sind
+    if patternChanged and noteValue ~= "" and inputPattern ~= "" then
+        apply_split_pattern(inputPattern, noteValue)
+        inputPattern = ''  -- Reset des Eingabefelds nach der Anwendung
+    end
+
+    -- Vordefinierte Muster-Schaltflächen
+    local patterns = {
+        {name = "Tango", pattern = "44422"},
+        {name = "Habanera", pattern = "6244"},
+        {name = "Reggaeton", pattern = "33532"},
+        {name = "Rap", pattern = "43234"},
+        {name = "Shiko", pattern = "42424"},
+        {name = "Bossa Nova", pattern = "33433"},
+        {name = "Rumba", pattern = "34324"},
+        {name = "Gahu", pattern = "42334"},
+        {name = "Son", pattern = "33424"},
+    }
+
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x1C6500D9)
+    for i, pattern_info in ipairs(patterns) do
+        if ImGui.Button(ctx, pattern_info.name) then
+            inputPattern = pattern_info.pattern
+            apply_split_pattern(pattern_info.pattern, noteValue)
+        end
+    end
+
+    reaper.ImGui_PopStyleColor(ctx, 3)
+end
+
+
+
+
+
+-- Hauptschleife für das Fenster
+local function loop()
+    ImGui.PushFont(ctx, font)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_WindowBg(), 0x3F3F3FF0)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBgActive(), 0x287102E4)
+    reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_TitleBg(), 0x164100E4)
+    ImGui.SetNextWindowSize(ctx, 150, 380, ImGui.Cond_FirstUseEver)
+    local visible, open = ImGui.Begin(ctx, 'SPLIT', true)
+
+    if visible then
+        drawUI()
+        ImGui.End(ctx)
+    end
+
+    ImGui.PopFont(ctx)
+
+    if open then
+        reaper.defer(loop)
+    end
+
+    reaper.ImGui_PopStyleColor(ctx, 3)
+end
+
+-- Starten der GUI
+reaper.defer(loop)
+
 end
 ---------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------LENGHT_RANDOM------------------------------------------------------------------------
@@ -14675,7 +14789,7 @@ bar = math.floor(one_bar*10000000000)/10000000000
         st12 = start_time+bar*(c[ca][2]+c[ca][4]+c[ca][6]+c[ca][8]+c[ca][10]+c[ca][12]+c[ca][14]+c[ca][16]+c[ca][18]+c[ca][20]+c[ca][22])
         length12 = bar*(c[ca][24])
         CreateTextItem(ctrack,st12,length12,c_name_12)
-        
+        reaper.Main_OnCommand(40738,0)
         reaper.Main_OnCommand(40718,0)
         chord_prog = ca
 end        
@@ -14689,6 +14803,7 @@ end
 end
 end
 reaper.Main_OnCommand(40718,0)
+
 
 commandID2 = reaper.NamedCommandLookup("_SWSMARKERLIST13")
 --reaper.Main_OnCommand(commandID2, 0) -- SWS: Convert markers to regions
