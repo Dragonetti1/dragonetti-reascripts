@@ -840,7 +840,7 @@ local function apply_split_pattern(pattern, note_value)
 
     local item_count = reaper.CountSelectedMediaItems(0)
     if item_count == 0 then
-        reaper.ShowMessageBox("Keine Items ausgewählt!", "Fehler", 0)
+        reaper.ShowMessageBox("no items selected", "error", 0)
         reaper.Undo_EndBlock("Split Pattern angewendet", -1)
         reaper.PreventUIRefresh(-1)
         return
@@ -898,19 +898,19 @@ end
 -- GUI
 -- GUI
 local function drawUI()
-    ImGui.Text(ctx, 'Notenwert (1 für 16tel, 2 für 8tel, 4 für Viertel):')
+    ImGui.Text(ctx, 'Divider')
     ImGui.SetNextItemWidth(ctx, 100)
     
     local tempNoteValue = noteValue  -- Temporäre Kopie des Notenwerts
     local noteValueChanged
     
-    noteValueChanged, tempNoteValue = ImGui.InputText(ctx, '##noteValue', tempNoteValue, ImGui.InputTextFlags_EnterReturnsTrue)
+    noteValueChanged, tempNoteValue = ImGui.InputText(ctx, '##noteValue', tempNoteValue)
 
     if noteValueChanged and tempNoteValue ~= "" then
         noteValue = tempNoteValue  -- Update nur, wenn eine Änderung erfolgte
     end
 
-    ImGui.Text(ctx, 'Pattern (z.B. 33433):')
+    ImGui.Text(ctx, 'Pattern (33433 ...)')
     ImGui.SetNextItemWidth(ctx, 100)
     if ImGui.IsWindowAppearing(ctx) then
         ImGui.SetKeyboardFocusHere(ctx)
@@ -962,9 +962,6 @@ local function drawUI()
 
     reaper.ImGui_PopStyleColor(ctx, 3)
 end
-
-
-
 
 
 -- Hauptschleife für das Fenster
@@ -11092,7 +11089,7 @@ reaper.Main_OnCommand(create_track,0)
  reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
  reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
  reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
- reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+ reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 0 )
  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
  color = reaper.ColorToNative(95,175,178)
  reaper.SetTrackColor(ctrack, color)
@@ -11714,7 +11711,7 @@ reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
 if ctrack then 
 reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 48)
 reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
-reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 0 )
 reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
 
   color = reaper.ColorToNative(241,227,174)
@@ -14396,7 +14393,7 @@ if ctrack == nil then
   reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
   reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
   reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
-  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 0 )
   reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
   color = reaper.ColorToNative(95,175,178)
   reaper.SetTrackColor(ctrack, color)
@@ -14514,7 +14511,7 @@ if ctrack == nil then
   reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
   reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 32)
   reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
-  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 0 )
   reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
   color = reaper.ColorToNative(95,175,178)
   reaper.SetTrackColor(ctrack, color)
@@ -14627,7 +14624,7 @@ end
   reaper.SetMediaTrackInfo_Value( ctrack, "I_WNDH", 50 )
   reaper.SetMediaTrackInfo_Value(ctrack, "I_HEIGHTOVERRIDE", 48)
   reaper.SetMediaTrackInfo_Value(ctrack, "B_HEIGHTLOCK", 1)
-  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 1 )
+  reaper.SetMediaTrackInfo_Value( ctrack, "I_RECARM", 0 )
   reaper.SetMediaTrackInfo_Value( ctrack, "I_RECINPUT", 4096 | 0 | (62 << 5) )
   color = reaper.ColorToNative(241,227,174)
   reaper.SetTrackColor(ctrack, color)
