@@ -1,10 +1,16 @@
--- @version 0.1.0
+-- @version 0.1.1
 -- @author Dragonetti
 -- @changelog
---    + song lyrics recognitation
+--    + windows stays on top
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
+-- Erzeuge den ImGui-Kontext, falls noch nicht geschehen
+local ctx = reaper.ImGui_CreateContext("My ImGui Window")
 
+-- Setze die Flags für das Fenster
+local window_flags = reaper.ImGui_WindowFlags_AlwaysAutoResize() |
+                     reaper.ImGui_WindowFlags_NoCollapse() |
+                     reaper.ImGui_WindowFlags_TopMost()
 -- Erstellen des ImGui-Kontexts
 local ctx = ImGui.CreateContext('ReaLy')
 local styleBuf = "Nick Cave"  -- Standardwert für den Stil
@@ -542,8 +548,8 @@ end
 local function loop()
     -- Set initial window size
     ImGui.SetNextWindowSize(ctx, 1300, 620)
-
-    local visible, open = ImGui.Begin(ctx, 'ReaLy', true)
+ 
+    local visible, open = ImGui.Begin(ctx, 'ReaLy', true, window_flags)
     if visible then
         -- Push style colors for buttons and frame backgrounds
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xE35858F0)
