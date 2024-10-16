@@ -1,7 +1,7 @@
--- @version 0.1.2
+-- @version 0.1.3
 -- @author Dragonetti
 -- @changelog
---    + in the background glue item
+--    + bug fixes
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
 -- Erzeuge den ImGui-Kontext, falls noch nicht geschehen
@@ -60,108 +60,90 @@ local function countSyllablesPerLine(text)
     return table.concat(lines, "\n") -- Join results as text
 end
 
+function import_selected_empty_items()
+    -- Get the number of selected media items
+    local itemCount = reaper.CountSelectedMediaItems(0)
 
-
--- Funktion, um einen Track anhand des Namens zu finden
-function getTrackByName(name)
-  for trackIndex = 0, reaper.CountTracks(0) - 1 do
-    local track = reaper.GetTrack(0, trackIndex)
-    local ok, trackName = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
-    if ok and trackName == name then
-      return track -- Track gefunden
+    -- Check if there are selected items
+    if itemCount == 0 then
+        reaper.ShowMessageBox("No items selected!", "Error", 0)
+        return
     end
-  end
-  return nil -- Track nicht gefunden
-end
 
+    -- Variable to hold all the notes
+    local allNotes = ""
 
-
-function merge_empty_items()
--- Get the number of selected media items
-local itemCount = reaper.CountSelectedMediaItems(0)
-
--- Check if there are selected items
-if itemCount == 0 then
-    reaper.ShowMessageBox("No items selected!", "Error", 0)
-    return
-end
-
--- Variables to hold the last item's end position and notes
-local lastItemEndPos = 0
-local allNotes = ""
-
--- Loop through selected items
-for i = 0, itemCount - 1 do
-    local item = reaper.GetSelectedMediaItem(0, i)
-    
-    -- Check if the item is empty (no media source)
-    local take = reaper.GetActiveTake(item)
-    if take == nil then
-        -- Get the item's end position
-        local itemEndPos = reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+    -- Loop through selected items
+    for i = 0, itemCount - 1 do
+        local item = reaper.GetSelectedMediaItem(0, i)
         
-        -- Update the last item's end position
-        if itemEndPos > lastItemEndPos then
-            lastItemEndPos = itemEndPos
-        end
-
-        -- Get the item notes (assuming notes are stored in "P_NOTES")
-        local itemNotes = reaper.ULT_GetMediaItemNote(item)
-        
-        -- Append the notes to the collection
-        if itemNotes and itemNotes ~= "" then
-            allNotes = allNotes .. itemNotes .. "\n"
+        -- Check if the item is empty (no media source)
+        local take = reaper.GetActiveTake(item)
+        if take == nil then
+            -- Get the item notes (assuming notes are stored in "P_NOTES")
+            local itemNotes = reaper.ULT_GetMediaItemNote(item)
+            
+            -- Append the notes to the collection
+            if itemNotes and itemNotes ~= "" then
+                allNotes = allNotes .. itemNotes .. "\n\n"  -- Add notes followed by two newlines
+            end
         end
     end
-end
 
--- Create a new empty item at the end of the last selected item
-local track = reaper.GetMediaItemTrack(reaper.GetSelectedMediaItem(0, 0)) -- Use the track of the first selected item
-local newItem = reaper.AddMediaItemToTrack(track)
-
--- Set the position of the new item
-reaper.SetMediaItemInfo_Value(newItem, "D_POSITION", lastItemEndPos)
-
--- Set the length of the new item (just a small value, adjust if needed)
-reaper.SetMediaItemInfo_Value(newItem, "D_LENGTH", 8.0)
-
--- Set the collected notes into the new empty item
-if allNotes ~= "" then
-    reaper.ULT_SetMediaItemNote(newItem, allNotes)
+    -- Set the collected notes to the text field "textfield1"
+    widgets.input.field1.text = allNotes
 end
 
 -- Update the arrangement to reflect changes
 reaper.UpdateArrange()
-end
 
 
 
--- Funktion, um einen neuen Track zu erstellen
-function createTrack(name)
-  reaper.InsertTrackAtIndex(reaper.CountTracks(0), false) -- Neuer Track am Ende hinzufügen
-  local newTrack = reaper.GetTrack(0, reaper.CountTracks(0) - 1)
+
+
+-- Funktion, um einen neuen Track über einem bestimmten Track zu erstellen
+function createTrackAbove(trackIndex, name)
+  reaper.InsertTrackAtIndex(trackIndex, false) -- Neuen Track über dem angegebenen Track einfügen
+  local newTrack = reaper.GetTrack(0, trackIndex)
   reaper.GetSetMediaTrackInfo_String(newTrack, 'P_NAME', name, true) -- Namen setzen
   return newTrack
 end
 
--- Funktion, um den Track an die 2. Position zu verschieben
-function moveTrackToSecondPosition(track)
-  reaper.ReorderSelectedTracks(1, 0) -- Track an die zweite Position verschieben (Index 1)
+-- Funktion, um den Track mit dem Namen "lyrics" zu erhalten
+function getTrackByName(name)
+  for i = 0, reaper.CountTracks(0) - 1 do
+    local track = reaper.GetTrack(0, i)
+    local _, trackName = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
+    if trackName == name then
+      return track
+    end
+  end
+  return nil
 end
 
 -- Funktion, um ein leeres Item auf dem Track "lyrics" zu erstellen
 function create_empty_item_on_lyrics_track(item_start, item_length)
   local lyricsTrack = getTrackByName("lyrics")
   
-  -- Falls der "lyrics"-Track nicht existiert, erstelle ihn
+  -- Falls der "lyrics"-Track nicht existiert
   if lyricsTrack == nil then
-    lyricsTrack = createTrack("lyrics")
+    -- Das selektierte Item ermitteln
+    local selectedItem = reaper.GetSelectedMediaItem(0, 0)
+    if not selectedItem then
+      reaper.ShowMessageBox("Kein Item ausgewählt!", "Fehler", 0)
+      return nil
+    end
+    
+    -- Den Track des ausgewählten Items ermitteln
+    local selectedTrack = reaper.GetMediaItem_Track(selectedItem)
+    local trackIndex = reaper.GetMediaTrackInfo_Value(selectedTrack, "IP_TRACKNUMBER") - 1
+    
+    -- Neuen "lyrics"-Track über dem selektierten Track erstellen
+    lyricsTrack = createTrackAbove(trackIndex, "lyrics")
     if lyricsTrack == nil then
       reaper.ShowMessageBox("Track 'lyrics' konnte nicht erstellt werden!", "Fehler", 0)
       return nil
     end
-    reaper.SetOnlyTrackSelected(lyricsTrack) -- Den neuen Track auswählen
-    moveTrackToSecondPosition(lyricsTrack) -- Track an die 2. Position verschieben
   end
   
   -- Erstelle ein leeres Item auf dem 'lyrics'-Track
@@ -186,6 +168,7 @@ function write_text_to_item_notes(item, text)
     reaper.ShowMessageBox("Kein leeres Item ausgewählt!", "Fehler", 0)
   end
 end
+
 
 
 
@@ -246,14 +229,14 @@ end
 
 function write_text_to_html(text)
     -- Pfad zur HTML-Datei
-    local file_path = "C:\\Users\\mark\\AppData\\Roaming\\REAPER\\reaper_www_root\\TEXT.html"
+    local file_path = "C:\\Users\\mark\\AppData\\Roaming\\REAPER\\reaper_www_root\\song_lyrics.html"
 
     -- Öffne die Datei im Lesemodus
     local file = io.open(file_path, "r")
 
     -- Prüfe, ob die Datei existiert
     if not file then
-        reaper.ShowMessageBox("Fehler: Die Datei TEXT.html konnte nicht gefunden werden!", "Fehler", 0)
+        reaper.ShowMessageBox("Fehler: Die Datei song_lyrics.html konnte nicht gefunden werden!", "Fehler", 0)
         return
     end
 
@@ -271,7 +254,7 @@ function write_text_to_html(text)
     -- Öffne die Datei im Schreibmodus, um den neuen Inhalt zu schreiben
     file = io.open(file_path, "w")
     if not file then
-        reaper.ShowMessageBox("Fehler beim Schreiben in die Datei TEXT.html!", "Fehler", 0)
+        reaper.ShowMessageBox("Fehler beim Schreiben in die Datei song_lyrics.html!", "Fehler", 0)
         return
     end
 
@@ -280,11 +263,11 @@ function write_text_to_html(text)
     file:close()
 
     -- Zeige eine Bestätigungsmeldung
-    reaper.ShowMessageBox("Text erfolgreich in TEXT.html eingefügt!", "Erfolg", 0)
+   -- reaper.ShowMessageBox("Text erfolgreich in song_lyrics.html eingefügt!", "Erfolg", 0)
 end
 
 -- Callback, wenn der Button 'text_to_html' gedrückt wird
-if ImGui.Button(ctx, 'text_to_html') then
+if ImGui.Button(ctx, 'lyrics_to_html') then
     write_text_to_html(widgets.input.field1.text)
 end
 
@@ -505,12 +488,11 @@ function glue_and_transcribe_item(item)
         return
     end
 
+    -- Speichere das ausgewählte Item vor der Bearbeitung
+    reaper.SetMediaItemSelected(item, true)
+    
     -- Beginne einen neuen Undo-Block, um das Kleben und die Whisper-Verarbeitung rückgängig machen zu können
     reaper.Undo_BeginBlock()
-
-    -- Wähle nur das aktuelle Item aus, um es zu kleben
-    reaper.Main_OnCommand(40289, 0) -- Unselect all items
-    reaper.SetMediaItemSelected(item, true) -- Select the current item
 
     -- Glue the selected item (Main_OnCommand 40362)
     reaper.Main_OnCommand(40362, 0)
@@ -531,9 +513,6 @@ function glue_and_transcribe_item(item)
     -- Verarbeite die geklebte Datei mit Whisper
     local transcribed_text = execute_whisper(glued_file_path, selectedLanguage, selectedModel or "base")
     if transcribed_text then
-        -- Debug: Zeige den Text vor der Bereinigung
-      --  reaper.ShowConsoleMsg("Transkribierter Text (vor Bereinigung):\n" .. transcribed_text .. "\n")
-        
         -- Bereinige den Text
         local clean_text = remove_text_before_sprache_and_clean_timecodes(transcribed_text)
         widgets.input.field1.text = clean_text
@@ -544,6 +523,7 @@ function glue_and_transcribe_item(item)
     -- Nachdem die Whisper-Verarbeitung abgeschlossen ist, führe einen Undo-Schritt aus, um das Original-Item zurückzuholen
     reaper.Undo_EndBlock("Glue and Whisper", -1)  -- Beende den Undo-Block
     reaper.Undo_DoUndo2(0)  -- Führe den Undo-Schritt durch, um das Kleben rückgängig zu machen
+
 
     -- Projekt-Arrangement aktualisieren
     reaper.UpdateArrange()
@@ -559,16 +539,6 @@ function transcribe_and_update_field1()
     end
 end
 
--- GUI-Button zum Transkribieren des ausgewählten Items mit Whisper
-if reaper.ImGui_Button(ctx, 'Transcribe Selected Audio Item with "whisper"') then
-    transcribe_and_update_field1()
-end
-
--- GUI-Button zum Erstellen von Platzhalter-Buttons
-if reaper.ImGui_Button(ctx, 'Make Buttons from text') then
-    widgets.buttons.placeholders = makeButtonsFromWords(widgets.input.field1.text)
-    showStyleAndCopyButtons = true  -- Zeige die Buttons, wenn sie generiert wurden
-end
 
 ---------------------------------------------------------------------------------------------------
 ------------------------------------- GUI --------------------------------------------------------
@@ -590,7 +560,7 @@ local function loop()
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), 0x803232F0)
 
         -- Button to transcribe the selected audio item
-        if ImGui.Button(ctx, 'Transcribe Selected Audio Item with "whisper"') then
+        if ImGui.Button(ctx, 'Transcribe Selected Audio') then
             transcribe_and_update_field1()
         end
 
@@ -628,8 +598,8 @@ local function loop()
 
         -- Import empty item button
         reaper.ImGui_SameLine(ctx)
-        if ImGui.Button(ctx, 'Import empty item') then
-            import_text_from_selected_item()
+        if ImGui.Button(ctx, 'Import empty item notes') then
+            import_selected_empty_items()
         end
 
         -- Pop the 5 colors pushed before (button styles and frame backgrounds)
@@ -725,17 +695,16 @@ local function loop()
         reaper.ImGui_SameLine(ctx)
 
         -- Button to transfer text to HTML
-        if ImGui.Button(ctx, 'text to html') then
+        if ImGui.Button(ctx, 'lyrics_to_html') then
             if widgets.input and widgets.input.field1 and widgets.input.field1.text then
                 write_text_to_html(widgets.input.field1.text)
             else
                 reaper.ShowMessageBox("No text entered!", "Error", 0)
             end
         end
-        reaper.ImGui_SameLine(ctx)
+        
         reaper.ImGui_PopStyleColor(ctx, 3) -- Pop colors for the buttons
-        if reaper.ImGui_Button(ctx, 'merge empty items') then merge_empty_items()
-        end
+       
           
         
         -- Push style colors for the next buttons
