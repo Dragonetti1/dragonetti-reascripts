@@ -1,7 +1,7 @@
--- @version 0.1.1
+-- @version 0.1.2
 -- @author Dragonetti
 -- @changelog
---    + windows stays on top
+--    + in the background glue item
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
 -- Erzeuge den ImGui-Kontext, falls noch nicht geschehen
@@ -18,7 +18,7 @@ local showStyleAndCopyButtons = false
 -- Tabellen zum Speichern der Texteingaben und Button-Status
 local widgets = {
     input = {
-        field1 = { text = "Lieder als Dutzendware \nNötigen den Segeler \nDurch den Klang der Sirenen,\nSeine Pflichten zu vernachlässigen" }, -- Beispieltext für Textfeld 1
+        field1 = { text = "text" }, -- Beispieltext für Textfeld 1
         field2 = { text = "" }, -- Ausgabe der Zählung für Textfeld 1
         field3 = { text = "" }, -- Ausgabe der Zählung für Textfeld 4
         field4 = { text = "" }, -- Textfeld 4 für die Silbenzählung
@@ -390,19 +390,15 @@ end
 
 
 
--- Funktion zum Entfernen des Textes vor und inklusive "sprache.txt" und Bereinigen aller Timecodes, den ersten Zeilenumbruch löschen, kommende Zeilenumbrüche behalten
+-- Funktion zum Entfernen nicht relevanter Fehlermeldungen und Bereinigung des Timecodes
 function remove_text_before_sprache_and_clean_timecodes(transcribed_text)
-    -- Suche nach dem ersten Auftreten von "sprache.txt"
-    local target_string_pos = transcribed_text:find("sprache%.txt'")
-    local clean_text = ""
+    -- Debug: Zeige den ursprünglichen Text in der Konsole
+    --reaper.ShowConsoleMsg("Originaler transkribierter Text:\n" .. transcribed_text .. "\n")
 
-    -- Entferne den Text vor und inklusive "sprache.txt", einschließlich des ersten Zeilenumbruchs
-    if target_string_pos then
-        -- Entferne alles bis einschließlich "sprache.txt" und dem folgenden Zeilenumbruch
-        clean_text = transcribed_text:sub(target_string_pos + #"sprache.txt'" + 1) -- +1 für den Zeilenumbruch
-    else
-        clean_text = transcribed_text -- Falls "sprache.txt" nicht gefunden wird, den Originaltext verwenden
-    end
+    -- Entferne nicht relevante Fehlermeldungen (alles vor dem ersten Timecode)
+    local clean_text = transcribed_text:match("%[%d%d:%d%d%.%d%d%d%s*%-%->%s*%d%d:%d%d%.%d%d%d%](.*)")
+
+    
 
     -- Entferne alle Timecodes im Format [hh:mm:ss.mmm --> hh:mm:ss.mmm] und [hh:mm:ss.mmm], Zeilenumbrüche bleiben erhalten
     clean_text = clean_text:gsub("%[%d%d:%d%d%.%d%d%d%s*%-%->%s*%d%d:%d%d%.%d%d%d%]", "")
@@ -412,16 +408,11 @@ function remove_text_before_sprache_and_clean_timecodes(transcribed_text)
     clean_text = clean_text:gsub("^%s+", "") -- Entfernt Leerzeichen am Anfang des Texts
     clean_text = clean_text:gsub("%s+\n", "\n"):gsub("\n%s+", "\n") -- Bereinigt Leerzeichen um Zeilenumbrüche
 
+    -- Debug: Zeige den bereinigten Text in der Konsole
+   -- reaper.ShowConsoleMsg("Bereinigter Text:\n" .. clean_text .. "\n")
+
     return clean_text
 end
-
-
-
-
-
-
-
-
 
 
 
@@ -434,7 +425,6 @@ local availableModels = { "base", "small", "medium", "large", "tiny" }  -- Model
 -- Standardauswahl für Sprache und Modell
 local selectedLanguage = "en"
 local selectedModel = "base"
-
 
 function copy_file(source, destination)
     local source_file = io.open(source, "rb")
@@ -507,38 +497,78 @@ function execute_whisper(input_file, language, model)
     return transcribed_text
 end
 
+-- Funktion, um das Item zu kleben und Whisper auszuführen, dann Undo
+function glue_and_transcribe_item(item)
+    -- Überprüfe, ob das Item existiert
+    if not item then
+        reaper.ShowMessageBox("Fehler: Kein gültiges Item ausgewählt!", "Fehler", 0)
+        return
+    end
 
+    -- Beginne einen neuen Undo-Block, um das Kleben und die Whisper-Verarbeitung rückgängig machen zu können
+    reaper.Undo_BeginBlock()
+
+    -- Wähle nur das aktuelle Item aus, um es zu kleben
+    reaper.Main_OnCommand(40289, 0) -- Unselect all items
+    reaper.SetMediaItemSelected(item, true) -- Select the current item
+
+    -- Glue the selected item (Main_OnCommand 40362)
+    reaper.Main_OnCommand(40362, 0)
+
+    -- Jetzt gibt es ein neues geklebtes Item, das an der gleichen Position liegt
+    local glued_item = reaper.GetSelectedMediaItem(0, 0)
+    if not glued_item then
+        reaper.ShowMessageBox("Fehler: Das geklebte Item konnte nicht gefunden werden!", "Fehler", 0)
+        reaper.Undo_EndBlock("Glue and Whisper", -1)
+        return
+    end
+
+    -- Holen Sie den Pfad zur geklebten Audiodatei
+    local glued_take = reaper.GetActiveTake(glued_item)
+    local glued_source = reaper.GetMediaItemTake_Source(glued_take)
+    local glued_file_path = reaper.GetMediaSourceFileName(glued_source, "")
+
+    -- Verarbeite die geklebte Datei mit Whisper
+    local transcribed_text = execute_whisper(glued_file_path, selectedLanguage, selectedModel or "base")
+    if transcribed_text then
+        -- Debug: Zeige den Text vor der Bereinigung
+      --  reaper.ShowConsoleMsg("Transkribierter Text (vor Bereinigung):\n" .. transcribed_text .. "\n")
+        
+        -- Bereinige den Text
+        local clean_text = remove_text_before_sprache_and_clean_timecodes(transcribed_text)
+        widgets.input.field1.text = clean_text
+    else
+        reaper.ShowMessageBox("Fehler: Whisper konnte die Datei nicht verarbeiten!", "Fehler", 0)
+    end
+
+    -- Nachdem die Whisper-Verarbeitung abgeschlossen ist, führe einen Undo-Schritt aus, um das Original-Item zurückzuholen
+    reaper.Undo_EndBlock("Glue and Whisper", -1)  -- Beende den Undo-Block
+    reaper.Undo_DoUndo2(0)  -- Führe den Undo-Schritt durch, um das Kleben rückgängig zu machen
+
+    -- Projekt-Arrangement aktualisieren
+    reaper.UpdateArrange()
+end
+
+-- Transkribiere das geklebte Item und mache danach ein Undo
 function transcribe_and_update_field1()
     local selected_item = reaper.GetSelectedMediaItem(0, 0)
     if selected_item then
-        local take = reaper.GetActiveTake(selected_item)
-        if take then
-            local source = reaper.GetMediaItemTake_Source(take)
-            local source_file_path = reaper.GetMediaSourceFileName(source, "")
-
-            local destination_file_path = "D:\\Gesangserkennung\\sprache.wav"
-            
-            if copy_file(source_file_path, destination_file_path) then
-                -- Stelle sicher, dass das Modell korrekt übergeben wird
-                local transcribed_text = execute_whisper(destination_file_path, selectedLanguage, selectedModel or "base")
-                if transcribed_text then
-                    local clean_text = remove_text_before_sprache_and_clean_timecodes(transcribed_text)
-                    widgets.input.field1.text = clean_text
-                else
-                    -- Fehlerbehandlung, wenn keine Transkription erfolgte
-                end
-            else
-                -- Fehlerbehandlung für das Kopieren der Datei
-            end
-        end
+        glue_and_transcribe_item(selected_item) -- Führe die neue Glue- und Whisper-Funktion aus
     else
-        -- Fehlerbehandlung, wenn kein Item ausgewählt ist
+        reaper.ShowMessageBox("Fehler: Kein Item ausgewählt!", "Fehler", 0)
     end
 end
-     if reaper.ImGui_Button(ctx, 'Make Buttons from text') then
-         widgets.buttons.placeholders = makeButtonsFromWords(widgets.input.field1.text)
-         showStyleAndCopyButtons = true  -- Setze die Variable auf true, wenn der Button aktiviert wurde
-     end    
+
+-- GUI-Button zum Transkribieren des ausgewählten Items mit Whisper
+if reaper.ImGui_Button(ctx, 'Transcribe Selected Audio Item with "whisper"') then
+    transcribe_and_update_field1()
+end
+
+-- GUI-Button zum Erstellen von Platzhalter-Buttons
+if reaper.ImGui_Button(ctx, 'Make Buttons from text') then
+    widgets.buttons.placeholders = makeButtonsFromWords(widgets.input.field1.text)
+    showStyleAndCopyButtons = true  -- Zeige die Buttons, wenn sie generiert wurden
+end
 
 ---------------------------------------------------------------------------------------------------
 ------------------------------------- GUI --------------------------------------------------------
@@ -554,6 +584,7 @@ local function loop()
         -- Push style colors for buttons and frame backgrounds
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xE35858F0)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x803232F0)
+        reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonActive(), 0x803232F0)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_ButtonHovered(), 0xCC6868F0)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBg(), 0x803232F0)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_FrameBgHovered(), 0x803232F0)
@@ -602,7 +633,7 @@ local function loop()
         end
 
         -- Pop the 5 colors pushed before (button styles and frame backgrounds)
-        reaper.ImGui_PopStyleColor(ctx, 5)
+        reaper.ImGui_PopStyleColor(ctx, 6)
         reaper.ImGui_SameLine(ctx)
         ImGui.SetCursorPos(ctx, 604, 26)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x444141c6)
