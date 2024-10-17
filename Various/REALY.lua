@@ -1,20 +1,24 @@
--- @version 0.1.3
+-- @version 0.1.4
 -- @author Dragonetti
 -- @changelog
 --    + bug fixes
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
+
 -- Erzeuge den ImGui-Kontext, falls noch nicht geschehen
 local ctx = reaper.ImGui_CreateContext("My ImGui Window")
 
 -- Setze die Flags für das Fenster
 local window_flags = reaper.ImGui_WindowFlags_AlwaysAutoResize() |
                      reaper.ImGui_WindowFlags_NoCollapse() |
-                     reaper.ImGui_WindowFlags_TopMost()
+                   --  reaper.ImGui_WindowFlags_TopMost()
+                     reaper.ImGui_WindowFlags_None()
+
 -- Erstellen des ImGui-Kontexts
 local ctx = ImGui.CreateContext('ReaLy')
 local styleBuf = "Nick Cave"  -- Standardwert für den Stil
 local showStyleAndCopyButtons = false
+
 -- Tabellen zum Speichern der Texteingaben und Button-Status
 local widgets = {
     input = {
@@ -25,6 +29,100 @@ local widgets = {
     },
     buttons = { placeholders = {} } -- Speichern der Placeholder-Buttons
 }
+
+-- Funktion zum Entfernen nicht relevanter Fehlermeldungen und Bereinigung des Timecodes
+function remove_text_before_sprache_and_clean_timecodes(transcribed_text)
+    -- Debug: Zeige den ursprünglichen transkribierten Text in der Konsole
+   -- reaper.ShowConsoleMsg("Transkribierter Text (vor Bereinigung):\n" .. transcribed_text .. "\n")
+
+    -- Entferne nicht relevante Fehlermeldungen (alles vor dem ersten Timecode)
+    local clean_text = transcribed_text:match("%[%d%d:%d%d%.%d%d%d%s*%-%->%s*%d%d:%d%d%.%d%d%d%](.*)")
+
+    -- Fallback: Wenn der reguläre Ausdruck keinen Treffer erzielt, verwende den gesamten Text
+    if not clean_text then
+        clean_text = transcribed_text  -- Verwende den gesamten Text, wenn kein Timecode gefunden wird
+    end
+
+    -- Entferne alle Timecodes im Format [hh:mm:ss.mmm --> hh:mm:ss.mmm] und [hh:mm:ss.mmm]
+    clean_text = clean_text:gsub("%[%d%d:%d%d%.%d%d%d%s*%-%->%s*%d%d:%d%d%.%d%d%d%]", "")
+    clean_text = clean_text:gsub("%[%d%d:%d%d%.%d%d%d%]", "")
+
+    -- Entferne überflüssige Leerzeichen an den Zeilenenden und am Anfang der ersten Zeile
+    clean_text = clean_text:gsub("^%s+", "") -- Entfernt Leerzeichen am Anfang des Texts
+    clean_text = clean_text:gsub("%s+\n", "\n"):gsub("\n%s+", "\n") -- Bereinigt Leerzeichen um Zeilenumbrüche
+
+    -- Debug: Zeige den bereinigten Text in der Konsole
+  --  reaper.ShowConsoleMsg("Bereinigter Text:\n" .. clean_text .. "\n")
+
+    return clean_text
+end
+
+-- Whisper-Funktionen
+local availableLanguages = { "en", "de", "fr", "es", "it", "jp" }
+local availableModels = { "base", "small", "medium", "large", "tiny" }
+
+local selectedLanguage = "en"
+local selectedModel = "base"
+
+function execute_whisper(input_file, language, model)
+    -- Überprüfe, ob das Modell korrekt übergeben wurde
+    if not model then
+        model = "base" -- Standardmodell, falls keines ausgewählt wurde
+    end
+
+    -- Whisper executable path
+    local whisper_exe = "C:\\Users\\Markii\\AppData\\Local\\Programs\\Python\\Python310\\Scripts\\whisper.exe"
+    
+    -- Überprüfe, ob Whisper.exe existiert
+    local file_check = io.open(whisper_exe, "r")
+    if not file_check then
+        reaper.ShowMessageBox("Whisper executable not found at: " .. whisper_exe, "Error", 0)
+        return nil
+    else
+        file_check:close() -- Schließe die Datei, wenn sie gefunden wurde
+    end
+
+    -- Erstelle temporäre Dateien für Whisper
+    local temp_dir = os.getenv("TEMP")
+    local batch_file = temp_dir .. "\\whisper_batch.bat"
+    local log_file = temp_dir .. "\\whisper_log.txt"
+
+    -- Erstelle das Whisper-Kommando
+    local whisper_cmd = '@echo off\n'
+    whisper_cmd = whisper_cmd .. '"' .. whisper_exe .. '" "' .. input_file .. '" --language ' .. language .. ' --model ' .. model .. ' --output_format txt > "' .. log_file .. '" 2>&1\n'
+
+    local file = io.open(batch_file, "w")
+    if file then
+        file:write(whisper_cmd)
+        file:close()
+    else
+        reaper.ShowMessageBox("Error creating batch file for Whisper execution!", "Error", 0)
+        return nil
+    end
+
+    -- Führe das Kommando aus
+    os.execute('cmd.exe /C ' .. batch_file)
+
+    -- Lese die Transkription aus der Log-Datei
+    local transcribed_text = ""
+    local output_file_handle = io.open(log_file, "r")
+    if output_file_handle then
+        transcribed_text = output_file_handle:read("*all")
+        output_file_handle:close()
+    else
+        reaper.ShowMessageBox("Error reading the transcription log file!", "Error", 0)
+        return nil
+    end
+
+    -- Lösche die temporären Dateien
+    os.remove(batch_file)
+    os.remove(log_file)
+
+    return transcribed_text
+end
+
+
+---ToolTip----
 
 function ToolTip(is_tooltip, text)
     if is_tooltip and reaper.ImGui_IsItemHovered(ctx) then
@@ -39,7 +137,6 @@ function ToolTip(is_tooltip, text)
         reaper.ImGui_EndTooltip(ctx)
     end
 end
-
 
 -- Funktion zum Zählen der Silben in jeder Zeile
 local function countSyllablesPerLine(text)
@@ -59,6 +156,7 @@ local function countSyllablesPerLine(text)
     end
     return table.concat(lines, "\n") -- Join results as text
 end
+
 
 function import_selected_empty_items()
     -- Get the number of selected media items
@@ -96,9 +194,6 @@ end
 
 -- Update the arrangement to reflect changes
 reaper.UpdateArrange()
-
-
-
 
 
 -- Funktion, um einen neuen Track über einem bestimmten Track zu erstellen
@@ -159,6 +254,7 @@ function create_empty_item_on_lyrics_track(item_start, item_length)
   end
 end
 
+
 -- Funktion zum Schreiben von Text in die Notizen des leeren Items
 function write_text_to_item_notes(item, text)
   if item ~= nil then
@@ -168,10 +264,6 @@ function write_text_to_item_notes(item, text)
     reaper.ShowMessageBox("Kein leeres Item ausgewählt!", "Fehler", 0)
   end
 end
-
-
-
-
 
 -- Definiere Farben für die verschiedenen Zustände
 local stateColors = {
@@ -229,7 +321,7 @@ end
 
 function write_text_to_html(text)
     -- Pfad zur HTML-Datei
-    local file_path = "C:\\Users\\mark\\AppData\\Roaming\\REAPER\\reaper_www_root\\song_lyrics.html"
+    local file_path = "C:\\Users\\Markii\\AppData\\Roaming\\REAPER\\reaper_www_root\\song_lyrics.html"
 
     -- Öffne die Datei im Lesemodus
     local file = io.open(file_path, "r")
@@ -372,132 +464,17 @@ end
 
 
 
-
--- Funktion zum Entfernen nicht relevanter Fehlermeldungen und Bereinigung des Timecodes
-function remove_text_before_sprache_and_clean_timecodes(transcribed_text)
-    -- Debug: Zeige den ursprünglichen Text in der Konsole
-    --reaper.ShowConsoleMsg("Originaler transkribierter Text:\n" .. transcribed_text .. "\n")
-
-    -- Entferne nicht relevante Fehlermeldungen (alles vor dem ersten Timecode)
-    local clean_text = transcribed_text:match("%[%d%d:%d%d%.%d%d%d%s*%-%->%s*%d%d:%d%d%.%d%d%d%](.*)")
-
-    
-
-    -- Entferne alle Timecodes im Format [hh:mm:ss.mmm --> hh:mm:ss.mmm] und [hh:mm:ss.mmm], Zeilenumbrüche bleiben erhalten
-    clean_text = clean_text:gsub("%[%d%d:%d%d%.%d%d%d%s*%-%->%s*%d%d:%d%d%.%d%d%d%]", "")
-    clean_text = clean_text:gsub("%[%d%d:%d%d%.%d%d%d%]", "")
-
-    -- Entferne überflüssige Leerzeichen an den Zeilenenden und am Anfang der ersten Zeile, aber behalte Zeilenumbrüche bei
-    clean_text = clean_text:gsub("^%s+", "") -- Entfernt Leerzeichen am Anfang des Texts
-    clean_text = clean_text:gsub("%s+\n", "\n"):gsub("\n%s+", "\n") -- Bereinigt Leerzeichen um Zeilenumbrüche
-
-    -- Debug: Zeige den bereinigten Text in der Konsole
-   -- reaper.ShowConsoleMsg("Bereinigter Text:\n" .. clean_text .. "\n")
-
-    return clean_text
-end
-
-
-
--- Whisper-Funktionen
-
--- Definiere die verfügbaren Sprachen und Modelle
-local availableLanguages = { "en", "de", "fr", "es", "it", "jp" }  -- Weitere Sprachen können hinzugefügt werden
-local availableModels = { "base", "small", "medium", "large", "tiny" }  -- Modelle entsprechend den Whisper-Optionen
-
--- Standardauswahl für Sprache und Modell
-local selectedLanguage = "en"
-local selectedModel = "base"
-
-function copy_file(source, destination)
-    local source_file = io.open(source, "rb")
-    if not source_file then
-        -- Console message suppressed
-        return false
-    end
-
-    local destination_file = io.open(destination, "wb")
-    if not destination_file then
-        -- Console message suppressed
-        source_file:close()
-        return false
-    end
-
-    local block_size = 2^13  -- 8 KB Blöcke
-    while true do
-        local data = source_file:read(block_size)
-        if not data then break end
-        destination_file:write(data)
-    end
-
-    source_file:close()
-    destination_file:close()
-    
-    return true
-end
-
-function execute_whisper(input_file, language, model)
-    -- Überprüfe, ob das Modell korrekt übergeben wurde
-    if not model then
-        model = "base" -- Standardmodell, falls keines ausgewählt wurde
-    end
-
-    local temp_dir = os.getenv("TEMP")
-    local batch_file = temp_dir .. "\\whisper_batch.bat"
-    local log_file = temp_dir .. "\\whisper_log.txt"
-
-    -- Erstelle das Whisper-Kommando mit den ausgewählten Parametern
-    local whisper_cmd = '@echo off\n'
-    whisper_cmd = whisper_cmd .. '"C:\\Users\\mark\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\whisper.exe" "' .. input_file .. '" --language ' .. language .. ' --model ' .. model .. ' --output_format txt > "' .. log_file .. '" 2>&1\n'
-
-    local file = io.open(batch_file, "w")
-    if file then
-        file:write(whisper_cmd)
-        file:close()
-    else
-        -- Wenn die Batchdatei nicht geschrieben werden kann
-        return nil
-    end
-
-    -- Führe das Kommando aus
-    os.execute('cmd.exe /C ' .. batch_file)
-
-    -- Lese die Transkription aus der Log-Datei
-    local transcribed_text = ""
-    local output_file_handle = io.open(log_file, "r")
-    if output_file_handle then
-        transcribed_text = output_file_handle:read("*all")
-        output_file_handle:close()
-    else
-        -- Fehler beim Öffnen der Log-Datei
-        return nil
-    end
-
-    -- Lösche die temporären Dateien
-    os.remove(batch_file)
-    os.remove(log_file)
-
-    return transcribed_text
-end
-
--- Funktion, um das Item zu kleben und Whisper auszuführen, dann Undo
+-- Funktion, um das Item zu kleben und Whisper auszuführen
 function glue_and_transcribe_item(item)
-    -- Überprüfe, ob das Item existiert
     if not item then
         reaper.ShowMessageBox("Fehler: Kein gültiges Item ausgewählt!", "Fehler", 0)
         return
     end
 
-    -- Speichere das ausgewählte Item vor der Bearbeitung
     reaper.SetMediaItemSelected(item, true)
-    
-    -- Beginne einen neuen Undo-Block, um das Kleben und die Whisper-Verarbeitung rückgängig machen zu können
     reaper.Undo_BeginBlock()
+    reaper.Main_OnCommand(40362, 0) -- Glue the item
 
-    -- Glue the selected item (Main_OnCommand 40362)
-    reaper.Main_OnCommand(40362, 0)
-
-    -- Jetzt gibt es ein neues geklebtes Item, das an der gleichen Position liegt
     local glued_item = reaper.GetSelectedMediaItem(0, 0)
     if not glued_item then
         reaper.ShowMessageBox("Fehler: Das geklebte Item konnte nicht gefunden werden!", "Fehler", 0)
@@ -505,27 +482,24 @@ function glue_and_transcribe_item(item)
         return
     end
 
-    -- Holen Sie den Pfad zur geklebten Audiodatei
     local glued_take = reaper.GetActiveTake(glued_item)
     local glued_source = reaper.GetMediaItemTake_Source(glued_take)
     local glued_file_path = reaper.GetMediaSourceFileName(glued_source, "")
 
     -- Verarbeite die geklebte Datei mit Whisper
     local transcribed_text = execute_whisper(glued_file_path, selectedLanguage, selectedModel or "base")
+
+    -- Debug: Zeige den transkribierten Text an
     if transcribed_text then
-        -- Bereinige den Text
+       -- reaper.ShowConsoleMsg("Transkribierter Text (von Whisper):\n" .. transcribed_text .. "\n")
         local clean_text = remove_text_before_sprache_and_clean_timecodes(transcribed_text)
         widgets.input.field1.text = clean_text
     else
         reaper.ShowMessageBox("Fehler: Whisper konnte die Datei nicht verarbeiten!", "Fehler", 0)
     end
 
-    -- Nachdem die Whisper-Verarbeitung abgeschlossen ist, führe einen Undo-Schritt aus, um das Original-Item zurückzuholen
-    reaper.Undo_EndBlock("Glue and Whisper", -1)  -- Beende den Undo-Block
-    reaper.Undo_DoUndo2(0)  -- Führe den Undo-Schritt durch, um das Kleben rückgängig zu machen
-
-
-    -- Projekt-Arrangement aktualisieren
+    reaper.Undo_EndBlock("Glue and Whisper", -1)
+    reaper.Undo_DoUndo2(0)
     reaper.UpdateArrange()
 end
 
@@ -533,12 +507,11 @@ end
 function transcribe_and_update_field1()
     local selected_item = reaper.GetSelectedMediaItem(0, 0)
     if selected_item then
-        glue_and_transcribe_item(selected_item) -- Führe die neue Glue- und Whisper-Funktion aus
+        glue_and_transcribe_item(selected_item)
     else
         reaper.ShowMessageBox("Fehler: Kein Item ausgewählt!", "Fehler", 0)
     end
 end
-
 
 ---------------------------------------------------------------------------------------------------
 ------------------------------------- GUI --------------------------------------------------------
@@ -551,6 +524,7 @@ local function loop()
  
     local visible, open = ImGui.Begin(ctx, 'ReaLy', true, window_flags)
     if visible then
+   
         -- Push style colors for buttons and frame backgrounds
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Border(), 0xE35858F0)
         reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(), 0x803232F0)
@@ -746,14 +720,14 @@ local function loop()
         
 
         -- StyleVars for button spacing and rounding
-        reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(), 2, 1)
-        reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameRounding(), 2)
+          reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_ItemSpacing(), 2, 1)
+          reaper.ImGui_PushStyleVar(ctx, reaper.ImGui_StyleVar_FrameRounding(), 2)
 
         -- Scrollable child window for buttons
         local button_child_flags = reaper.ImGui_WindowFlags_HorizontalScrollbar()
         local button_size_w = 0.0
         local button_size_h = 300
-        
+      
         reaper.ImGui_BeginChild(ctx, "ButtonScrollableRegion", button_size_w, button_size_h, 1, button_child_flags)
         
         -- Display buttons
@@ -767,8 +741,9 @@ local function loop()
                 end
                 reaper.ImGui_SameLine(ctx)
                 reaper.ImGui_PopStyleColor(ctx, 2) -- Pop style colors for button
+                
             end
-
+           
             reaper.ImGui_NewLine(ctx)
 
             -- Display placeholder buttons
@@ -801,7 +776,7 @@ local function loop()
                     button.state = (button.state + 1) % 5
                 end
             end
-            
+           
             reaper.ImGui_PopStyleColor(ctx, 1) -- Pop style color for state button
             reaper.ImGui_NewLine(ctx)
         end
@@ -809,8 +784,8 @@ local function loop()
         -- End child window for buttons
         reaper.ImGui_EndChild(ctx)
 
-        -- Pop StyleVars for ItemSpacing and FrameRounding
         reaper.ImGui_PopStyleVar(ctx, 2)
+        
 
         -- End main GUI window
         ImGui.End(ctx)
@@ -822,4 +797,3 @@ local function loop()
 end
 
 reaper.defer(loop)
-
