@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="92004d9c5d0e420fc3157282a4dc7a11075d758e">
+<index version="1" name="dragonetti-reascripts" commit="feebf1835d1c9641feef5ff1d33d1b284000344a">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -422,10 +422,14 @@
         <changelog><![CDATA[+ bug fixes]]></changelog>
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/92004d9c5d0e420fc3157282a4dc7a11075d758e/Various/REALY.lua</source>
       </version>
+      <version name="0.1.4" author="Dragonetti" time="2024-10-17T22:29:40Z">
+        <changelog><![CDATA[+ bug fixes]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/feebf1835d1c9641feef5ff1d33d1b284000344a/Various/REALY.lua</source>
+      </version>
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
