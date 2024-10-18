@@ -1,7 +1,7 @@
--- @version 0.1.4
+-- @version 0.1.5
 -- @author Dragonetti
 -- @changelog
---    + bug fixes
+--    + improve whisper.exe path edit
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
 
@@ -57,7 +57,45 @@ function remove_text_before_sprache_and_clean_timecodes(transcribed_text)
     return clean_text
 end
 
--- Whisper-Funktionen
+
+
+local default_whisper_exe = "C:\\Users\\mark\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\whisper.exe"
+local path_file = reaper.GetResourcePath() .. "\\whisper_path.txt"
+
+function get_whisper_executable_path()
+    -- Versuche, den gespeicherten Pfad zu laden, oder verwende den voreingestellten Pfad
+    local whisper_exe = default_whisper_exe
+    local file = io.open(path_file, "r")
+    if file then
+        whisper_exe = file:read("*all")
+        file:close()
+    end
+
+    -- Überprüfe, ob der gespeicherte oder voreingestellte Pfad funktioniert
+    local file_check = io.open(whisper_exe, "r")
+    if not file_check then
+        -- Der Pfad ist falsch, fordere den Benutzer zur Eingabe auf
+        local retval, new_path = reaper.GetUserInputs("Whisper Executable Not Found", 1, "Enter the correct Whisper.exe path: extrawidth=400", whisper_exe)
+        
+        if retval then
+            -- Speichere den neuen Pfad in der Datei
+            local save_file = io.open(path_file, "w")
+            if save_file then
+                save_file:write(new_path)
+                save_file:close()
+            end
+            return new_path
+        else
+            reaper.ShowMessageBox("Whisper executable path not provided. Exiting...", "Error", 0)
+            return nil
+        end
+    else
+        file_check:close()
+    end
+    
+    return whisper_exe
+end
+
 local availableLanguages = { "en", "de", "fr", "es", "it", "jp" }
 local availableModels = { "base", "small", "medium", "large", "tiny" }
 
@@ -71,8 +109,13 @@ function execute_whisper(input_file, language, model)
     end
 
     -- Whisper executable path
-    local whisper_exe = "C:\\Users\\Markii\\AppData\\Local\\Programs\\Python\\Python310\\Scripts\\whisper.exe"
+    local whisper_exe = get_whisper_executable_path()
     
+    -- Falls der Pfad immer noch nicht korrekt ist, abbrechen
+    if not whisper_exe then
+        return nil
+    end
+
     -- Überprüfe, ob Whisper.exe existiert
     local file_check = io.open(whisper_exe, "r")
     if not file_check then
@@ -120,6 +163,10 @@ function execute_whisper(input_file, language, model)
 
     return transcribed_text
 end
+
+
+
+
 
 
 ---ToolTip----
@@ -284,11 +331,18 @@ local function packColor(r, g, b, a)
     return color
 end
 
+-- Initialisierung des ImGui-Kontexts
+local ctx = reaper.ImGui_CreateContext('Button Editor')
+
 -- Funktion zum Generieren der Buttons basierend auf den Wörtern in Field 1
 local function makeButtonsFromWords(text)
     local buttons = {}
+    
+    -- Durchsuche jede Zeile im Text
     for line in text:gmatch("[^\r\n]+") do
         local buttonLine = {}
+        
+        -- Durchsuche jedes Wort in der Zeile
         for word in line:gmatch("%S+") do
             -- Splitte das Wort bei Bindestrichen in einzelne Teile
             local parts = {}
@@ -299,13 +353,15 @@ local function makeButtonsFromWords(text)
             -- Erstelle Buttons für jedes Teilwort, die direkt nebeneinander liegen
             for i, part in ipairs(parts) do
                 local wordLength = reaper.ImGui_CalcTextSize(ctx, part) + 8 -- Passe die Länge des Buttons an die Wortlänge an
+                
+                -- Erstelle den Button mit dem zugehörigen Label
                 table.insert(buttonLine, { 
                     label = part, 
                     length = wordLength, 
                     placeholder = part, 
                     state = 0  -- Startzustand für den neuen Farb-Button (neutral)
                 })
-                
+
                 -- Wenn es noch ein weiteres Teil gibt, setze ImGui.SameLine mit einem Abstand von 0
                 if i < #parts then
                     reaper.ImGui_SameLine(ctx, nil, 0) -- Kein Abstand zwischen den Buttons
@@ -314,21 +370,70 @@ local function makeButtonsFromWords(text)
         end
         table.insert(buttons, buttonLine) -- Speichere jede Zeile von Buttons
     end
+
     return buttons
 end
 
+
+
+
+
+
 -- Funktion, um den Text aus dem Eingabefeld in die HTML-Datei zu schreiben
 
+-- Standardpfad zur HTML-Datei
+local default_html_file_path = "C:\\Users\\mark\\AppData\\Roaming\\REAPER\\reaper_www_root\\song_lyrics.html"
+local path_file = reaper.GetResourcePath() .. "\\html_file_path.txt"
+
+-- Funktion zum Abrufen oder Festlegen des Dateipfads
+function get_html_file_path()
+    -- Versuche, den gespeicherten Pfad zu laden, oder verwende den voreingestellten Pfad
+    local file_path = default_html_file_path
+    local file = io.open(path_file, "r")
+    if file then
+        file_path = file:read("*all")
+        file:close()
+    end
+
+    -- Überprüfe, ob die Datei am gespeicherten/voreingestellten Pfad existiert
+    local file_check = io.open(file_path, "r")
+    if not file_check then
+        -- Falls der Pfad falsch ist, fordere den Benutzer zur Eingabe auf
+        local retval, new_path = reaper.GetUserInputs("HTML-Datei nicht gefunden", 1, "Enter the correct HTML file path: extrawidth=400", file_path)
+        
+        if retval then
+            -- Speichere den neuen Pfad in der Datei
+            local save_file = io.open(path_file, "w")
+            if save_file then
+                save_file:write(new_path)
+                save_file:close()
+            end
+            return new_path
+        else
+            reaper.ShowMessageBox("Kein HTML-Dateipfad angegeben. Vorgang wird abgebrochen.", "Fehler", 0)
+            return nil
+        end
+    else
+        file_check:close()
+    end
+    
+    return file_path
+end
+
+-- Funktion zum Schreiben des Texts in die HTML-Datei
 function write_text_to_html(text)
-    -- Pfad zur HTML-Datei
-    local file_path = "C:\\Users\\Markii\\AppData\\Roaming\\REAPER\\reaper_www_root\\song_lyrics.html"
+    -- Hole den Dateipfad
+    local file_path = get_html_file_path()
+    
+    -- Falls kein Dateipfad verfügbar ist, breche ab
+    if not file_path then
+        return
+    end
 
     -- Öffne die Datei im Lesemodus
     local file = io.open(file_path, "r")
-
-    -- Prüfe, ob die Datei existiert
     if not file then
-        reaper.ShowMessageBox("Fehler: Die Datei song_lyrics.html konnte nicht gefunden werden!", "Fehler", 0)
+        reaper.ShowMessageBox("Fehler: Die Datei konnte nicht geöffnet werden!", "Fehler", 0)
         return
     end
 
@@ -342,11 +447,10 @@ function write_text_to_html(text)
     -- Ersetze den Inhalt des Div mit der ID lyricsContainer
     local new_html_content = html_content:gsub('<div id="lyricsContainer">.-</div>', '<div id="lyricsContainer">' .. text_with_breaks .. '</div>')
     
-   
     -- Öffne die Datei im Schreibmodus, um den neuen Inhalt zu schreiben
     file = io.open(file_path, "w")
     if not file then
-        reaper.ShowMessageBox("Fehler beim Schreiben in die Datei song_lyrics.html!", "Fehler", 0)
+        reaper.ShowMessageBox("Fehler beim Schreiben in die Datei!", "Fehler", 0)
         return
     end
 
@@ -354,9 +458,10 @@ function write_text_to_html(text)
     file:write(new_html_content)
     file:close()
 
-    -- Zeige eine Bestätigungsmeldung
-   -- reaper.ShowMessageBox("Text erfolgreich in song_lyrics.html eingefügt!", "Erfolg", 0)
+    -- Optional: Bestätigungsmeldung anzeigen
+    -- reaper.ShowMessageBox("Text erfolgreich in die HTML-Datei eingefügt!", "Erfolg", 0)
 end
+
 
 -- Callback, wenn der Button 'text_to_html' gedrückt wird
 if ImGui.Button(ctx, 'lyrics_to_html') then
@@ -521,7 +626,7 @@ end
 local function loop()
     -- Set initial window size
     ImGui.SetNextWindowSize(ctx, 1300, 620)
- 
+    
     local visible, open = ImGui.Begin(ctx, 'ReaLy', true, window_flags)
     if visible then
    
@@ -780,7 +885,7 @@ local function loop()
             reaper.ImGui_PopStyleColor(ctx, 1) -- Pop style color for state button
             reaper.ImGui_NewLine(ctx)
         end
-        
+       
         -- End child window for buttons
         reaper.ImGui_EndChild(ctx)
 
