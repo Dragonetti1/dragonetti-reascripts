@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="feebf1835d1c9641feef5ff1d33d1b284000344a">
+<index version="1" name="dragonetti-reascripts" commit="a1aa6fc986c35a4f2260163153a769e9b3c41226">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -425,6 +425,10 @@
       <version name="0.1.4" author="Dragonetti" time="2024-10-17T22:29:40Z">
         <changelog><![CDATA[+ bug fixes]]></changelog>
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/feebf1835d1c9641feef5ff1d33d1b284000344a/Various/REALY.lua</source>
+      </version>
+      <version name="0.1.5" author="Dragonetti" time="2024-10-18T22:50:42Z">
+        <changelog><![CDATA[+ improve whisper.exe path edit]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/a1aa6fc986c35a4f2260163153a769e9b3c41226/Various/REALY.lua</source>
       </version>
     </reapack>
   </category>
