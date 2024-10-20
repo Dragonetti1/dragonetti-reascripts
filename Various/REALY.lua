@@ -1,8 +1,8 @@
--- @version 0.1.6
+-- @version 0.1.7
 -- @author Dragonetti
 -- @changelog
---    + docker fixes 
---    + edit word buttons
+--    + little improvements
+
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
@@ -38,7 +38,7 @@ local showStyleAndCopyButtons = false
 -- Tabellen zum Speichern der Texteingaben und Button-Status
 local widgets = {
     input = {
-        field1 = { text = "text" }, -- Beispieltext für Textfeld 1
+        field1 = { text = "text noch ein text \ntext" }, -- Beispieltext für Textfeld 1
         field2 = { text = "" }, -- Ausgabe der Zählung für Textfeld 1
         field3 = { text = "" }, -- Ausgabe der Zählung für Textfeld 4
         field4 = { text = "" }, -- Textfeld 4 für die Silbenzählung
@@ -673,21 +673,19 @@ local function loop()
         end
         
         ImGui.PopStyleColor(ctx, 3)
-
-        -- Button to generate buttons from text
-        ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x444141c6)
-        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x444141c6)
-
+           ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
+           ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
         if ImGui.Button(ctx, 'Make Buttons from Text') then
             -- Generate buttons from the text in field1
             widgets.buttons.placeholders = makeButtonsFromWords(widgets.input.field1.text)
             showStyleAndCopyButtons = true  -- Enable showing style and copy buttons
         end
+        ImGui.PopStyleColor(ctx, 2)
         -- Add missing buttons for "Style" and "Copy to Clipboard"
         if showStyleAndCopyButtons then
             -- Style input field
             ImGui.SameLine(ctx)
-            ImGui.Text(ctx, "Style:")
+            ImGui.Text(ctx, "    Style:")
             ImGui.SameLine(ctx)
             ImGui.PushStyleColor(ctx, ImGui.Col_Border, 0x302F2FC6)
             ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
@@ -710,7 +708,7 @@ local function loop()
             -- Clean up the pushed styles
             ImGui.PopStyleColor(ctx, 4)
         end
-        ImGui.PopStyleColor(ctx, 2)
+      
 
         -- Editable Buttons Region
         ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 2, 1)
@@ -766,11 +764,17 @@ local function loop()
                        end
                    else
                        -- Regular button display logic
+                       ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x222222C6)
+                       ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x222222C6)
+                       ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x8B8B8BFF)
+                       
+                       
                        if ImGui.Button(ctx, button.label .. '##' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
                            -- Enter edit mode for this button
                            editingButton = button
                            editingButtonIndex = buttonIndex
                        end
+                      ImGui.PopStyleColor(ctx, 3) 
                    end
                    ImGui.SameLine(ctx)
                end
@@ -801,13 +805,15 @@ local function loop()
                local color = stateColors[buttonLine[1].state]
                local colorU32 = packColor(color[1], color[2], color[3], color[4])
                ImGui.PushStyleColor(ctx, ImGui.Col_Button, colorU32)
+               ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, colorU32)
        
                if ImGui.Button(ctx, '##stateButton' .. lineIndex, 20, 18) then
                    for _, button in ipairs(buttonLine) do
                        button.state = (button.state + 1) % 5
                    end
                end
-               ImGui.PopStyleColor(ctx, 1)
+               ToolTip(ctx,"rhyme group")
+               ImGui.PopStyleColor(ctx, 2)
                ImGui.NewLine(ctx)
            end
            ImGui.EndChild(ctx)
