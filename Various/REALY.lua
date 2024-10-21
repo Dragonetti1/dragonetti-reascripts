@@ -1,4 +1,4 @@
--- @version 0.1.8
+-- @version 0.1.9
 -- @author Dragonetti
 -- @changelog
 --    + little improvements
@@ -40,7 +40,7 @@ local showStyleAndCopyButtons = false
 -- Tabellen zum Speichern der Texteingaben und Button-Status
 local widgets = {
     input = {
-        field1 = { text = "text noch ein text \ntext" }, -- Beispieltext für Textfeld 1
+        field1 = { text = "text \ntext \ntext" }, -- Beispieltext für Textfeld 1
         field2 = { text = "" }, -- Ausgabe der Zählung für Textfeld 1
         field3 = { text = "" }, -- Ausgabe der Zählung für Textfeld 4
         field4 = { text = "" }, -- Textfeld 4 für die Silbenzählung
@@ -182,44 +182,75 @@ end
 
 
 
--- Function to copy the placeholder labels to the clipboard
+-- Funktion zum Kopieren der Placeholder-Labels in die Zwischenablage
 local function copyPlaceholdersToClipboard()
-    -- Use the current style from styleBuf and append it to additional text
+    -- Verwende den aktuellen Stil aus styleBuf und füge ihn in den zusätzlichen Text ein
     local additionalText = "It's supposed to be a song lyric in the style of " .. styleBuf .. ".\n" ..
                            "Please replace the (monosyllabic) with your own syllables so that the lyrics make sense,\n" ..
                            "Note the frequency of the (monosyllabic) without changing the order!!\n" ..
-                           "please translate to German directly below.\n" ..
+                         --  "please translate to German directly below.\n" ..
                            "Please 2 attempts.\n" ..
                            "Now the lyric:"
 
-    -- Add the additional text at the start of the clipboard text
+    -- Füge den zusätzlichen Text am Anfang des Clipboard-Textes hinzu
     local clipboardText = additionalText .. "\n"
     
-    -- Iterate over the placeholders and append the text to clipboardText
+    -- Tabelle, um die Zeilen-States zu sammeln, um Reimhinweise hinzuzufügen
+    local lineStates = {}
+
+    -- Iteriere über jede Zeile der Placeholder-Buttons
     for lineIndex, buttonLine in ipairs(widgets.buttons.placeholders) do
         local lineText = ""
         for _, button in ipairs(buttonLine) do
-            local placeholderText = button.placeholder
-
-            if placeholderText ~= "" then
-                lineText = lineText .. placeholderText
+            -- Wenn kein Placeholder-Text vorhanden ist, füge (monosyllabic) hinzu
+            if button.placeholder == "" then
+                lineText = lineText .. "(monosyllabic) "
             else
-                lineText = lineText .. "(monosyllabic)"
+                lineText = lineText .. button.placeholder .. " "
             end
-            lineText = lineText .. " " -- Add a space between the words
         end
-        clipboardText = clipboardText .. lineText:sub(1, -2) .. "\n" -- Remove trailing space and add newline
+        -- Entferne das letzte Leerzeichen und füge die Zeile zum Clipboard-Text hinzu
+        clipboardText = clipboardText .. lineText:sub(1, -2) .. "\n"
+
+        -- Sammle den State des ersten Buttons jeder Zeile, aber nur, wenn es nicht neutral ist (state = 0)
+        if buttonLine[1].state ~= 0 then
+            lineStates[lineIndex] = buttonLine[1].state
+        end
     end
 
-    -- Now format the clipboardText: Remove spaces before hyphens and then remove all hyphens
-    -- Remove spaces before hyphens
-    clipboardText = clipboardText:gsub("%s%-", "")
-    -- Remove all remaining hyphens
-    clipboardText = clipboardText:gsub("%-", "")
+    -- Füge Reimhinweise hinzu basierend auf den States
+    local rhymeHints = ""
+    local checkedLines = {}
 
-    -- Copy the text to the clipboard
+    -- Überprüfe Zeilen mit denselben Farben
+    for i = 1, #lineStates do
+        if not checkedLines[i] then
+            local rhymeGroup = { i }
+
+            -- Finde alle weiteren Zeilen mit derselben Farbe (State)
+            for j = i + 1, #lineStates do
+                if lineStates[i] == lineStates[j] then
+                    table.insert(rhymeGroup, j)
+                    checkedLines[j] = true -- Markiere als bereits geprüft
+                end
+            end
+
+            -- Schreibe die Reimhinweise nur, wenn mindestens 2 Zeilen dieselbe Farbe haben
+            if #rhymeGroup > 1 then
+                rhymeHints = rhymeHints .. "Lines " .. table.concat(rhymeGroup, " and ") .. " should rhyme.\n"
+            end
+        end
+    end
+
+    -- Füge die Reimhinweise zum Clipboard-Text hinzu, aber nur, wenn welche existieren
+    if rhymeHints ~= "" then
+        clipboardText = clipboardText .. "\n" .. rhymeHints
+    end
+
+    -- Kopiere den Text in die Zwischenablage
     reaper.CF_SetClipboard(clipboardText)
 end
+
 
 
 
