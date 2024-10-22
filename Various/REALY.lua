@@ -1,10 +1,12 @@
--- @version 0.1.9
+-- @version 0.2.0
 -- @author Dragonetti
 -- @changelog
---    + little improvements
+--    + GUI improvements
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
+
+version = " 0.2.0"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
@@ -25,8 +27,9 @@ local function packColor(r, g, b, a)
     local color = (r255 << 24) | (g255 << 16) | (b255 << 8) | a255
     return color
 end
+
 -- Erzeuge den ImGui-Kontext, falls noch nicht geschehen
-local ctx = ImGui.CreateContext("ReaLy_Pro")  -- More unique context name
+local ctx = ImGui.CreateContext("ReaLy")  -- More unique context name
 
 -- Setze die Flags für das Fenster
 local window_flags = ImGui.WindowFlags_AlwaysAutoResize |
@@ -180,6 +183,39 @@ function create_empty_item_on_lyrics_track(item_start, item_length)
     end
 end
 
+-- Funktion, um den Text aus den Wort-Buttons in field1 zu kopieren und Leerzeichen vor "-" zu entfernen
+local function copyButtonsToField1()
+    -- Überprüfe, ob Buttons vorhanden sind
+    if #widgets.buttons.placeholders == 0 then
+        return  -- Nichts tun, wenn keine Buttons vorhanden sind
+    end
+    
+    local newText = ""
+    
+    -- Iteriere über jede Zeile der Buttons
+    for lineIndex, buttonLine in ipairs(widgets.buttons.placeholders) do
+        local lineText = ""
+        -- Iteriere über jeden Button in der Zeile
+        for _, button in ipairs(buttonLine) do
+            lineText = lineText .. button.label .. " "  -- Füge den Button-Text hinzu
+        end
+        newText = newText .. lineText:sub(1, -2) .. "\n"  -- Entferne das letzte Leerzeichen und füge einen Zeilenumbruch hinzu
+    end
+    
+    -- Entferne Leerzeichen vor Bindestrichen
+    newText = newText:gsub(" %-", "-") -- Entferne Leerzeichen vor Bindestrichen
+    
+    -- Setze den formatierten Text in field1
+    widgets.input.field1.text = newText
+end
+
+
+
+
+
+
+
+
 
 
 -- Funktion zum Kopieren der Placeholder-Labels in die Zwischenablage
@@ -188,7 +224,6 @@ local function copyPlaceholdersToClipboard()
     local additionalText = "It's supposed to be a song lyric in the style of " .. styleBuf .. ".\n" ..
                            "Please replace the (monosyllabic) with your own syllables so that the lyrics make sense,\n" ..
                            "Note the frequency of the (monosyllabic) without changing the order!!\n" ..
-                         --  "please translate to German directly below.\n" ..
                            "Please 2 attempts.\n" ..
                            "Now the lyric:"
 
@@ -212,33 +247,21 @@ local function copyPlaceholdersToClipboard()
         -- Entferne das letzte Leerzeichen und füge die Zeile zum Clipboard-Text hinzu
         clipboardText = clipboardText .. lineText:sub(1, -2) .. "\n"
 
-        -- Sammle den State des ersten Buttons jeder Zeile, aber nur, wenn es nicht neutral ist (state = 0)
-        if buttonLine[1].state ~= 0 then
-            lineStates[lineIndex] = buttonLine[1].state
+        -- Sammle den State des ersten Buttons jeder Zeile
+        local state = buttonLine[1].state
+        if not lineStates[state] then
+            lineStates[state] = {}
         end
+        table.insert(lineStates[state], lineIndex)
     end
 
     -- Füge Reimhinweise hinzu basierend auf den States
     local rhymeHints = ""
-    local checkedLines = {}
 
-    -- Überprüfe Zeilen mit denselben Farben
-    for i = 1, #lineStates do
-        if not checkedLines[i] then
-            local rhymeGroup = { i }
-
-            -- Finde alle weiteren Zeilen mit derselben Farbe (State)
-            for j = i + 1, #lineStates do
-                if lineStates[i] == lineStates[j] then
-                    table.insert(rhymeGroup, j)
-                    checkedLines[j] = true -- Markiere als bereits geprüft
-                end
-            end
-
-            -- Schreibe die Reimhinweise nur, wenn mindestens 2 Zeilen dieselbe Farbe haben
-            if #rhymeGroup > 1 then
-                rhymeHints = rhymeHints .. "Lines " .. table.concat(rhymeGroup, " and ") .. " should rhyme.\n"
-            end
+    -- Überprüfe die Zeilen-Gruppen nach Farben
+    for state, rhymeGroup in pairs(lineStates) do
+        if state ~= 0 and #rhymeGroup > 1 then  -- Überspringe den neutralen Zustand (0) und schreibe nur bei mehr als 1 Zeile
+            rhymeHints = rhymeHints .. "Lines " .. table.concat(rhymeGroup, " and ") .. " should rhyme.\n"
         end
     end
 
@@ -247,13 +270,15 @@ local function copyPlaceholdersToClipboard()
         clipboardText = clipboardText .. "\n" .. rhymeHints
     end
 
+    -- Entferne Leerzeichen vor Bindestrichen
+    clipboardText = clipboardText:gsub(" %-", "-")
+
+    -- Entferne alle Bindestriche
+    clipboardText = clipboardText:gsub("%-", "")
+
     -- Kopiere den Text in die Zwischenablage
     reaper.CF_SetClipboard(clipboardText)
 end
-
-
-
-
 
 
 -- Funktion zum Entfernen nicht relevanter Fehlermeldungen und Bereinigung des Timecodes
@@ -316,11 +341,11 @@ local selectedModel = "base"
 
 -- Funktion, um das Item zu kleben und Whisper auszuführen
 function glue_and_transcribe_item(item)
-
     if not item then
         reaper.ShowMessageBox("Fehler: Kein gültiges Item ausgewählt!", "Fehler", 0)
         return
     end
+
     reaper.SetMediaItemSelected(item, true)
     reaper.Undo_BeginBlock()
     reaper.Main_OnCommand(40362, 0) -- Glue the item
@@ -341,6 +366,7 @@ function glue_and_transcribe_item(item)
 
     -- Debug: Zeige den transkribierten Text an
     if transcribed_text then
+       -- reaper.ShowConsoleMsg("Transkribierter Text (von Whisper):\n" .. transcribed_text .. "\n")
         local clean_text = remove_text_before_sprache_and_clean_timecodes(transcribed_text)
         widgets.input.field1.text = clean_text
     else
@@ -351,6 +377,10 @@ function glue_and_transcribe_item(item)
     reaper.Undo_DoUndo2(0)
     reaper.UpdateArrange()
 end
+
+
+
+
 
 function execute_whisper(input_file, language, model)
     -- Überprüfe, ob das Modell korrekt übergeben wurde, sonst Standardmodell setzen
@@ -572,20 +602,34 @@ function transcribe_and_update_field1()
 end
 
 
-----------------------------------------------------------------------------------------------------
------------------------------------------- GUI -----------------------------------------------------
-----------------------------------------------------------------------------------------------------
+
+
+-- @version 0.1.9
+-- @changelog
+--    + Dynamisches Vergrößern des unteren Bereichs (ab "Make Buttons") bei Bedarf
 
 -- Track the button being edited
 local editingButton = nil
 local editingButtonIndex = nil
 local inputBuffer = ""
 
+
+----------------------------------------------------------------------------------------------------
+------------------------------------ GUI --------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+-- Status-Tracker hinzufügen
+local buttonsCreated = false  -- Status-Variable, um zu verfolgen, ob Buttons erstellt wurden
+
 -- Haupt-GUI-Loop
 local function loop()
-    ImGui.SetNextWindowSize(ctx, 1300, 620)
+    -- Dynamische Fenstergröße einstellen
+    if buttonsCreated then
+        ImGui.SetNextWindowSize(ctx, 1300, 620)  -- Erweiterte Fenstergröße, wenn Buttons erstellt wurden
+    else
+        ImGui.SetNextWindowSize(ctx, 1300, 300)  -- Standardgröße, bevor Buttons erstellt wurden
+    end
  
-    local visible, open = ImGui.Begin(ctx, 'ReaLy', true, window_flags)
+    local visible, open = ImGui.Begin(ctx, "ReaLy"..version, true, window_flags)
     if visible then
         -- Push style colors for the window components
         ImGui.PushStyleColor(ctx, ImGui.Col_Border, 0xE35858F0)
@@ -629,9 +673,8 @@ local function loop()
                     ImGui.SetItemDefaultFocus(ctx)
                 end
             end
-            ImGui.EndCombo(ctx)
-        end
-      
+            ImGui.EndCombo(ctx) -- Hier endet die Combo Box
+        end -- Das fehlende end für die Model Combo Box
         -- Import Empty Item Notes Button
         ImGui.SameLine(ctx)
         if ImGui.Button(ctx, 'Import empty item notes') then
@@ -718,7 +761,7 @@ local function loop()
                 reaper.ShowMessageBox("No text entered!", "Error", 0)
             end
         end
-        
+        reaper.ImGui_PopStyleColor(ctx,3)
         ImGui.SameLine(ctx)
         if ImGui.Button(ctx, 'lyrics_to_html') then
             if widgets.input and widgets.input.field1 and widgets.input.field1.text then
@@ -727,19 +770,29 @@ local function loop()
                 reaper.ShowMessageBox("No text entered!", "Error", 0)
             end
         end
-        
-        ImGui.PopStyleColor(ctx, 3)
-           ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
-           ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
+
+        -- Copy Buttons Text to field1
+        ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
+        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
+        reaper.ImGui_SameLine(ctx)
+        if ImGui.Button(ctx, 'Copy Buttons Text to field1') then
+            copyButtonsToField1()
+        end
+        reaper.ImGui_PopStyleColor(ctx,2)
+
+        -- Button to create placeholders from text in field1
+        ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
+        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
         if ImGui.Button(ctx, 'Make Buttons from Text') then
             -- Generate buttons from the text in field1
             widgets.buttons.placeholders = makeButtonsFromWords(widgets.input.field1.text)
-            showStyleAndCopyButtons = true  -- Enable showing style and copy buttons
+            showStyleAndCopyButtons = true
+            buttonsCreated = true  -- Set status to true once buttons are created
         end
         ImGui.PopStyleColor(ctx, 2)
-        -- Add missing buttons for "Style" and "Copy to Clipboard"
+
+        -- Show the style and copy buttons only if buttons have been created
         if showStyleAndCopyButtons then
-            -- Style input field
             ImGui.SameLine(ctx)
             ImGui.Text(ctx, "    Style:")
             ImGui.SameLine(ctx)
@@ -747,145 +800,125 @@ local function loop()
             ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
             ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
             ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x302F2FC6)
-            
-            -- Style input box
+
             ImGui.SetNextItemWidth(ctx, 200)
             local styleChanged, newStyle = ImGui.InputText(ctx, "##style_input", styleBuf)
             if styleChanged then
                 styleBuf = newStyle
             end
-        
-            -- Copy to Clipboard Button
+
             ImGui.SameLine(ctx)
             if ImGui.Button(ctx, 'Copy text buttons to clipboard for chatgpt') then
                 copyPlaceholdersToClipboard()
             end
-        
-            -- Clean up the pushed styles
+
             ImGui.PopStyleColor(ctx, 4)
         end
-      
 
-        -- Editable Buttons Region
-        ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 2, 1)
-        ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
+        -- Editable Buttons Region (only show if buttons are created)
+        if buttonsCreated then
+            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 2, 1)
+            ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
 
-        local button_child_flags = ImGui.WindowFlags_HorizontalScrollbar
-        local button_size_w = 0.0
-        local button_size_h = 300
+            local button_child_flags = ImGui.WindowFlags_HorizontalScrollbar
+            local button_size_w = 0.0
+            local button_size_h = 300
 
-if ImGui.BeginChild(ctx, "ButtonScrollableRegion", button_size_w, button_size_h, 1, button_child_flags) then
-    -- Iterate over generated buttons from text
-    for lineIndex, buttonLine in ipairs(widgets.buttons.placeholders) do
-        for buttonIndex, button in ipairs(buttonLine) do
-            if editingButton == button and editingButtonIndex == buttonIndex then
-                -- Show input field for editing the button label
-                inputBuffer = button.label -- Store the button label in a buffer
-                local retval, newLabel = ImGui.InputText(ctx, '##edit_' .. lineIndex .. '_' .. buttonIndex, inputBuffer, flags)
-                
-                if retval then
-                    button.label = newLabel -- Update label
-                    -- Recalculate button's width based on new label
-                    button.length = ImGui.CalcTextSize(ctx, newLabel) + 8
-                end
+            if ImGui.BeginChild(ctx, "ButtonScrollableRegion", button_size_w, button_size_h, 1, button_child_flags) then
+                for lineIndex, buttonLine in ipairs(widgets.buttons.placeholders) do
+                    for buttonIndex, button in ipairs(buttonLine) do
+                        if editingButton == button and editingButtonIndex == buttonIndex then
+                            inputBuffer = button.label
+                            local retval, newLabel = ImGui.InputText(ctx, '##edit_' .. lineIndex .. '_' .. buttonIndex, inputBuffer, flags)
 
-                if reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Enter(), false) then
-                    -- Split the label at every hyphen and keep the hyphens for display
-                    local parts = {}
-                    for part in newLabel:gmatch("[^%-]+") do
-                        table.insert(parts, part)
+                            if retval then
+                                button.label = newLabel
+                                button.length = ImGui.CalcTextSize(ctx, newLabel) + 8
+                            end
+
+                            if reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Enter(), false) then
+                                local parts = {}
+                                for part in newLabel:gmatch("[^%-]+") do
+                                    table.insert(parts, part)
+                                end
+
+                                if #parts > 1 then
+                                    button.label = parts[1]
+                                    button.length = ImGui.CalcTextSize(ctx, parts[1]) + 8
+                                    table.remove(buttonLine, buttonIndex)
+
+                                    for i, part in ipairs(parts) do
+                                        local newLabelPart = (i == 1) and part or "-" .. part
+                                        table.insert(buttonLine, buttonIndex + i - 1, {
+                                            label = newLabelPart,
+                                            length = ImGui.CalcTextSize(ctx, newLabelPart) + 8,
+                                            placeholder = newLabelPart,
+                                            state = 0
+                                        })
+                                    end
+                                end
+
+                                editingButton = nil
+                                editingButtonIndex = nil
+                            end
+
+                            if ImGui.IsItemDeactivated(ctx) then
+                                editingButton = nil
+                                editingButtonIndex = nil
+                            end
+                        else
+                            ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x222222C6)
+                            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x222222C6)
+                            ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x8B8B8BFF)
+
+                            if ImGui.Button(ctx, button.label .. '##' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
+                                editingButton = button
+                                editingButtonIndex = buttonIndex
+                            end
+                            ImGui.PopStyleColor(ctx, 3)
+                        end
+                        ImGui.SameLine(ctx)
+                    end
+                    ImGui.NewLine(ctx)
+
+                    for buttonIndex, button in ipairs(buttonLine) do
+                        ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
+                        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
+
+                        if ImGui.Button(ctx, button.placeholder .. '##placeholder' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
+                            if button.placeholder == "" then
+                                button.placeholder = button.label
+                            else
+                                button.placeholder = ""
+                            end
+                        end
+
+                        if buttonIndex < #buttonLine then
+                            ImGui.SameLine(ctx)
+                        end
+                        ImGui.PopStyleColor(ctx, 2)
                     end
 
-                    -- Only proceed if we have more than one part
-                    if #parts > 1 then
-                        -- Update the current button with the first part
-                        button.label = parts[1]
-                        button.length = ImGui.CalcTextSize(ctx, parts[1]) + 8
-                        
-                        -- Remove the old button from the current position
-                        table.remove(buttonLine, buttonIndex)
+                    ImGui.SameLine(ctx)
+                    local color = stateColors[buttonLine[1].state]
+                    local colorU32 = packColor(color[1], color[2], color[3], color[4])
+                    ImGui.PushStyleColor(ctx, ImGui.Col_Button, colorU32)
+                    ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, colorU32)
 
-                        -- Insert new buttons for each part
-                        for i, part in ipairs(parts) do
-                            local newLabelPart = (i == 1) and part or "-" .. part -- Add hyphen only for subsequent parts
-                            table.insert(buttonLine, buttonIndex + i - 1, {
-                                label = newLabelPart,
-                                length = ImGui.CalcTextSize(ctx, newLabelPart) + 8,
-                                placeholder = newLabelPart,
-                                state = 0 -- Default state
-                            })
+                    if ImGui.Button(ctx, '##stateButton' .. lineIndex, 20, 18) then
+                        for _, button in ipairs(buttonLine) do
+                            button.state = (button.state + 1) % 5
                         end
                     end
-
-                    -- Stop editing after pressing return
-                    editingButton = nil
-                    editingButtonIndex = nil
+                    ToolTip(ctx,"rhyme group")
+                    ImGui.PopStyleColor(ctx, 2)
+                    ImGui.NewLine(ctx)
                 end
-
-                -- Stop editing when input loses focus
-                if ImGui.IsItemDeactivated(ctx) then
-                    editingButton = nil
-                    editingButtonIndex = nil
-                end
-            else
-                -- Regular button display logic
-                ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x222222C6)
-                ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x222222C6)
-                ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x8B8B8BFF)
-
-                if ImGui.Button(ctx, button.label .. '##' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
-                    -- Enter edit mode for this button
-                    editingButton = button
-                    editingButtonIndex = buttonIndex
-                end
-                ImGui.PopStyleColor(ctx, 3) 
+                ImGui.EndChild(ctx)
             end
-            ImGui.SameLine(ctx)
+
+            ImGui.PopStyleVar(ctx, 2)
         end
-        ImGui.NewLine(ctx)
-
-        -- Placeholder buttons (same as before)
-        for buttonIndex, button in ipairs(buttonLine) do
-            ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
-            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
-
-            if ImGui.Button(ctx, button.placeholder .. '##placeholder' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
-                -- Toggle placeholder state
-                if button.placeholder == "" then
-                    button.placeholder = button.label
-                else
-                    button.placeholder = ""
-                end
-            end
-
-            if buttonIndex < #buttonLine then
-                ImGui.SameLine(ctx)
-            end
-            ImGui.PopStyleColor(ctx, 2)
-        end
-
-        -- Display state buttons for each line (same as before)
-        ImGui.SameLine(ctx)
-        local color = stateColors[buttonLine[1].state]
-        local colorU32 = packColor(color[1], color[2], color[3], color[4])
-        ImGui.PushStyleColor(ctx, ImGui.Col_Button, colorU32)
-        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, colorU32)
-
-        if ImGui.Button(ctx, '##stateButton' .. lineIndex, 20, 18) then
-            for _, button in ipairs(buttonLine) do
-                button.state = (button.state + 1) % 5
-            end
-        end
-        ToolTip(ctx,"rhyme group")
-        ImGui.PopStyleColor(ctx, 2)
-        ImGui.NewLine(ctx)
-    end
-    ImGui.EndChild(ctx)
-end
-
-       
-
-        ImGui.PopStyleVar(ctx, 2)
 
         -- End main window
         ImGui.End(ctx)
@@ -897,9 +930,4 @@ end
 end
 
 reaper.defer(loop)
-
-
-
-
-
 
