@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="987bbf498fe705cdf892a4fe36c659453ce968d0">
+<index version="1" name="dragonetti-reascripts" commit="0c3d0496123edc612adbdd98e372572cb1e00297">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -454,6 +454,14 @@
       <version name="0.2.1" author="Dragonetti" time="2024-11-07T13:20:32Z">
         <changelog><![CDATA[+ split_syllables with pyphen]]></changelog>
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/987bbf498fe705cdf892a4fe36c659453ce968d0/Various/REALY.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Various/ReaLy">
+    <reapack name="ReaLy.lua" type="script">
+      <version name="0.2.1" author="Dragonetti" time="2024-11-07T14:14:13Z">
+        <changelog><![CDATA[+ split_syllables with pyphen]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0c3d0496123edc612adbdd98e372572cb1e00297/Various/ReaLy/ReaLy.lua</source>
       </version>
     </reapack>
   </category>
