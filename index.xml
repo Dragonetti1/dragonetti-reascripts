@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="0c3d0496123edc612adbdd98e372572cb1e00297">
+<index version="1" name="dragonetti-reascripts" commit="fad85d6e3d491517fd090b8998bee83c52adfe66">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -403,57 +403,6 @@
       </metadata>
       <version name="1.0" author="dragonetti" time="2022-10-15T14:17:10Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/19f5206b4cd49bd84e64fde3163c175bda401218/Various/dragonetti_song%20with%20random%20predefinitions.lua</source>
-      </version>
-    </reapack>
-    <reapack name="REALY.lua" type="script">
-      <version name="0.1.0" author="Dragonetti" time="2024-10-15T20:52:30Z">
-        <changelog><![CDATA[+ song lyrics recognitation]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/61be234d8959dab72349aa5403b33ec881ca0a9e/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.1" author="Dragonetti" time="2024-10-15T21:27:46Z">
-        <changelog><![CDATA[+ windows stays on top]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/b71d7abed0acae37e702b8802ce24b1371be1df4/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.2" author="Dragonetti" time="2024-10-16T09:05:04Z">
-        <changelog><![CDATA[+ in the background glue item]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/04fae07738fda2206a890c5aa2925047b7e18c19/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.3" author="Dragonetti" time="2024-10-16T15:52:00Z">
-        <changelog><![CDATA[+ bug fixes]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/92004d9c5d0e420fc3157282a4dc7a11075d758e/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.4" author="Dragonetti" time="2024-10-17T22:29:40Z">
-        <changelog><![CDATA[+ bug fixes]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/feebf1835d1c9641feef5ff1d33d1b284000344a/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.5" author="Dragonetti" time="2024-10-18T22:50:42Z">
-        <changelog><![CDATA[+ improve whisper.exe path edit]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/a1aa6fc986c35a4f2260163153a769e9b3c41226/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.6" author="Dragonetti" time="2024-10-20T08:51:05Z">
-        <changelog><![CDATA[+ docker fixes 
-+ edit word buttons]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/002ed5ae31cf4403502e91534165e03db49a7d35/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.7" author="Dragonetti" time="2024-10-20T12:48:45Z">
-        <changelog><![CDATA[+ little improvements]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/d35a1c09c8109bf92bd86f5adb997faa5f6f0e75/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.8" author="Dragonetti" time="2024-10-20T14:38:56Z">
-        <changelog><![CDATA[+ little improvements]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0d72e97a4749baeaa8aaa630c58626489e1b0d44/Various/REALY.lua</source>
-      </version>
-      <version name="0.1.9" author="Dragonetti" time="2024-10-21T07:44:35Z">
-        <changelog><![CDATA[+ little improvements]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/229ac980f322012c859796692768b83e742847ea/Various/REALY.lua</source>
-      </version>
-      <version name="0.2.0" author="Dragonetti" time="2024-10-22T22:25:49Z">
-        <changelog><![CDATA[+ GUI improvements]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0e65c727bf025646843c2147f34f94a5ef92c8d2/Various/REALY.lua</source>
-      </version>
-      <version name="0.2.1" author="Dragonetti" time="2024-11-07T13:20:32Z">
-        <changelog><![CDATA[+ split_syllables with pyphen]]></changelog>
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/987bbf498fe705cdf892a4fe36c659453ce968d0/Various/REALY.lua</source>
       </version>
     </reapack>
   </category>
