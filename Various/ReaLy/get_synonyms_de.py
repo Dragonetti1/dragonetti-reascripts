@@ -1,3 +1,5 @@
+-- @version 0.1.0
+
 import sys
 import requests
 import random
