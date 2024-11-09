@@ -1,9 +1,5 @@
 -- @version 1.0
-   -- @description get synonyms en
-   -- @author Dein Name
-   -- @provides
-   -- @about
-   --   Dies ist die Beschreibung meines Python-Scripts
+-- @author Dragonetti
 import sys
 import nltk
 import random
