@@ -1,5 +1,5 @@
--- @version 1.0
--- @author Dragonetti
+__version__ = "0.1.0"
+
 import sys
 import nltk
 import random
