@@ -1,4 +1,4 @@
--- @version 0.2.2
+-- @version 0.2.3
 -- @author Dragonetti
 -- @changelog
 --    + split_syllables with pyphen and find synonyms
@@ -6,7 +6,7 @@ function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.2.2"
+version = " 0.2.3"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
@@ -54,9 +54,6 @@ local widgets = {
     },
     buttons = { placeholders = {} } -- Speichern der Placeholder-Buttons
 }
-
-
-
 
 
 function ToolTip(is_tooltip, text)
@@ -123,9 +120,8 @@ local function unsplit_field1()
 end
 
 ----------------------- synonyme ----------------------
--- Funktion zur Synonym-Suche mit einem Python-Skript im gleichen Verzeichnis
 -- Lua function to call the correct Python script based on the selected language
--- Lua function to call the correct Python script based on the selected language
+
 local function get_synonyms_with_nltk(word)
     local script_directory = reaper.GetResourcePath() .. "/Scripts/dragonetti-reascripts/Various/ReaLy/"
     local python_script_path
@@ -158,8 +154,6 @@ local function get_synonyms_with_nltk(word)
 end
 
 
-
-
 -- Update the rotate_synonym_label function to use the button label directly
 local function rotate_synonym_label(button)
     -- Only fetch synonyms on the first right-click
@@ -177,13 +171,7 @@ local function rotate_synonym_label(button)
     button.synonym_index = (button.synonym_index % #button.synonyms) + 1
 end
 
-
-
-
-
-
 --------------------------------------------------------------------------
-
 
 
 function import_selected_empty_items()
@@ -416,8 +404,6 @@ function get_whisper_executable_path()
 end
 
 
-
-
 -- Funktion, um das Item zu kleben und Whisper auszuführen
 function glue_and_transcribe_item(item)
     if not item then
@@ -456,8 +442,6 @@ function glue_and_transcribe_item(item)
     reaper.Undo_DoUndo2(0)
     reaper.UpdateArrange()
 end
-
-
 
 
 
@@ -694,7 +678,6 @@ end
 -------------------------------------------------------------------------------------------
 -- Haupt-GUI-Loop-
 ----------------------------------------------------------
--- Haupt-GUI-Loop
 local function loop()
     -- Dynamische Fenstergröße einstellen
     if buttonsCreated then
