@@ -1,16 +1,12 @@
--- @version 0.2.4
+-- @version 0.2.5
 -- @author Dragonetti
--- @provides 
---    get_synonyms_de.py
---    get_synonyms_en.py
---    pyphen_syllable_splitter.py
 -- @changelog
---    + split_syllables with pyphen and find synonyms
+--    + find synonyms in extra window
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.2.4"
+version = " 0.2.5"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
@@ -147,15 +143,16 @@ local function get_synonyms_with_nltk(word)
     handle:close()
 
     -- Parse the result into a table of synonyms
-    local synonyms = {}
+    synonymsList = {}
     if result and result ~= "" then
         for synonym in result:gmatch("[^,]+") do
-            table.insert(synonyms, synonym:match("^%s*(.-)%s*$"))  -- Trim whitespace
+            table.insert(synonymsList, synonym:match("^%s*(.-)%s*$"))  -- Trim whitespace
         end
     end
 
-    return synonyms
+    return synonymsList
 end
+
 
 
 -- Update the rotate_synonym_label function to use the button label directly
@@ -679,20 +676,22 @@ local function replace_typographic_apostrophes()
     widgets.input.field1.text = widgets.input.field1.text:gsub("′", "'"):gsub("’", "'")
     widgets.input.field2.text = widgets.input.field2.text:gsub("′", "'"):gsub("’", "'")
 end
--------------------------------------------------------------------------------------------
--- Haupt-GUI-Loop-
-----------------------------------------------------------
+
+
+
+
+-- Main GUI Loop
 local function loop()
-    -- Dynamische Fenstergröße einstellen
+    -- Adjust window size dynamically
     if buttonsCreated then
-        ImGui.SetNextWindowSize(ctx, 1300, 620)  -- Erweiterte Fenstergröße, wenn Buttons erstellt wurden
+        ImGui.SetNextWindowSize(ctx, 1300, 620)  -- Extended size if buttons are created
     else
-        ImGui.SetNextWindowSize(ctx, 1300, 300)  -- Standardgröße, bevor Buttons erstellt wurden
+        ImGui.SetNextWindowSize(ctx, 1300, 300)  -- Standard size otherwise
     end
 
     local visible, open = ImGui.Begin(ctx, "ReaLy" .. version, true, window_flags)
     if visible then
-        -- Push style colors for the window components
+        -- Define window component styles
         ImGui.PushStyleColor(ctx, ImGui.Col_Border, 0xE35858F0)
         ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x803232F0)
         ImGui.PushStyleColor(ctx, ImGui.Col_ButtonActive, 0x803232F0)
@@ -752,7 +751,7 @@ local function loop()
         ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x444141c6)
         ImGui.SameLine(ctx)
 
-        -- Toggle-Button zur Silbentrennung und Wiederherstellung
+        -- Toggle Button for Syllable Splitting and Restoring
         if ImGui.Button(ctx, split_state and "Unsplit" or "Split", 80, 20) then
             if split_state then
                 unsplit_field1()
@@ -787,7 +786,7 @@ local function loop()
             ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x444141c6)
             ImGui.SameLine(ctx)
 
-            -- Textfeld 1
+            -- Text Field 1
             local rv1, newText1 = ImGui.InputTextMultiline(ctx, '##field1', widgets.input.field1.text, 574, ImGui.GetTextLineHeight(ctx) * 50)
             if rv1 then
                 newText1 = newText1:gsub("′", "'"):gsub("’", "'")
@@ -795,7 +794,7 @@ local function loop()
             end
 
             ImGui.SameLine(ctx)
-            -- Textfeld 2
+            -- Text Field 2
             local rv2, newText2 = ImGui.InputTextMultiline(ctx, '##field2', widgets.input.field2.text, 30, ImGui.GetTextLineHeight(ctx) * 50)
             if rv2 then
                 widgets.input.field2.text = newText2
@@ -846,21 +845,21 @@ local function loop()
         reaper.ImGui_PopStyleColor(ctx, 3)
         ImGui.SameLine(ctx)
         if ImGui.Button(ctx, 'lyrics_to_html') then
-            if widgets.input and widgets.input.field1 and widgets.input.field1.text then
+            if widgets.input and widgets.input.field1.text then
                 write_text_to_html(widgets.input.field1.text)
             else
                 reaper.ShowMessageBox("No text entered!", "Error", 0)
             end
         end
-        ToolTip(ctx, "here you can send your lyrics to your mobile phone, for example")
+        ToolTip(ctx, "send your lyrics to your mobile device")
 
-        -- Button to create placeholders from text in field1
+        -- Button to create placeholders from text in `field1`
         ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
         ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
         if ImGui.Button(ctx, 'Make Buttons from Text') then
             -- Generate buttons from the text in field1
             widgets.buttons.placeholders = makeButtonsFromWords(widgets.input.field1.text)
-
+        
             -- Initialisiere die Synonym-Index für jeden Button
             for _, buttonLine in ipairs(widgets.buttons.placeholders) do
                 for _, button in ipairs(buttonLine) do
@@ -868,19 +867,19 @@ local function loop()
                     button.synonyms = {}  -- Leere Liste für Synonyme initialisieren
                 end
             end
-
+        
             showStyleAndCopyButtons = true
             buttonsCreated = true  -- Set status to true once buttons are created
         end
-        ImGui.SameLine(ctx)  -- Füge den Button auf dieselbe Zeile
+        ImGui.SameLine(ctx)
         
-        -- Füge den neuen Button hinzu, um die Labels in field1 zu kopieren
+        -- Button to copy button labels to Field1
         if ImGui.Button(ctx, 'Buttontext to Field1') then
             copyButtonsToField1()
         end
         ImGui.PopStyleColor(ctx, 2)
 
-        -- Show the style and copy buttons only if buttons have been created
+        -- Show the style and copy buttons if buttons have been created
         if showStyleAndCopyButtons then
             ImGui.SameLine(ctx)
             ImGui.Text(ctx, "    Style:")
@@ -903,156 +902,166 @@ local function loop()
 
             ImGui.PopStyleColor(ctx, 4)
         end
+        
 
-        -- Editable Buttons Region (only show if buttons are created)
-        if buttonsCreated then
-            ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 2, 1)
-            ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
-
-            local button_child_flags = ImGui.WindowFlags_HorizontalScrollbar
-            local button_size_w = 0.0
-            local button_size_h = 300
-
-            if ImGui.BeginChild(ctx, "ButtonScrollableRegion", button_size_w, button_size_h, 1, button_child_flags) then
-               for lineIndex, buttonLine in ipairs(widgets.buttons.placeholders) do
-                   for buttonIndex, button in ipairs(buttonLine) do
-                       if editingButton == button and editingButtonIndex == buttonIndex then
-                           -- Editiermodus für den Button
-                           inputBuffer = button.label
-                           local retval, newLabel = ImGui.InputText(ctx, '##edit_' .. lineIndex .. '_' .. buttonIndex, inputBuffer, flags)
-               
-                           if retval then
-                               button.label = newLabel
-                               button.length = ImGui.CalcTextSize(ctx, newLabel) + 8
-                           end
-               
-                           -- Überprüfen, ob die Eingabetaste gedrückt wurde, um Änderungen zu übernehmen
-                           if reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Enter(), false) then
-                               -- Falls der Text leer ist, entfernen wir den Button
-                               if newLabel == "" then
-                                   table.remove(buttonLine, buttonIndex)
-                               else
-                                   -- Aufteilen des Labels anhand von Leerzeichen und Bindestrichen
-                                   local parts = {}
-                                   for part in newLabel:gmatch("[^%s%-]+") do
-                                       if newLabel:find("%-" .. part) then
-                                           part = "-" .. part
-                                       end
-                                       table.insert(parts, part)
-                                   end
-               
-                                   if #parts > 1 then
-                                       button.label = parts[1]
-                                       button.length = ImGui.CalcTextSize(ctx, parts[1]) + 8
-                                       table.remove(buttonLine, buttonIndex)
-               
-                                       for i, part in ipairs(parts) do
-                                           table.insert(buttonLine, buttonIndex + i - 1, {
-                                               label = part,
-                                               length = ImGui.CalcTextSize(ctx, part) + 8,
-                                               placeholder = part,
-                                               state = 0
-                                           })
-                                       end
-                                   end
-                               end
-                               editingButton = nil
-                               editingButtonIndex = nil
-                           end
-               
-                           if ImGui.IsItemDeactivated(ctx) then
-                               editingButton = nil
-                               editingButtonIndex = nil
-                           end
-                       else
-                           -- Normaler Button
-                           ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x222222C6)
-                           ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x222222C6)
-                           ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x8B8B8BFF)
-               
-                           if ImGui.Button(ctx, button.label .. '##' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
-                               editingButton = button
-                               editingButtonIndex = buttonIndex
-                           end
-               
-                           -- Rechtsklick, um Synonyme anzuzeigen und in das Feld einzufügen
-                           if ImGui.IsItemClicked(ctx, 1) then
-                               -- Hole aktuelle Synonyme für das aktuelle button.label
-                              
-                               local synonyms = get_synonyms_with_nltk(button.label)
-                               
-                               if #synonyms > 0 then
-                                   -- Zeige bis zu 4 Synonyme an und aktualisiere das Label
-                                   button.synonyms = synonyms
-                                   local displayedSynonyms = {}
-                                  for i = 1, #button.synonyms do
-                                      table.insert(displayedSynonyms, button.synonyms[i])
-                                  end
-                                  
-                                  
-                                   button.label = table.concat(displayedSynonyms, ", ")
-                               else
-                                   reaper.ShowMessageBox("Keine Synonyme gefunden für: " .. button.label, "Info", 0)
-                               end
-                           end
-               
-                           ImGui.PopStyleColor(ctx, 3)
-                       end
-                       ImGui.SameLine(ctx)
-                   end
-                   ImGui.NewLine(ctx)
-             
-               
-
-                    for buttonIndex, button in ipairs(buttonLine) do
-                        ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
-                        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
-
-                        if ImGui.Button(ctx, button.placeholder .. '##placeholder' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
-                            if button.placeholder == "" then
-                                button.placeholder = button.label
-                            else
-                                button.placeholder = ""
-                            end
-                        end
-
-                        if buttonIndex < #buttonLine then
-                            ImGui.SameLine(ctx)
-                        end
-                        ImGui.PopStyleColor(ctx, 2)
-                    end
-
-                    ImGui.SameLine(ctx)
-                    if buttonLine[1] then
-                        local color = stateColors[buttonLine[1].state]
-                        local colorU32 = packColor(color[1], color[2], color[3], color[4])
-                        ImGui.PushStyleColor(ctx, ImGui.Col_Button, colorU32)
-                        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, colorU32)
-
-                        if ImGui.Button(ctx, '##stateButton' .. lineIndex, 20, 18) then
-                            for _, button in ipairs(buttonLine) do
-                                button.state = (button.state + 1) % 5
-                            end
-                        end
-                        ToolTip(ctx, "rhyme group")
-                        ImGui.PopStyleColor(ctx, 2)
-                    end
-
-                    ImGui.NewLine(ctx)
-                end
-                ImGui.EndChild(ctx)
-            end
-
-            ImGui.PopStyleVar(ctx, 2)
-        end
-
-        -- End main window
-        ImGui.End(ctx)
-    end
-
-    if open then
-        reaper.defer(loop)
-    end
-end
-
-reaper.defer(loop)
+     -- Editable Buttons Region (only if buttons are created)
+             if buttonsCreated then
+                 ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 2, 1)
+                 ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
+     
+                 local button_child_flags = ImGui.WindowFlags_HorizontalScrollbar
+                 local button_size_w = 0.0
+                 local button_size_h = 300
+     
+                 if ImGui.BeginChild(ctx, "ButtonScrollableRegion", button_size_w, button_size_h, 1, button_child_flags) then
+                     for lineIndex, buttonLine in ipairs(widgets.buttons.placeholders) do
+                         for buttonIndex, button in ipairs(buttonLine) do
+                             -- Inline Editing for Wordline Buttons
+                             if editingButton == button and editingButtonIndex == buttonIndex then
+                                 -- Render an InputText field to edit the button label
+                                 local retval, newLabel = ImGui.InputText(ctx, '##edit_' .. lineIndex .. '_' .. buttonIndex, button.label, ImGui.InputTextFlags_EnterReturnsTrue)
+                                 if retval then
+                                     -- If Enter is pressed
+                                     if newLabel == "" then
+                                         -- Remove the button if the label is empty
+                                         table.remove(buttonLine, buttonIndex)
+                                     else
+                                         -- Split the label by spaces and hyphens
+                                         local parts = {}
+                                         for part in newLabel:gmatch("[^%s%-]+") do
+                                             if newLabel:find("%-" .. part) then
+                                                 part = "-" .. part
+                                             end
+                                             table.insert(parts, part)
+                                         end
+     
+                                         if #parts > 1 then
+                                             -- Replace the original button with split parts
+                                             table.remove(buttonLine, buttonIndex)
+                                             for i, part in ipairs(parts) do
+                                                 table.insert(buttonLine, buttonIndex + i - 1, {
+                                                     label = part,
+                                                     length = ImGui.CalcTextSize(ctx, part) + 8,
+                                                     placeholder = part,
+                                                     state = 0
+                                                 })
+                                             end
+                                         else
+                                             -- If no split, update the label directly
+                                             button.label = newLabel
+                                             button.length = ImGui.CalcTextSize(ctx, newLabel) + 8
+                                         end
+                                     end
+                                     editingButton = nil  -- Exit edit mode
+                                     editingButtonIndex = nil
+                                 end
+     
+                                 -- Exit edit mode if input is deactivated (e.g., clicking outside)
+                                 if ImGui.IsItemDeactivated(ctx) then
+                                     editingButton = nil
+                                     editingButtonIndex = nil
+                                 end
+                             else
+                                 -- Normal Button Rendering
+                                 ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x222222C6)
+                                 ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x222222C6)
+                                 ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x8B8B8BFF)
+     
+                                 local buttonClicked = ImGui.Button(ctx, button.label .. '##' .. lineIndex .. '_' .. buttonIndex, button.length, 18)
+                                 if buttonClicked then
+                                     editingButton = button
+                                     editingButtonIndex = buttonIndex
+                                 end
+     
+                                 -- Right-click to show synonyms in a separate window
+                                 if ImGui.IsItemClicked(ctx, 1) then
+                                     selectedButton = button
+                                     synonymsList = get_synonyms_with_nltk(button.label)  -- Retrieve synonyms for the word
+                                     showSynonymWindow = true
+                                 end
+     
+                                 ImGui.PopStyleColor(ctx, 3)
+                             end
+                             ImGui.SameLine(ctx)
+                         end
+                         ImGui.NewLine(ctx)
+     
+                         -- Generate placeholder buttons below each word line
+                         for buttonIndex, button in ipairs(buttonLine) do
+                             ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
+                             ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
+     
+                             if ImGui.Button(ctx, button.placeholder .. '##placeholder' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
+                                 if button.placeholder == "" then
+                                     button.placeholder = button.label
+                                 else
+                                     button.placeholder = ""
+                                 end
+                             end
+     
+                             if buttonIndex < #buttonLine then
+                                 ImGui.SameLine(ctx)
+                             end
+                             ImGui.PopStyleColor(ctx, 2)
+                         end
+     
+                         -- Add rhyme group color button at the end of each line
+                         ImGui.SameLine(ctx)
+                         if buttonLine[1] then
+                             local color = stateColors[buttonLine[1].state]
+                             local colorU32 = packColor(color[1], color[2], color[3], color[4])
+                             ImGui.PushStyleColor(ctx, ImGui.Col_Button, colorU32)
+                             ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, colorU32)
+     
+                             if ImGui.Button(ctx, '##stateButton' .. lineIndex, 20, 18) then
+                                 for _, button in ipairs(buttonLine) do
+                                     button.state = (button.state + 1) % 5
+                                 end
+                             end
+                             ToolTip(ctx, "rhyme group")
+                             ImGui.PopStyleColor(ctx, 2)
+                         end
+     
+                         ImGui.NewLine(ctx)
+                     end
+                     ImGui.EndChild(ctx)
+                 end
+     
+                 ImGui.PopStyleVar(ctx, 2)
+             end
+     
+             -- Synonym Selection Window
+             if showSynonymWindow and selectedButton then
+                 local synonymVisible, synonymOpen = ImGui.Begin(ctx, "Select Synonym", true, ImGui.WindowFlags_AlwaysAutoResize)
+                 if synonymVisible then
+                     ImGui.Text(ctx, "Select a synonym for: " .. (selectedButton.label or ""))
+     
+                     for _, synonym in ipairs(synonymsList) do
+                         if ImGui.Button(ctx, synonym) then
+                             -- Update label only after selecting a synonym
+                             selectedButton.label = synonym
+                             selectedButton.length = ImGui.CalcTextSize(ctx, synonym) + 8
+                             showSynonymWindow = false
+                             selectedButton = nil
+                         end
+                     end
+     
+                     -- Option to close the window without selecting a synonym
+                     if ImGui.Button(ctx, "Close") then
+                         showSynonymWindow = false
+                         selectedButton = nil
+                     end
+                     ImGui.End(ctx)
+                 end
+             end
+     
+             -- End main window
+             ImGui.End(ctx)
+         end
+     
+         if open then
+             reaper.defer(loop)
+         end
+     end
+     
+     reaper.defer(loop)
