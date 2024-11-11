@@ -1,15 +1,17 @@
--- @version 0.2.5
+-- @version 0.2.6
 -- @author Dragonetti
 -- @changelog
---    + find synonyms in extra window
+--    + arial font bug fixes
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.2.5"
+version = " 0.2.6"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
+font = reaper.ImGui_CreateFont('arial', 15 )
+
 -- Define the stateColors table before using it
 local stateColors = {
     [0] = { 0.0, 0.3, 0.5, 0.6 },  -- neutral (standard)
@@ -34,7 +36,7 @@ local selectedLanguage = "en"
 local selectedModel = "base"
 -- Erzeuge den ImGui-Kontext, falls noch nicht geschehen
 local ctx = ImGui.CreateContext("ReaLy")  -- More unique context name
-
+ImGui.Attach(ctx, font)
 -- Setze die Flags für das Fenster
 local window_flags = ImGui.WindowFlags_AlwaysAutoResize |
                      ImGui.WindowFlags_NoCollapse |
@@ -677,16 +679,17 @@ local function replace_typographic_apostrophes()
     widgets.input.field2.text = widgets.input.field2.text:gsub("′", "'"):gsub("’", "'")
 end
 
-
-
-
+---------------------------------------
+------------------------------
+------------------------------------
 -- Main GUI Loop
 local function loop()
+    reaper.ImGui_PushFont(ctx,font)
     -- Adjust window size dynamically
     if buttonsCreated then
         ImGui.SetNextWindowSize(ctx, 1300, 620)  -- Extended size if buttons are created
     else
-        ImGui.SetNextWindowSize(ctx, 1300, 300)  -- Standard size otherwise
+        ImGui.SetNextWindowSize(ctx, 1300, 320)  -- Standard size otherwise
     end
 
     local visible, open = ImGui.Begin(ctx, "ReaLy" .. version, true, window_flags)
@@ -698,6 +701,7 @@ local function loop()
         ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0xCC6868F0)
         ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x803232F0)
         ImGui.PushStyleColor(ctx, ImGui.Col_FrameBgHovered, 0x803232F0)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFFFFFFFF)
 
         -- Transcribe Selected Audio Button
         if ImGui.Button(ctx, 'Transcribe Selected Audio') then
@@ -744,7 +748,7 @@ local function loop()
             import_selected_empty_items()
         end
 
-        ImGui.PopStyleColor(ctx, 6)
+        ImGui.PopStyleColor(ctx, 7)
         ImGui.SameLine(ctx)
 
         ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x444141c6)
@@ -763,7 +767,7 @@ local function loop()
         ToolTip(ctx, "split with pyphen select language")
 
         ImGui.SameLine(ctx)
-        reaper.ImGui_InvisibleButton(ctx, "#a", 20, 20, 1)
+        reaper.ImGui_InvisibleButton(ctx, "#a", 60, 20, 1)
         ImGui.SameLine(ctx)
 
         -- Syllable Buttons
@@ -967,7 +971,7 @@ local function loop()
                                  ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x222222C6)
                                  ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x8B8B8BFF)
      
-                                 local buttonClicked = ImGui.Button(ctx, button.label .. '##' .. lineIndex .. '_' .. buttonIndex, button.length, 18)
+                                 local buttonClicked = ImGui.Button(ctx, button.label .. '##' .. lineIndex .. '_' .. buttonIndex, button.length, 19)
                                  if buttonClicked then
                                      editingButton = button
                                      editingButtonIndex = buttonIndex
@@ -984,14 +988,14 @@ local function loop()
                              end
                              ImGui.SameLine(ctx)
                          end
-                         ImGui.NewLine(ctx)
+                        ImGui.NewLine(ctx)
      
                          -- Generate placeholder buttons below each word line
                          for buttonIndex, button in ipairs(buttonLine) do
                              ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
                              ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
      
-                             if ImGui.Button(ctx, button.placeholder .. '##placeholder' .. lineIndex .. '_' .. buttonIndex, button.length, 18) then
+                             if ImGui.Button(ctx, button.placeholder .. '##placeholder' .. lineIndex .. '_' .. buttonIndex, button.length, 19) then
                                  if button.placeholder == "" then
                                      button.placeholder = button.label
                                  else
@@ -1022,7 +1026,12 @@ local function loop()
                              ImGui.PopStyleColor(ctx, 2)
                          end
      
-                         ImGui.NewLine(ctx)
+                       
+                         
+                       ImGui.Dummy(ctx, 0, 4)
+                         
+                         -- Restore the previous item spacing
+                     
                      end
                      ImGui.EndChild(ctx)
                  end
@@ -1058,7 +1067,7 @@ local function loop()
              -- End main window
              ImGui.End(ctx)
          end
-     
+         reaper.ImGui_PopFont(ctx)
          if open then
              reaper.defer(loop)
          end
