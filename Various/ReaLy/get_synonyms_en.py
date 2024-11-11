@@ -1,4 +1,3 @@
-__version__ = "0.1.1"
 import sys
 import nltk
 import random
