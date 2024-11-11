@@ -1,12 +1,16 @@
--- @version 0.2.3
+-- @version 0.2.4
 -- @author Dragonetti
+-- @provides 
+--    get_synonyms_de.py
+--    get_synonyms_en.py
+--    pyphen_syllable_splitter.py
 -- @changelog
 --    + split_syllables with pyphen and find synonyms
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.2.3"
+version = " 0.2.4"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
