@@ -1,4 +1,4 @@
--- @version 0.2.7
+-- @version 0.2.8
 -- @author Dragonetti
 -- @changelog
 --    +  bug fixes
@@ -6,7 +6,7 @@ function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.2.6"
+version = " 0.2.8"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
@@ -419,7 +419,6 @@ function get_whisper_executable_path()
 end
 
 
--- Funktion, um das Item zu kleben und Whisper auszuführen
 function glue_and_transcribe_item(item)
     if not item then
         reaper.ShowMessageBox("Fehler: Kein gültiges Item ausgewählt!", "Fehler", 0)
@@ -454,9 +453,9 @@ function glue_and_transcribe_item(item)
     end
 
     reaper.Undo_EndBlock("Glue and Whisper", -1)
-    reaper.Undo_DoUndo2(0)
     reaper.UpdateArrange()
 end
+
 
 
 
