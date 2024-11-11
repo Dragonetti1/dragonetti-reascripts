@@ -1,7 +1,7 @@
--- @version 0.2.6
+-- @version 0.2.7
 -- @author Dragonetti
 -- @changelog
---    + arial font bug fixes
+--    +  bug fixes
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
@@ -263,6 +263,18 @@ function create_empty_item_on_lyrics_track(item_start, item_length)
     else
         reaper.ShowMessageBox("Leeres Item konnte nicht erstellt werden!", "Fehler", 0)
         return nil
+    end
+end
+
+-- Function to write text into the notes of a media item
+function write_text_to_item_notes(item, text)
+    if item ~= nil then
+        -- Write the text into the notes section of the media item
+        reaper.GetSetMediaItemInfo_String(item, "P_NOTES", text, true)
+        -- Update the arrangement to reflect the change
+        reaper.UpdateArrange()
+    else
+        reaper.ShowMessageBox("Kein gültiges Item ausgewählt!", "Fehler", 0)
     end
 end
 
