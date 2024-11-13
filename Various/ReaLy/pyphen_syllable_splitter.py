@@ -1,5 +1,5 @@
-
-
+@noindex
+@version 1.1.1
 
 import pyphen
 import sys

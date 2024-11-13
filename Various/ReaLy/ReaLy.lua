@@ -1,4 +1,4 @@
--- @version 0.3.0
+-- @version 0.3.1
 -- @author Dragonetti
 -- @provides 
 --    get_synonyms_de.py
@@ -10,7 +10,7 @@ function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.3.0"
+version = " 0.3.1"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
