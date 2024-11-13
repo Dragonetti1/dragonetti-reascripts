@@ -1,4 +1,6 @@
-__version__ = "0.1.1"
+# @version 0.1.1
+# @author Dragonetti
+# @about This script search for german synonyms .
 import sys
 import requests
 import random
@@ -16,10 +18,10 @@ def get_synonyms(word):
             for term in synset.get("terms", []):
                 synonyms.add(term["term"])
         
-        # Convert to list, shuffle, and limit to 8 synonyms
+        # Convert to list, shuffle, and limit to 16 synonyms
         synonyms = list(synonyms)
         random.shuffle(synonyms)
-        return synonyms[:8]  # Return up to 8 synonyms
+        return synonyms[:16]  # Return up to 16 synonyms
     else:
         print("Error:", response.status_code)
         return []

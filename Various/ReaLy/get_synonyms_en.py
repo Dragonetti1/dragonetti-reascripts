@@ -1,25 +1,29 @@
-__version__ = "0.1.1"
-import sys
-import nltk
-import random
-from nltk.corpus import wordnet
+# @version 0.1.1
+# @author Dragonetti
+# @about This script search for english synonyms .
 
-# Download WordNet if not already downloaded
-nltk.download('wordnet', quiet=True)
+import sys
+import requests
 
 def get_synonyms(word):
-    synonyms = set()
-    for syn in wordnet.synsets(word):
-        for lemma in syn.lemmas():
-            synonyms.add(lemma.name())
-    # Convert to list and shuffle to get a random selection
-    synonyms = list(synonyms)
-    random.shuffle(synonyms)
-    return synonyms[:8]  # Return up to 8 synonyms
+    try:
+        # Anfrage an die Datamuse API, um Synonyme zu erhalten
+        response = requests.get(f"https://api.datamuse.com/words?rel_syn={word}")
+        # Überprüfen, ob die Anfrage erfolgreich war
+        if response.status_code == 200:
+            # Extrahiere die Wörter aus der Antwort
+            words = [item['word'] for item in response.json()]
+            return words[:24]  # Gibt bis zu 24 Begriffe zurück
+        else:
+            print(f"Error: Received status code {response.status_code}")
+            return []
+    except Exception as e:
+        print(f"Error fetching data from Datamuse API: {e}")
+        return []
 
-# Ensure a word is provided; if not, exit silently
+# Hauptprogramm
 if len(sys.argv) > 1:
     word = sys.argv[1]
     synonyms = get_synonyms(word)
     if synonyms:
-        print(",".join(synonyms))  # Print synonyms as a comma-separated string
+        print(",".join(synonyms))  # Gibt Synonyme als komma-separierte Zeichenkette aus
