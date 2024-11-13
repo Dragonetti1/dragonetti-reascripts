@@ -1,6 +1,3 @@
-# @version 0.1.1
-# @author Dragonetti
-# @about This script search for german synonyms .
 import sys
 import requests
 import random
