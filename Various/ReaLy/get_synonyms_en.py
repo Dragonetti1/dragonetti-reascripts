@@ -1,3 +1,5 @@
+# @noindex
+# @version 1.1.1
 import sys
 import requests
 
