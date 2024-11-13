@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="933c805d53a0250a1a7939863f2eb204f788016f">
+<index version="1" name="dragonetti-reascripts" commit="e3bcb10f26038c366668dc44fbcbf752455b10ca">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -408,18 +408,54 @@
   </category>
   <category name="Various/ReaLy">
     <reapack name="get_synonyms_de.py" type="script">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script search for german synonyms .\par}
+}
+]]></description>
+      </metadata>
       <version name="0.1.0" time="2024-11-09T00:26:26Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/92ef24fcc1050655a380b62592abfc3749f35550/Various/ReaLy/get_synonyms_de.py</source>
       </version>
+      <version name="0.1.1" author="Dragonetti" time="2024-11-13T12:08:24Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/e3bcb10f26038c366668dc44fbcbf752455b10ca/Various/ReaLy/get_synonyms_de.py</source>
+      </version>
     </reapack>
     <reapack name="get_synonyms_en.py" type="script">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script search for english synonyms .\par}
+}
+]]></description>
+      </metadata>
       <version name="1.0" author="Dragonetti" time="2024-11-09T00:30:52Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/42f33b3d33925654a3d4bc9e0b487bf5e5a3b7e4/Various/ReaLy/get_synonyms_en.py</source>
       </version>
+      <version name="0.1.1" author="Dragonetti" time="2024-11-13T12:08:24Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/e3bcb10f26038c366668dc44fbcbf752455b10ca/Various/ReaLy/get_synonyms_en.py</source>
+      </version>
     </reapack>
-    <reapack name="pyphen_syllable_splitter.py" type="script">
+    <reapack name="pyphen_syllable_splitter.py" type="script" desc="Syllable Splitter for ReaPack">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 This script splits text into syllables using pyphen library for specified languages.\par}
+}
+]]></description>
+      </metadata>
       <version name="0.1.0" time="2024-11-09T00:26:26Z">
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/92ef24fcc1050655a380b62592abfc3749f35550/Various/ReaLy/pyphen_syllable_splitter.py</source>
+      </version>
+      <version name="0.1.1" author="Dragonetti" time="2024-11-13T12:08:24Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/e3bcb10f26038c366668dc44fbcbf752455b10ca/Various/ReaLy/pyphen_syllable_splitter.py</source>
       </version>
     </reapack>
     <reapack name="ReaLy.lua" type="script">
