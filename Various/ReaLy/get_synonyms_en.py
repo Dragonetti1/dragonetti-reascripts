@@ -1,6 +1,4 @@
-# @version 0.1.1
-# @author Dragonetti
-# @about This script search for english synonyms .
+
 
 import sys
 import requests

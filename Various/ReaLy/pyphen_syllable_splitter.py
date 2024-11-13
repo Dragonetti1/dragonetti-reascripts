@@ -1,7 +1,4 @@
-# @version 0.1.1
-# @description Syllable Splitter for ReaPack
-# @author Dragonetti
-# @about This script splits text into syllables using pyphen library for specified languages.
+
 
 
 import pyphen
