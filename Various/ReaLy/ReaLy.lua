@@ -1,16 +1,17 @@
--- @version 0.3.2
+-- @version 0.3.3
 -- @author Dragonetti
 -- @provides 
 --    get_synonyms_de.py
 --    get_synonyms_en.py
 --    pyphen_syllable_splitter.py
+--    translate_to_german.py
 -- @changelog
---    +  bug fixes
+--    +  hide placeholder and translate to german
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.3.2"
+version = " 0.3.3"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
@@ -327,29 +328,38 @@ local function copyPlaceholdersToClipboard()
     -- Tabelle, um die Zeilen-States zu sammeln, um Reimhinweise hinzuzufügen
     local lineStates = {}
 
+    -- Variable für dynamisches Zählen der Zeilen
+    local dynamicLineIndex = 1
+
     -- Iteriere über jede Zeile der Placeholder-Buttons
-    for lineIndex, buttonLine in ipairs(widgets.buttons.placeholders) do
-        local lineText = ""
-        for _, button in ipairs(buttonLine) do
-            -- Wenn kein Placeholder-Text vorhanden ist, füge (monosyllabic) hinzu
-            if button.placeholder == "" then
-                lineText = lineText .. "(monosyllabic) "
-            else
-                lineText = lineText .. button.placeholder .. " "
+    for _, buttonLine in ipairs(widgets.buttons.placeholders) do
+        -- Check if buttonLine exists and has buttons
+        if buttonLine and #buttonLine > 0 then
+            local lineText = ""
+            for _, button in ipairs(buttonLine) do
+                -- Wenn kein Placeholder-Text vorhanden ist, füge (monosyllabic) hinzu
+                if button.placeholder == "" then
+                    lineText = lineText .. "(monosyllabic) "
+                else
+                    lineText = lineText .. button.placeholder .. " "
+                end
             end
-        end
-        -- Entferne das letzte Leerzeichen und füge die Zeilennummer hinzu
-        lineText = lineText:sub(1, -2) .. " (" .. lineIndex .. ")" -- Zeilennummer am Ende hinzufügen
+            -- Entferne das letzte Leerzeichen und füge die dynamische Zeilennummer hinzu
+            lineText = lineText:sub(1, -2) .. " (" .. dynamicLineIndex .. ")"  -- Dynamische Zeilennummer am Ende hinzufügen
 
-        -- Füge die fertige Zeile zum Clipboard-Text hinzu
-        clipboardText = clipboardText .. lineText .. "\n"
+            -- Füge die fertige Zeile zum Clipboard-Text hinzu
+            clipboardText = clipboardText .. lineText .. "\n"
 
-        -- Sammle den State des ersten Buttons jeder Zeile
-        local state = buttonLine[1].state
-        if not lineStates[state] then
-            lineStates[state] = {}
+            -- Sammle den State des ersten Buttons jeder Zeile
+            local state = buttonLine[1].state or 0  -- Use 0 as default if state is nil
+            if not lineStates[state] then
+                lineStates[state] = {}
+            end
+            table.insert(lineStates[state], dynamicLineIndex)
+
+            -- Erhöhe den dynamischen Zeilenindex für die nächste Zeile
+            dynamicLineIndex = dynamicLineIndex + 1
         end
-        table.insert(lineStates[state], lineIndex)
     end
 
     -- Füge Reimhinweise hinzu basierend auf den States
@@ -376,6 +386,28 @@ local function copyPlaceholdersToClipboard()
     -- Kopiere den Text in die Zwischenablage
     reaper.CF_SetClipboard(clipboardText)
 end
+
+local function translate_text_to_german()
+    -- Get the text from field1 and replace newlines with a placeholder
+    local text_to_translate = widgets.input.field1.text:gsub("\n", "NEWLINE_MARKER")
+
+    -- Path to the Python translation script
+    local script_directory = reaper.GetResourcePath() .. "/Scripts/dragonetti-reascripts/Various/ReaLy"
+    local python_script_path = script_directory .. "/translate_to_german.py"
+
+    -- Run the Python script and pass the modified text as an argument
+    local command = string.format('python "%s" "%s"', python_script_path, text_to_translate)
+    local handle = io.popen(command)
+    local translated_text = handle:read("*a")
+    handle:close()
+
+    -- Replace the placeholder with newlines again in the translated text
+    translated_text = translated_text:gsub("NEWLINE_MARKER", "\n")
+    
+    -- Set the translated text into field4
+    widgets.input.field4.text = translated_text
+end
+
 
 
 
@@ -702,10 +734,12 @@ local function replace_typographic_apostrophes()
     widgets.input.field2.text = widgets.input.field2.text:gsub("′", "'"):gsub("’", "'")
 end
 
+
+
+local showPlaceholders = false  -- Default to show placeholders initially
 ---------------------------------------
 ------------------------------
 ------------------------------------
--- Main GUI Loop
 local function loop()
     reaper.ImGui_PushFont(ctx, font)
 
@@ -803,6 +837,11 @@ local function loop()
         if ImGui.Button(ctx, 'Syl##2', 30, 20) then
             widgets.input.field3.text = countSyllablesPerLine(widgets.input.field4.text)
         end
+        reaper.ImGui_SameLine(ctx)
+        if ImGui.Button(ctx, 'Translate Field1 to German',180,20) then
+            translate_text_to_german()
+        end
+        ToolTip(ctx, "Translate English text in Field1 to German and place it in Field4")
         ImGui.PopStyleColor(ctx, 2)
 
         -- Scrollable Text Fields Area
@@ -849,9 +888,9 @@ local function loop()
         end
 
         -- Button to transfer text to an empty item
-        ImGui.PushStyleColor(ctx, ImGui.Col_Border, 0x34D632AA)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Border, 0x3F3F3FFF)
         ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x1A6E19AA)
-        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x34D632AA)
+        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0xFFFFFFFF)
 
         if ImGui.Button(ctx, 'text to empty item') then
             if widgets.input and widgets.input.field1 and widgets.input.field1.text then
@@ -870,7 +909,7 @@ local function loop()
                 reaper.ShowMessageBox("No text entered!", "Error", 0)
             end
         end
-        reaper.ImGui_PopStyleColor(ctx, 3)
+        
         ImGui.SameLine(ctx)
         if ImGui.Button(ctx, 'lyrics_to_html') then
             if widgets.input and widgets.input.field1.text then
@@ -879,6 +918,7 @@ local function loop()
                 reaper.ShowMessageBox("No text entered!", "Error", 0)
             end
         end
+        reaper.ImGui_PopStyleColor(ctx, 3)
         ToolTip(ctx, "send your lyrics to your mobile device")
 
         -- Button to create placeholders from text in `field1`
@@ -901,21 +941,23 @@ local function loop()
         end
         ImGui.SameLine(ctx)
         
-        -- Button to copy button labels to Field1
-        if ImGui.Button(ctx, 'Buttontext to Field1') then
-            copyButtonsToField1()
-        end
+        
+        
         ImGui.PopStyleColor(ctx, 2)
 
         -- Show the style and copy buttons if buttons have been created
         if showStyleAndCopyButtons then
-            ImGui.SameLine(ctx)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Border, 0x302F2FC6)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
+        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
+        ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x302F2FC6)
+            if ImGui.Button(ctx, 'Buttontext to Field1') then
+                copyButtonsToField1()
+            end
+            reaper.ImGui_SameLine(ctx)
             ImGui.Text(ctx, "    Style:")
             ImGui.SameLine(ctx)
-            ImGui.PushStyleColor(ctx, ImGui.Col_Border, 0x302F2FC6)
-            ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
-            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
-            ImGui.PushStyleColor(ctx, ImGui.Col_FrameBg, 0x302F2FC6)
+            
 
             ImGui.SetNextItemWidth(ctx, 200)
             local styleChanged, newStyle = ImGui.InputText(ctx, "##style_input", styleBuf)
@@ -927,12 +969,24 @@ local function loop()
             if ImGui.Button(ctx, 'Copy text buttons to clipboard for chatgpt') then
                 copyPlaceholdersToClipboard()
             end
-
+            if ImGui.Button(ctx, showPlaceholders and "Hide Placeholders" or "Show Placeholders") then
+                showPlaceholders = not showPlaceholders  -- Toggle the visibility state
+            end
             ImGui.PopStyleColor(ctx, 4)
         end
         
+        
+        --------------------------------------------------------------------------
+        -----------------------------------------------------------------------
+        
+        
+        
         -- Editable Buttons Region (only if buttons are created)
         if buttonsCreated then
+        
+        
+           
+                   
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_ItemSpacing, 2, 1)
             ImGui.PushStyleVar(ctx, ImGui.StyleVar_FrameRounding, 2)
         
@@ -947,42 +1001,49 @@ local function loop()
                         if editingButton == button and editingButtonIndex == buttonIndex then
                             -- Render an InputText field to edit the button label
                             local retval, newLabel = ImGui.InputText(ctx, '##edit_' .. lineIndex .. '_' .. buttonIndex, button.label, ImGui.InputTextFlags_EnterReturnsTrue)
-                        
+                           if reaper.ImGui_IsKeyPressed(ctx, reaper.ImGui_Key_Enter()) and not ImGui.IsItemActive(ctx) then
+                                   editingButton = nil  -- Exit edit mode
+                                   editingButtonIndex = nil
+                               end
                            if retval then
                                   -- If Enter is pressed
                                   if newLabel == "" then
                                       -- Remove the button if the label is empty
                                       table.remove(buttonLine, buttonIndex)
+                                      -- Remove line if it’s empty
+                                      if #buttonLine == 0 then
+                                          table.remove(widgets.buttons.placeholders, lineIndex)
+                                      end
                                   else
-                                    -- Split the label by spaces and hyphens
-                                                local parts = {}
-                                                for part in newLabel:gmatch("[^%s%-]+") do
-                                                    if newLabel:find("%-" .. part) then
-                                                        part = "-" .. part
-                                                    end
-                                                    table.insert(parts, part)
-                                                end
-                                                if #parts > 1 then
-                                                    -- Replace the original button with split parts
-                                                    table.remove(buttonLine, buttonIndex)
-                                                    for i, part in ipairs(parts) do
-                                                        table.insert(buttonLine, buttonIndex + i - 1, {
-                                                            label = part,
-                                                            length = ImGui.CalcTextSize(ctx, part) + 8,
-                                                            placeholder = part,  -- Sync placeholder with label
-                                                            state = 0
-                                                        })
-                                                    end
-                                                else
-                                       -- If no split, update the label directly
-                                                       button.label = newLabel
-                                                       button.length = ImGui.CalcTextSize(ctx, newLabel) + 8
-                                                       button.placeholder = newLabel  -- **ÄNDERUNG HIER: Sync placeholder with label**
-                                                   end
-                                               end
-                                               editingButton = nil  -- Exit edit mode
-                                               editingButtonIndex = nil
-                                           end
+                                      -- Split the label by spaces and hyphens
+                                      local parts = {}
+                                      for part in newLabel:gmatch("[^%s%-]+") do
+                                          if newLabel:find("%-" .. part) then
+                                              part = "-" .. part
+                                          end
+                                          table.insert(parts, part)
+                                      end
+                                      if #parts > 1 then
+                                          -- Replace the original button with split parts
+                                          table.remove(buttonLine, buttonIndex)
+                                          for i, part in ipairs(parts) do
+                                              table.insert(buttonLine, buttonIndex + i - 1, {
+                                                  label = part,
+                                                  length = ImGui.CalcTextSize(ctx, part) + 8,
+                                                  placeholder = part,  -- Sync placeholder with label
+                                                  state = 0
+                                              })
+                                          end
+                                      else
+                                          -- If no split, update the label directly
+                                          button.label = newLabel
+                                          button.length = ImGui.CalcTextSize(ctx, newLabel) + 8
+                                          button.placeholder = newLabel  -- Sync placeholder with label
+                                      end
+                                  end
+                                  editingButton = nil  -- Exit edit mode
+                                  editingButtonIndex = nil
+                              end
        
                            -- Exit edit mode if input is deactivated (e.g., clicking outside)
                                if ImGui.IsItemDeactivated(ctx) then
@@ -992,10 +1053,17 @@ local function loop()
                            
                         else
                             -- Normal Button Rendering
-                            ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x222222C6)
+                            ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x2A2A2AFF)
                             ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x222222C6)
-                            ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0x8B8B8BFF)
-       
+                            ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFFFFFFFF)
+
+                            -- Check for labels that start with a hyphen and adjust spacing accordingly
+                           
+                            -- Wenn das Label mit einem Bindestrich beginnt, setze den Cursor näher an den Rand
+                            if button.label:sub(1, 1) == "-" then
+                                local posX, posY = ImGui.GetCursorPos(ctx)
+                                ImGui.SetCursorPos(ctx, posX - 4, posY)  -- Den linken Rand um 4 Pixel nach links verschieben
+                            end
                             local buttonClicked = ImGui.Button(ctx, button.label .. '##' .. lineIndex .. '_' .. buttonIndex, button.length, 19)
                             if buttonClicked then
                                 editingButton = button
@@ -1005,6 +1073,10 @@ local function loop()
                             -- Alt + Left Click to delete button
                             if reaper.ImGui_IsKeyDown(ctx, reaper.ImGui_Key_LeftAlt()) and ImGui.IsItemClicked(ctx, 0) then
                                 table.remove(buttonLine, buttonIndex)
+                                -- Remove line if it’s empty after deletion
+                                if #buttonLine == 0 then
+                                    table.remove(widgets.buttons.placeholders, lineIndex)
+                                end
                             end
        
                             -- Right-click to show synonyms in a separate window
@@ -1020,24 +1092,21 @@ local function loop()
                     end
                     ImGui.NewLine(ctx)
        
-                    -- Generate placeholder buttons below each word line
-                    for buttonIndex, button in ipairs(buttonLine) do
-                        ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
-                        ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
-       
-                        if ImGui.Button(ctx, button.placeholder .. '##placeholder' .. lineIndex .. '_' .. buttonIndex, button.length, 19) then
-                            if button.placeholder == "" then
-                                button.placeholder = button.label
-                            else
-                                button.placeholder = ""
-                            end
-                        end
-       
-                        if buttonIndex < #buttonLine then
-                            ImGui.SameLine(ctx)
-                        end
-                        ImGui.PopStyleColor(ctx, 2)
-                    end
+                    if showPlaceholders then
+                                        for buttonIndex, button in ipairs(buttonLine) do
+                                            ImGui.PushStyleColor(ctx, ImGui.Col_Button, 0x302F2FC6)
+                                            ImGui.PushStyleColor(ctx, ImGui.Col_ButtonHovered, 0x302F2FC6)
+                                            if ImGui.Button(ctx, button.placeholder .. '##placeholder' .. lineIndex .. '_' .. buttonIndex, button.length, 19) then
+                                                if button.placeholder == "" then
+                                                    button.placeholder = button.label
+                                                else
+                                                    button.placeholder = ""
+                                                end
+                                            end
+                                            ImGui.PopStyleColor(ctx, 2)
+                                            ImGui.SameLine(ctx)
+                                        end
+                                    end
        
                     -- Add rhyme group color button at the end of each line
                     ImGui.SameLine(ctx)
@@ -1081,7 +1150,7 @@ local function loop()
                     if ImGui.Button(ctx, synonym) then
                         -- Update label and placeholder with the selected synonym
                         selectedButton.label = synonym
-                        selectedButton.placeholder = synonym  -- **ÄNDERUNG HIER: Synchronisiere placeholder mit dem Synonym**
+                        selectedButton.placeholder = synonym  -- Sync placeholder with synonym
                         selectedButton.length = ImGui.CalcTextSize(ctx, synonym) + 8
                         showSynonymWindow = false
                         selectedButton = nil
