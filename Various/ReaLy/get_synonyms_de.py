@@ -2,7 +2,6 @@
 
 import sys
 import requests
-import random
 
 def get_synonyms(word):
     # API-URL mit deutschem Thesaurus
@@ -18,10 +17,9 @@ def get_synonyms(word):
             for term in synset.get("terms", []):
                 synonyms.add(term["term"])
         
-        # Konvertiere zu Liste, mische und begrenze auf 16 Synonyme
+        # Konvertiere zu Liste und begrenze auf 32 Synonyme
         synonyms = list(synonyms)
-        random.shuffle(synonyms)
-        return synonyms[:16]  # Maximal 16 Synonyme zurückgeben
+        return synonyms[:32]  # Maximal 32 Synonyme zurückgeben
     except requests.exceptions.RequestException as e:
         print(f"Fehler bei der API-Anfrage: {e}", file=sys.stderr)
         return []

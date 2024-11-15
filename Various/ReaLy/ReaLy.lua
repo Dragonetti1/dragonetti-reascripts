@@ -1,4 +1,4 @@
--- @version 0.3.4
+-- @version 0.3.5
 -- @author Dragonetti
 -- @provides 
 --    get_synonyms_de.py
@@ -11,7 +11,7 @@ function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.3.4"
+version = " 0.3.5"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
@@ -1164,17 +1164,25 @@ local function loop()
         end
 
         if showSynonymWindow and selectedButton then
-            -- Add the NoDocking flag to window_flags
-            local window_flags = window_flags or 0
-            window_flags = window_flags | reaper.ImGui_WindowFlags_NoDocking()
+            -- Add the NoDocking and AlwaysOnTop flags to window_flags
+            local window_flags = reaper.ImGui_WindowFlags_NoDocking() |
+                                 reaper.ImGui_WindowFlags_AlwaysAutoResize() |
+                                 reaper.ImGui_WindowFlags_NoCollapse() |
+                                 reaper.ImGui_WindowFlags_TopMost()
         
+            -- Fokussiere das Fenster, um sicherzustellen, dass es oben bleibt
+            reaper.ImGui_SetNextWindowFocus(ctx)
+        
+            -- Begin the synonym selection window
             local synonymVisible, synonymOpen = ImGui.Begin(ctx, "Select Synonym", showSynonymWindow, window_flags)
-            
+        
             -- Update showSynonymWindow if the window is closed
             showSynonymWindow = synonymOpen
         
             if synonymVisible then
                 ImGui.Text(ctx, "Select a synonym for: " .. (selectedButton.label or ""))
+        
+                ImGui.Separator(ctx) -- Optional: fügt eine Linie zur Trennung hinzu
         
                 for _, synonym in ipairs(synonymsList) do
                     if ImGui.Button(ctx, synonym) then
@@ -1182,13 +1190,14 @@ local function loop()
                         selectedButton.label = synonym
                         selectedButton.placeholder = synonym  -- Sync placeholder with synonym
                         selectedButton.length = ImGui.CalcTextSize(ctx, synonym) + 8
-                        showSynonymWindow = false
+                        showSynonymWindow = false -- Close the window
                         selectedButton = nil
                     end
-                end
+                end 
                 ImGui.End(ctx)
             end
         end
+        
         
 
         -- End main window

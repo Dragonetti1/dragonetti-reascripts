@@ -11,7 +11,7 @@ def get_synonyms(word):
         if response.status_code == 200:
             # Extrahiere die Wörter aus der Antwort
             words = [item['word'] for item in response.json()]
-            return words[:24]  # Gibt bis zu 24 Begriffe zurück
+            return words[:32]  # Gibt bis zu 32 Begriffe zurück
         else:
             print(f"Error: Received status code {response.status_code}")
             return []
