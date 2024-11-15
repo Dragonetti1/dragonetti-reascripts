@@ -1,6 +1,5 @@
 # @noindex
 
-
 import pyphen
 import sys
 

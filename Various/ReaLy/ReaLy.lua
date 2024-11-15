@@ -1,4 +1,4 @@
--- @version 0.3.3
+-- @version 0.3.4
 -- @author Dragonetti
 -- @provides 
 --    get_synonyms_de.py
@@ -6,12 +6,12 @@
 --    pyphen_syllable_splitter.py
 --    translate_to_german.py
 -- @changelog
---    +  hide placeholder and translate to german
+--    +  bug fixes
 function Msg(variable)
   reaper.ShowConsoleMsg(tostring(variable).."\n")
 end
 
-version = " 0.3.3"
+version = " 0.3.4"
 
 package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'
 local ImGui = require 'imgui' ('0.9.2')
@@ -54,7 +54,7 @@ local showStyleAndCopyButtons = false
 -- Tabellen zum Speichern der Texteingaben und Button-Status
 local widgets = {
     input = {
-        field1 = { text = "happy \nsad \nhappy" }, -- Beispieltext für Textfeld 1
+        field1 = { text = "They tumble blindly as they make their way across the universe" }, -- Beispieltext für Textfeld 1
         field2 = { text = "" }, -- Ausgabe der Zählung für Textfeld 1
         field3 = { text = "" }, -- Ausgabe der Zählung für Textfeld 4
         field4 = { text = "" }, -- Textfeld 4 für die Silbenzählung
@@ -405,6 +405,7 @@ local function translate_text_to_german()
     translated_text = translated_text:gsub("NEWLINE_MARKER", "\n")
     
     -- Set the translated text into field4
+    widgets.input.field4.text = widgets.input.field4.text or ""
     widgets.input.field4.text = translated_text
 end
 
@@ -723,6 +724,21 @@ function transcribe_and_update_field1()
 end
 
 
+local function safe_utf8_codes(text)
+    local success, result = pcall(function()
+        local sanitized_text = ""
+        for _, char in utf8.codes(text or "") do
+            local valid_char = utf8.char(char)
+            sanitized_text = sanitized_text .. (valid_char or "?") -- Ersetze ungültige Zeichen
+        end
+        return sanitized_text
+    end)
+    return success and result or ""
+end
+
+
+
+
 
 -- Track the button being edited
 local editingButton = nil
@@ -734,7 +750,9 @@ local function replace_typographic_apostrophes()
     widgets.input.field2.text = widgets.input.field2.text:gsub("′", "'"):gsub("’", "'")
 end
 
-
+if not widgets.input.field4 then
+    widgets.input.field4 = { text = "" }
+end
 
 local showPlaceholders = false  -- Default to show placeholders initially
 ---------------------------------------
@@ -877,11 +895,23 @@ local function loop()
             end
 
             ImGui.SameLine(ctx)
-            local rv4, newText4 = ImGui.InputTextMultiline(ctx, '##field4', widgets.input.field4.text, 574, ImGui.GetTextLineHeight(ctx) * 50)
-            if rv4 then
-                newText4 = newText4:gsub("′", "'"):gsub("’", "'")
-                widgets.input.field4.text = newText4
+            local text_field4 = widgets.input.field4.text or ""
+            
+            -- Prüfe, ob der Text gültig ist
+            if not utf8.len(text_field4) then
+                text_field4 = "Ungültige Eingabe"
             end
+            
+            -- Bereinige den Text
+            text_field4 = safe_utf8_codes(text_field4)
+            
+            -- Übergib den bereinigten Text an ImGui
+            local rv4, newText4 = ImGui.InputTextMultiline(ctx, '##field4', text_field4, 574, ImGui.GetTextLineHeight(ctx) * 50)
+            if rv4 then
+                newText4 = safe_utf8_codes(newText4 or "")
+                widgets.input.field4.text = newText4:gsub("′", "'"):gsub("’", "'")
+            end
+            
 
             ImGui.PopStyleColor(ctx)
             ImGui.EndChild(ctx)
