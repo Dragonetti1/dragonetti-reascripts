@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="8f17ce65614b2662d2cde554d695408ca0a27bb6">
+<index version="1" name="dragonetti-reascripts" commit="0ba34556543f9bdde53dc3099a193464b6d10a72">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -469,6 +469,14 @@
         <source file="get_synonyms_en.py">https://github.com/Dragonetti1/dragonetti-reascripts/raw/8f17ce65614b2662d2cde554d695408ca0a27bb6/Various/ReaLy/get_synonyms_en.py</source>
         <source file="pyphen_syllable_splitter.py">https://github.com/Dragonetti1/dragonetti-reascripts/raw/8f17ce65614b2662d2cde554d695408ca0a27bb6/Various/ReaLy/pyphen_syllable_splitter.py</source>
         <source file="translate_to_german.py">https://github.com/Dragonetti1/dragonetti-reascripts/raw/8f17ce65614b2662d2cde554d695408ca0a27bb6/Various/ReaLy/translate_to_german.py</source>
+      </version>
+      <version name="0.3.5" author="Dragonetti" time="2024-11-15T11:49:29Z">
+        <changelog><![CDATA[+  bug fixes]]></changelog>
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0ba34556543f9bdde53dc3099a193464b6d10a72/Various/ReaLy/ReaLy.lua</source>
+        <source file="get_synonyms_de.py">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0ba34556543f9bdde53dc3099a193464b6d10a72/Various/ReaLy/get_synonyms_de.py</source>
+        <source file="get_synonyms_en.py">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0ba34556543f9bdde53dc3099a193464b6d10a72/Various/ReaLy/get_synonyms_en.py</source>
+        <source file="pyphen_syllable_splitter.py">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0ba34556543f9bdde53dc3099a193464b6d10a72/Various/ReaLy/pyphen_syllable_splitter.py</source>
+        <source file="translate_to_german.py">https://github.com/Dragonetti1/dragonetti-reascripts/raw/0ba34556543f9bdde53dc3099a193464b6d10a72/Various/ReaLy/translate_to_german.py</source>
       </version>
     </reapack>
   </category>
