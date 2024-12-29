@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="0ba34556543f9bdde53dc3099a193464b6d10a72">
+<index version="1" name="dragonetti-reascripts" commit="d9b2e831c9fbdaa22f2b37fde67d4d8b795f064d">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -405,6 +405,11 @@
         <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/19f5206b4cd49bd84e64fde3163c175bda401218/Various/dragonetti_song%20with%20random%20predefinitions.lua</source>
       </version>
     </reapack>
+    <reapack name="touchscreen_item_edit.lua" type="script" desc=": edit item with touchscreen">
+      <version name="1.0.0" author="Dragonetti" time="2024-12-29T12:16:02Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/d9b2e831c9fbdaa22f2b37fde67d4d8b795f064d/Various/touchscreen_item_edit.lua</source>
+      </version>
+    </reapack>
   </category>
   <category name="Various/ReaLy">
     <reapack name="ReaLy.lua" type="script">
@@ -481,7 +486,7 @@
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
