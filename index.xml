@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="dragonetti-reascripts" commit="d9b2e831c9fbdaa22f2b37fde67d4d8b795f064d">
+<index version="1" name="dragonetti-reascripts" commit="ea511a07cb14bcaf617f61591eb317a5147e260a">
   <category name="Items Editing">
     <reapack name="dragonetti_chordsymbol to midi.lua" type="script" desc="item notes chord to midi">
       <metadata>
@@ -406,8 +406,8 @@
       </version>
     </reapack>
     <reapack name="touchscreen_item_edit.lua" type="script" desc=": edit item with touchscreen">
-      <version name="1.0.0" author="Dragonetti" time="2024-12-29T12:16:02Z">
-        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/d9b2e831c9fbdaa22f2b37fde67d4d8b795f064d/Various/touchscreen_item_edit.lua</source>
+      <version name="1.0.0" author="Dragonetti" time="2024-12-29T12:23:59Z">
+        <source main="main">https://github.com/Dragonetti1/dragonetti-reascripts/raw/ea511a07cb14bcaf617f61591eb317a5147e260a/Various/touchscreen_item_edit.lua</source>
       </version>
     </reapack>
   </category>
